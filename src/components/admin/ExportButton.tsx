@@ -9,9 +9,13 @@ export default function ExportButton({ submissions }: ExportButtonProps) {
   function handleExport() {
     const data = submissions.map((s) => ({
       'Volunteer Name': s.volunteerName,
+      'Phone': s.volunteerPhone || '',
+      'Email': s.volunteerEmail || '',
       Address: s.address,
       Latitude: s.latitude,
       Longitude: s.longitude,
+      'Posting Method': s.postingMethod || '',
+      'Sign Count': s.signCount || 1,
       Notes: s.notes,
       'Photo URL': s.photoUrl,
       'Created At': s.createdAt?.toDate?.()?.toISOString() || '',

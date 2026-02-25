@@ -672,6 +672,16 @@ textarea:focus {
   text-overflow: ellipsis;
 }
 
+.contact-cell {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.contact-cell .email-text {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
 .actions-cell {
   display: flex;
   gap: 6px;

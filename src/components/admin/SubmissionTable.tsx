@@ -4,6 +4,12 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import SubmissionEditModal from './SubmissionEditModal';
 import type { SignSubmission } from '../../types';
 
+const METHOD_LABELS: Record<string, string> = {
+  fence: 'Fence',
+  tPost: 'T-Post',
+  other: 'Other',
+};
+
 interface SubmissionTableProps {
   submissions: SignSubmission[];
 }
@@ -34,7 +40,10 @@ export default function SubmissionTable({ submissions }: SubmissionTableProps) {
             <tr>
               <th>Photo</th>
               <th>Volunteer</th>
+              <th>Contact</th>
               <th>Address</th>
+              <th>Method</th>
+              <th>Signs</th>
               <th>Notes</th>
               <th>Date</th>
               <th>Actions</th>
@@ -49,7 +58,13 @@ export default function SubmissionTable({ submissions }: SubmissionTableProps) {
                   )}
                 </td>
                 <td>{sub.volunteerName}</td>
+                <td className="contact-cell">
+                  {sub.volunteerPhone && <div>{sub.volunteerPhone}</div>}
+                  {sub.volunteerEmail && <div className="email-text">{sub.volunteerEmail}</div>}
+                </td>
                 <td className="address-cell">{sub.address}</td>
+                <td>{METHOD_LABELS[sub.postingMethod] || sub.postingMethod || '—'}</td>
+                <td>{sub.signCount || 1}</td>
                 <td>{sub.notes}</td>
                 <td>{sub.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}</td>
                 <td className="actions-cell">

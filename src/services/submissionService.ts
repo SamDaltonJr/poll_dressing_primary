@@ -33,7 +33,7 @@ export async function createSubmission(input: SignSubmissionInput): Promise<stri
 
 export async function updateSubmission(
   id: string,
-  data: Partial<Pick<SignSubmission, 'volunteerName' | 'notes' | 'address'>>
+  data: Partial<Pick<SignSubmission, 'volunteerName' | 'volunteerPhone' | 'volunteerEmail' | 'notes' | 'address' | 'postingMethod' | 'signCount'>>
 ): Promise<void> {
   await updateDoc(doc(db, COLLECTION, id), {
     ...data,
