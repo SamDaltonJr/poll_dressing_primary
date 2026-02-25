@@ -9,6 +9,7 @@ export default function AccessCodeGate({ children }: AccessCodeGateProps) {
   const { isValid, error, validate } = useAccessCode();
   const [code, setCode] = useState('');
   const [checking, setChecking] = useState(false);
+  const [showCode, setShowCode] = useState(false);
 
   if (isValid) return <>{children}</>;
 
@@ -25,14 +26,24 @@ export default function AccessCodeGate({ children }: AccessCodeGateProps) {
         <h2>Volunteer Access</h2>
         <p>Enter the access code to submit a sign placement.</p>
         <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Access code"
-            required
-            autoFocus
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showCode ? 'text' : 'password'}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Access code"
+              required
+              autoFocus
+            />
+            <button
+              type="button"
+              className="toggle-visibility"
+              onClick={() => setShowCode(!showCode)}
+              aria-label={showCode ? 'Hide code' : 'Show code'}
+            >
+              {showCode ? 'Hide' : 'Show'}
+            </button>
+          </div>
           <button type="submit" className="btn btn-primary" disabled={checking}>
             {checking ? 'Verifying...' : 'Enter'}
           </button>

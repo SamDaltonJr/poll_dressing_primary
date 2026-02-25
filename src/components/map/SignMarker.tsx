@@ -1,26 +1,34 @@
 import { Marker, Popup } from 'react-leaflet';
-import type { SignSubmission } from '../../types';
+import { createMarkerIcon } from '../../config/constants';
+import type { MapMarker } from '../../types';
 
 interface SignMarkerProps {
-  submission: SignSubmission;
+  marker: MapMarker;
 }
 
-export default function SignMarker({ submission }: SignMarkerProps) {
+const SIZE_LABELS = { S: 'Small', M: 'Medium', L: 'Large' } as const;
+
+export default function SignMarker({ marker }: SignMarkerProps) {
+  const icon = createMarkerIcon(marker.type, marker.size);
+
   return (
-    <Marker position={[submission.latitude, submission.longitude]}>
+    <Marker position={[marker.latitude, marker.longitude]} icon={icon}>
       <Popup maxWidth={280}>
         <div className="marker-popup">
-          {submission.photoUrl && (
+          {marker.photoUrl && (
             <img
-              src={submission.photoUrl}
+              src={marker.photoUrl}
               alt="Sign placement"
               className="marker-popup-photo"
             />
           )}
           <div className="marker-popup-info">
-            <strong>{submission.volunteerName}</strong>
-            <p className="marker-popup-address">{submission.address}</p>
-            {submission.notes && <p className="marker-popup-notes">{submission.notes}</p>}
+            <strong>{marker.label}</strong>
+            <p className="marker-popup-address">{marker.address}</p>
+            {marker.size && (
+              <p className="marker-popup-size">Size: {SIZE_LABELS[marker.size]}</p>
+            )}
+            {marker.notes && <p className="marker-popup-notes">{marker.notes}</p>}
           </div>
         </div>
       </Popup>

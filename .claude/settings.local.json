@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(gh:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(npm run deploy:*)",
+      "WebFetch(domain:nominatim.openstreetmap.org)",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:www.latlong.net)",
+      "WebFetch(domain:geocoding.geo.census.gov)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(python3:*)",
+      "Bash(/c/Python311/python.exe -c:*)",
+      "Bash(PYTHONIOENCODING=utf-8 /c/Python311/python.exe:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(powershell -Command \"\\(Get-Item ''C:\\\\Users\\\\spdal\\\\Documents\\\\big_sign_mapper\\\\Volunteer_Instructions.pdf''\\).Length / 1KB\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\spdal\\\\Documents\\\\big_sign_mapper\\\\Volunteer_Instructions.pdf\")",
+      "Bash(start:*)"
+    ]
+  }
+}

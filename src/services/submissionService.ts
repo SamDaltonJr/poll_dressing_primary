@@ -11,10 +11,14 @@ const COLLECTION = 'submissions';
 export async function createSubmission(input: SignSubmissionInput): Promise<string> {
   const docRef = await addDoc(collection(db, COLLECTION), {
     volunteerName: input.volunteerName,
+    volunteerPhone: input.volunteerPhone,
+    volunteerEmail: input.volunteerEmail,
     notes: input.notes,
     latitude: input.latitude,
     longitude: input.longitude,
     address: input.address,
+    postingMethod: input.postingMethod,
+    signCount: input.signCount,
     photoUrl: '',
     photoPath: '',
     createdAt: serverTimestamp(),
