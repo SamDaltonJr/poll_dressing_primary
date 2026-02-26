@@ -180,6 +180,28 @@ body {
   font-weight: 500;
 }
 
+.filter-progress {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.filter-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 2px;
+  font-size: 0.75rem;
+}
+
+.filter-legend-label {
+  color: var(--color-text-muted);
+  margin-right: 4px;
+}
+
 /* === Custom Marker Icons === */
 .custom-marker {
   background: transparent !important;
@@ -196,14 +218,6 @@ body {
   max-width: 250px;
 }
 
-.marker-popup-photo {
-  width: 100%;
-  max-height: 150px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-
 .marker-popup-info strong {
   display: block;
   margin-bottom: 2px;
@@ -215,16 +229,50 @@ body {
   margin-bottom: 4px;
 }
 
-.marker-popup-size {
-  font-size: 0.8rem;
+.marker-popup-type {
+  font-size: 0.75rem;
   color: var(--color-text-muted);
-  margin-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.marker-popup-size {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
-.marker-popup-notes {
-  font-size: 0.85rem;
-  font-style: italic;
+.marker-popup-volunteer {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.marker-popup-btn {
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* === Dressing Status Badge === */
+.dressing-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+
+.dressing-status.dressed {
+  background: #dcfce7;
+  color: var(--color-success);
+}
+
+.dressing-status.undressed {
+  background: #fef2f2;
+  color: var(--color-danger);
 }
 
 /* === Buttons === */
@@ -285,7 +333,7 @@ body {
   font-size: 0.8rem;
 }
 
-/* === Access Gate === */
+/* === Access Gate (admin login page) === */
 .access-gate {
   flex: 1;
   display: flex;
@@ -375,20 +423,8 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* === Submission Form === */
-.submission-form {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 24px 16px;
-  width: 100%;
-}
-
-.submission-form h2 {
-  margin-bottom: 20px;
-}
-
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-group label {
@@ -396,161 +432,6 @@ textarea:focus {
   font-weight: 600;
   margin-bottom: 6px;
   font-size: 0.9rem;
-}
-
-.submission-success {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.submission-success h2 {
-  color: var(--color-success);
-  margin-bottom: 8px;
-}
-
-.submission-success p {
-  color: var(--color-text-muted);
-  margin-bottom: 24px;
-}
-
-/* === Location Picker === */
-.location-picker {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.location-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.tab {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: var(--color-bg);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  font-family: inherit;
-  transition: background 0.15s, color 0.15s;
-}
-
-.tab:not(:last-child) {
-  border-right: 1px solid var(--color-border);
-}
-
-.tab.active {
-  background: var(--color-surface);
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.location-mode-content {
-  padding: 16px;
-}
-
-.selected-location {
-  padding: 12px 16px;
-  background: #f0fdf4;
-  border-top: 1px solid var(--color-border);
-  font-size: 0.85rem;
-  color: var(--color-success);
-}
-
-.mini-map {
-  height: 250px;
-  border-radius: var(--radius);
-  margin-top: 8px;
-}
-
-.pin-drop-map .search-hint {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-/* === GPS Button === */
-.gps-button-wrapper {
-  text-align: center;
-}
-
-.gps-button-wrapper .btn {
-  width: 100%;
-}
-
-/* === Address Search === */
-.address-search {
-  position: relative;
-}
-
-.address-results {
-  list-style: none;
-  border: 1px solid var(--color-border);
-  border-top: none;
-  border-radius: 0 0 var(--radius) var(--radius);
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.address-results li {
-  padding: 10px 12px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.address-results li:last-child {
-  border-bottom: none;
-}
-
-.address-results li:hover {
-  background: var(--color-bg);
-}
-
-.search-hint {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-top: 4px;
-}
-
-/* === Photo Uploader === */
-.photo-uploader {
-  text-align: center;
-}
-
-.photo-upload-label {
-  display: inline-block;
-  padding: 12px 24px;
-  background: var(--color-bg);
-  border: 2px dashed var(--color-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  transition: border-color 0.15s;
-  width: 100%;
-}
-
-.photo-upload-label:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.photo-upload-label input {
-  display: none;
-}
-
-.photo-preview {
-  margin-top: 12px;
-}
-
-.photo-preview img {
-  max-width: 100%;
-  max-height: 200px;
-  border-radius: var(--radius);
-  margin-bottom: 8px;
 }
 
 /* === Admin === */
@@ -586,11 +467,6 @@ textarea:focus {
   text-align: center;
 }
 
-.stat-card-wide {
-  grid-column: 1 / -1;
-  text-align: left;
-}
-
 .stat-number {
   font-size: 2rem;
   font-weight: 700;
@@ -602,34 +478,74 @@ textarea:focus {
   color: var(--color-text-muted);
 }
 
-.stat-detail {
-  font-size: 0.9rem;
-  margin-bottom: 4px;
-}
-
-.area-list {
-  list-style: none;
+/* === Progress Bar === */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
   margin-top: 8px;
+  overflow: hidden;
 }
 
-.area-list li {
+.progress-fill {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* === Filter Tabs (admin) === */
+.filter-tabs {
   display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--color-border);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.filter-tab {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
   font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  transition: background 0.15s, color 0.15s;
 }
 
-.area-list li:last-child {
-  border-bottom: none;
+.filter-tab:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
-.area-count {
+.filter-tab.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+/* === Status Badges (admin table) === */
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-primary);
 }
 
-/* === Submissions Table === */
+.status-dressed {
+  background: #dcfce7;
+  color: var(--color-success);
+}
+
+.status-undressed {
+  background: #fef2f2;
+  color: var(--color-danger);
+}
+
+/* === Table === */
 .table-wrapper {
   overflow-x: auto;
   background: var(--color-surface);
@@ -656,13 +572,6 @@ textarea:focus {
   font-size: 0.8rem;
   text-transform: uppercase;
   color: var(--color-text-muted);
-}
-
-.table-thumb {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  border-radius: 4px;
 }
 
 .address-cell {
@@ -707,7 +616,9 @@ textarea:focus {
 }
 
 .confirm-dialog,
-.edit-modal {
+.edit-modal,
+.dressing-modal,
+.access-modal {
   background: var(--color-surface);
   border-radius: var(--radius);
   padding: 24px;
@@ -726,8 +637,22 @@ textarea:focus {
   margin-top: 16px;
 }
 
-.edit-modal h3 {
+.edit-modal h3,
+.dressing-modal h3,
+.access-modal h3 {
   margin-bottom: 16px;
+}
+
+.dressing-modal-location {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.access-modal p {
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+  font-size: 0.9rem;
 }
 
 /* === Loading === */
@@ -795,10 +720,6 @@ textarea:focus {
     font-size: 0.8rem;
   }
 
-  .submission-form {
-    padding: 16px 12px;
-  }
-
   .admin-header {
     flex-direction: column;
     align-items: flex-start;
@@ -812,15 +733,14 @@ textarea:focus {
     font-size: 0.8rem;
   }
 
-  .table-thumb {
-    width: 36px;
-    height: 36px;
-  }
-
   .map-filter {
     top: 8px;
     right: 8px;
     padding: 8px 10px;
     font-size: 0.8rem;
+  }
+
+  .filter-tabs {
+    flex-wrap: wrap;
   }
 }

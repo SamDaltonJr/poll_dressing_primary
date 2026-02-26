@@ -1,9 +1,9 @@
-import type { MapMarker } from '../types';
+import type { RawMapMarker } from '../types';
 
 // Election Day polling locations across Dallas, Tarrant, Denton, Collin, Parker, Ellis, Rockwall, and Kaufman counties
 // Geocoded via US Census Bureau API with manual fallback for unresolvable addresses
 
-const electionDayLocations: MapMarker[] = [
+const electionDayLocations: RawMapMarker[] = [
   {
     id: 'ed-V2941',
     type: 'electionDay',

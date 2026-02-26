@@ -1,10 +1,10 @@
-import type { MapMarker } from '../types';
+import type { RawMapMarker } from '../types';
 
 // Early Voting locations across Dallas, Tarrant, Denton, Collin, Parker, Ellis, Rockwall, and Kaufman counties
 // Geocoded via US Census Bureau API with manual fallback for unresolvable addresses
 // Tier 1 (300+ Dem ballots) = Large, Tier 2 (150-299) = Medium, Tier 3/4 = Small
 
-const pollingLocations: MapMarker[] = [
+const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E3605',
     type: 'earlyVoting',

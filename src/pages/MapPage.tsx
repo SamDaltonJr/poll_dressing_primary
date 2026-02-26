@@ -1,23 +1,21 @@
 import { useState, useMemo } from 'react';
 import MapView from '../components/map/MapView';
 import MapFilter from '../components/map/MapFilter';
+import DressingModal from '../components/map/DressingModal';
+import AccessCodeModal from '../components/common/AccessCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { useSubmissions } from '../hooks/useSubmissions';
+import { useDressings } from '../hooks/useDressings';
+import { useAccessCode } from '../hooks/useAccessCode';
 import { MARKER_TYPES } from '../config/constants';
-import pollingLocations from '../config/pollingLocations';
-import electionDayLocations from '../config/electionDayLocations';
+import { allLocations } from '../config/categorizeLocations';
 import type { MapMarker, MarkerType } from '../types';
 
-// Nudge markers that share the same coordinates so they sit side-by-side
-// instead of stacking on top of each other.
-// Offset is ~30 meters in longitude — enough to see both dots at street-level zoom.
-const OFFSET = 0.0003; // ~30m at Dallas latitude
+const OFFSET = 0.0003;
 
 function spreadOverlappingMarkers(markers: MapMarker[]): MapMarker[] {
   const coordKey = (m: MapMarker) =>
     `${m.latitude.toFixed(4)},${m.longitude.toFixed(4)}`;
 
-  // Group markers by rounded coordinate
   const groups = new Map<string, MapMarker[]>();
   for (const m of markers) {
     const key = coordKey(m);
@@ -31,7 +29,6 @@ function spreadOverlappingMarkers(markers: MapMarker[]): MapMarker[] {
     if (group.length === 1) {
       result.push(group[0]);
     } else {
-      // Spread markers in a horizontal line around the center
       const half = (group.length - 1) / 2;
       for (let i = 0; i < group.length; i++) {
         result.push({
@@ -44,7 +41,6 @@ function spreadOverlappingMarkers(markers: MapMarker[]): MapMarker[] {
   return result;
 }
 
-// Initialize active types from the registry defaults
 function getDefaultActiveTypes(): Set<MarkerType> {
   const types = new Set<MarkerType>();
   for (const [type, config] of Object.entries(MARKER_TYPES)) {
@@ -54,76 +50,112 @@ function getDefaultActiveTypes(): Set<MarkerType> {
 }
 
 export default function MapPage() {
-  const { submissions, loading } = useSubmissions();
+  const { dressings, loading } = useDressings();
+  const { isValid: hasAccess } = useAccessCode();
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
+  const [dressingTarget, setDressingTarget] = useState<MapMarker | null>(null);
+  const [showAccessModal, setShowAccessModal] = useState(false);
 
-  // Convert sign submissions to unified MapMarker format and merge all data sources
   const allMarkers = useMemo<MapMarker[]>(() => {
-    const signMarkers: MapMarker[] = submissions.map((sub) => ({
-      id: sub.id,
-      type: 'sign' as MarkerType,
-      latitude: sub.latitude,
-      longitude: sub.longitude,
-      label: sub.volunteerName,
-      address: sub.address,
-      photoUrl: sub.photoUrl,
-      notes: sub.notes,
-    }));
+    return spreadOverlappingMarkers(allLocations);
+  }, []);
 
-    const combined = [...signMarkers, ...pollingLocations, ...electionDayLocations];
-    return spreadOverlappingMarkers(combined);
-  }, [submissions]);
-
-  // Count markers per type
-  const counts = useMemo(() => {
-    const c: Record<MarkerType, number> = { sign: 0, earlyVoting: 0, electionDay: 0 };
-    for (const m of allMarkers) {
-      c[m.type] = (c[m.type] || 0) + 1;
+  const dressedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of dressings) {
+      if (d.isDressed) set.add(d.locationId);
     }
-    return c;
-  }, [allMarkers]);
+    return set;
+  }, [dressings]);
 
-  // Filter markers by active types
+  const stats = useMemo(() => {
+    const s: Record<MarkerType, { total: number; dressed: number }> = {
+      dualSite: { total: 0, dressed: 0 },
+      earlyVotingOnly: { total: 0, dressed: 0 },
+      electionDayOnly: { total: 0, dressed: 0 },
+    };
+    for (const m of allMarkers) {
+      s[m.type].total++;
+      if (dressedIds.has(m.id)) s[m.type].dressed++;
+    }
+    return s;
+  }, [allMarkers, dressedIds]);
+
   const filteredMarkers = useMemo(
     () => allMarkers.filter((m) => activeTypes.has(m.type)),
-    [allMarkers, activeTypes]
-  );
-
-  // Split filtered markers: signs always visible (no clustering), polling clustered
-  const signMarkers = useMemo(
-    () => filteredMarkers.filter((m) => m.type === 'sign'),
-    [filteredMarkers]
-  );
-  const pollingMarkers = useMemo(
-    () => filteredMarkers.filter((m) => m.type !== 'sign'),
-    [filteredMarkers]
+    [allMarkers, activeTypes],
   );
 
   function handleToggle(type: MarkerType) {
     setActiveTypes((prev) => {
       const next = new Set(prev);
-      if (next.has(type)) {
-        next.delete(type);
-      } else {
-        next.add(type);
-      }
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
       return next;
     });
   }
 
+  function handleDressClick(marker: MapMarker) {
+    if (hasAccess) {
+      setDressingTarget(marker);
+    } else {
+      setDressingTarget(marker);
+      setShowAccessModal(true);
+    }
+  }
+
+  function handleAccessSuccess() {
+    setShowAccessModal(false);
+  }
+
+  function handleDressed() {
+    setDressingTarget(null);
+  }
+
+  function handleCloseModals() {
+    setDressingTarget(null);
+    setShowAccessModal(false);
+  }
+
   if (loading) return <LoadingSpinner message="Loading map data..." />;
+
+  const totalDressed = stats.dualSite.dressed + stats.earlyVotingOnly.dressed + stats.electionDayOnly.dressed;
+  const totalLocations = stats.dualSite.total + stats.earlyVotingOnly.total + stats.electionDayOnly.total;
 
   return (
     <div className="map-page">
-      <MapView signMarkers={signMarkers} pollingMarkers={pollingMarkers} />
-      <MapFilter activeTypes={activeTypes} onToggle={handleToggle} counts={counts} />
+      <MapView
+        markers={filteredMarkers}
+        dressedIds={dressedIds}
+        dressings={dressings}
+        onDressClick={handleDressClick}
+        hasAccess={hasAccess}
+      />
+      <MapFilter activeTypes={activeTypes} onToggle={handleToggle} stats={stats} />
       <div className="map-legend">
-        <span>{counts.sign} sign{counts.sign !== 1 ? 's' : ''}</span>
+        <span>{totalDressed}/{totalLocations} sites dressed</span>
         <span className="legend-sep">|</span>
-        <span>{counts.earlyVoting} early voting</span>
+        <span>{stats.dualSite.dressed}/{stats.dualSite.total} EV+ED</span>
         <span className="legend-sep">|</span>
-        <span>{counts.electionDay} election day</span>
+        <span>{stats.earlyVotingOnly.dressed}/{stats.earlyVotingOnly.total} EV only</span>
+        <span className="legend-sep">|</span>
+        <span>{stats.electionDayOnly.dressed}/{stats.electionDayOnly.total} ED only</span>
       </div>
+
+      {showAccessModal && (
+        <AccessCodeModal
+          onSuccess={handleAccessSuccess}
+          onClose={handleCloseModals}
+        />
+      )}
+
+      {dressingTarget && !showAccessModal && hasAccess && (
+        <DressingModal
+          marker={dressingTarget}
+          onClose={handleCloseModals}
+          onDressed={handleDressed}
+        />
+      )}
     </div>
   );
 }

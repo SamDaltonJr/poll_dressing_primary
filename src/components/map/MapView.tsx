@@ -1,51 +1,47 @@
+import { useMemo } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
-import SignMarker from './SignMarker';
-import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION, MARKER_TYPES } from '../../config/constants';
-import type { MapMarker } from '../../types';
+import PollingMarker from './PollingMarker';
+import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
+import type { MapMarker, DressingRecord } from '../../types';
 
 interface MapViewProps {
-  signMarkers: MapMarker[];
-  pollingMarkers: MapMarker[];
+  markers: MapMarker[];
+  dressedIds: Set<string>;
+  dressings: DressingRecord[];
+  onDressClick: (marker: MapMarker) => void;
+  hasAccess: boolean;
 }
 
-/** Build a colored cluster icon whose ring reflects the mix of marker types inside. */
+const GREEN = '#16a34a';
+const RED = '#dc2626';
+
+/** Build a cluster icon whose ring shows green (dressed) vs red (undressed) proportion. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createClusterIcon(cluster: any): L.DivIcon {
   const children = cluster.getAllChildMarkers();
   const count = children.length;
 
-  // Count each polling type by inspecting the marker icon HTML
-  let evCount = 0;
-  let edCount = 0;
+  let dressedCount = 0;
   for (const child of children) {
-    const icon = child.getIcon();
-    const html = (icon.options as L.DivIconOptions).html ?? '';
-    // Early voting markers use #dc2626 (red); election day use #9333ea (purple)
-    if (typeof html === 'string' && html.includes(MARKER_TYPES.earlyVoting.color)) {
-      evCount++;
-    } else {
-      edCount++;
+    const html = (child.getIcon().options as L.DivIconOptions).html ?? '';
+    if (typeof html === 'string' && html.includes(GREEN)) {
+      dressedCount++;
     }
   }
 
-  const evColor = MARKER_TYPES.earlyVoting.color;   // #dc2626
-  const edColor = MARKER_TYPES.electionDay.color;    // #9333ea
-
-  // Size scales with count
   const size = count < 20 ? 36 : count < 100 ? 44 : 52;
   const half = size / 2;
 
-  // Build a conic-gradient ring showing the proportion of each type
   let background: string;
-  if (evCount === 0) {
-    background = edColor;
-  } else if (edCount === 0) {
-    background = evColor;
+  if (dressedCount === 0) {
+    background = RED;
+  } else if (dressedCount === count) {
+    background = GREEN;
   } else {
-    const evPct = Math.round((evCount / count) * 100);
-    background = `conic-gradient(${evColor} 0% ${evPct}%, ${edColor} ${evPct}% 100%)`;
+    const pct = Math.round((dressedCount / count) * 100);
+    background = `conic-gradient(${GREEN} 0% ${pct}%, ${RED} ${pct}% 100%)`;
   }
 
   return L.divIcon({
@@ -78,7 +74,19 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ signMarkers, pollingMarkers }: MapViewProps) {
+export default function MapView({ markers, dressedIds, dressings, onDressClick, hasAccess }: MapViewProps) {
+  // Build a lookup for dressing records
+  const dressingMap = useMemo(() => {
+    const m = new Map<string, DressingRecord>();
+    for (const d of dressings) m.set(d.locationId, d);
+    return m;
+  }, [dressings]);
+
+  // Force cluster re-render when dressing data changes
+  const clusterKey = useMemo(() => {
+    return Array.from(dressedIds).sort().join(',');
+  }, [dressedIds]);
+
   return (
     <MapContainer
       center={MAP_CENTER}
@@ -87,21 +95,23 @@ export default function MapView({ signMarkers, pollingMarkers }: MapViewProps) {
     >
       <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
 
-      {/* Signs: always visible, never clustered */}
-      {signMarkers.map((marker) => (
-        <SignMarker key={marker.id} marker={marker} />
-      ))}
-
-      {/* Polling locations: clustered when zoomed out, individual at street zoom */}
       <MarkerClusterGroup
+        key={clusterKey}
         chunkedLoading
         disableClusteringAtZoom={14}
         maxClusterRadius={60}
         spiderfyOnMaxZoom={false}
         iconCreateFunction={createClusterIcon}
       >
-        {pollingMarkers.map((marker) => (
-          <SignMarker key={marker.id} marker={marker} />
+        {markers.map((marker) => (
+          <PollingMarker
+            key={marker.id}
+            marker={marker}
+            isDressed={dressedIds.has(marker.id)}
+            dressing={dressingMap.get(marker.id)}
+            onDressClick={onDressClick}
+            hasAccess={hasAccess}
+          />
         ))}
       </MarkerClusterGroup>
     </MapContainer>

@@ -1,26 +1,26 @@
 import AdminLogin from '../components/admin/AdminLogin';
-import SubmissionTable from '../components/admin/SubmissionTable';
+import DressingTable from '../components/admin/DressingTable';
 import StatsPanel from '../components/admin/StatsPanel';
 import ExportButton from '../components/admin/ExportButton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { useSubmissions } from '../hooks/useSubmissions';
+import { useDressings } from '../hooks/useDressings';
 
 export default function AdminPage() {
-  const { submissions, loading } = useSubmissions();
+  const { dressings, loading } = useDressings();
 
   return (
     <AdminLogin>
       <div className="admin-page">
         <div className="admin-header">
           <h2>Admin Dashboard</h2>
-          <ExportButton submissions={submissions} />
+          <ExportButton dressings={dressings} />
         </div>
         {loading ? (
-          <LoadingSpinner message="Loading submissions..." />
+          <LoadingSpinner message="Loading dressing data..." />
         ) : (
           <>
-            <StatsPanel submissions={submissions} />
-            <SubmissionTable submissions={submissions} />
+            <StatsPanel dressings={dressings} />
+            <DressingTable dressings={dressings} />
           </>
         )}
       </div>

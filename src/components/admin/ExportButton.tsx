@@ -1,25 +1,31 @@
 import Papa from 'papaparse';
-import type { SignSubmission } from '../../types';
+import { allLocations } from '../../config/categorizeLocations';
+import { MARKER_TYPES } from '../../config/constants';
+import type { DressingRecord } from '../../types';
 
 interface ExportButtonProps {
-  submissions: SignSubmission[];
+  dressings: DressingRecord[];
 }
 
-export default function ExportButton({ submissions }: ExportButtonProps) {
+export default function ExportButton({ dressings }: ExportButtonProps) {
   function handleExport() {
-    const data = submissions.map((s) => ({
-      'Volunteer Name': s.volunteerName,
-      'Phone': s.volunteerPhone || '',
-      'Email': s.volunteerEmail || '',
-      Address: s.address,
-      Latitude: s.latitude,
-      Longitude: s.longitude,
-      'Posting Method': s.postingMethod || '',
-      'Sign Count': s.signCount || 1,
-      Notes: s.notes,
-      'Photo URL': s.photoUrl,
-      'Created At': s.createdAt?.toDate?.()?.toISOString() || '',
-    }));
+    const dressingMap = new Map(dressings.map((d) => [d.locationId, d]));
+
+    const data = allLocations.map((loc) => {
+      const d = dressingMap.get(loc.id);
+      return {
+        'Location Name': loc.label,
+        Type: MARKER_TYPES[loc.type]?.label ?? loc.type,
+        Address: loc.address,
+        Size: loc.size || '',
+        Status: d?.isDressed ? 'Dressed' : 'Not Dressed',
+        'Volunteer Name': d?.volunteerName || '',
+        Phone: d?.volunteerPhone || '',
+        Email: d?.volunteerEmail || '',
+        'Dressed At': d?.dressedAt?.toDate?.()?.toISOString() || '',
+        'Dressed By': d?.dressedBy || '',
+      };
+    });
 
     const csv = Papa.unparse(data);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -27,15 +33,15 @@ export default function ExportButton({ submissions }: ExportButtonProps) {
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `sign-placements-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `poll-dressing-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
 
     URL.revokeObjectURL(url);
   }
 
   return (
-    <button className="btn btn-secondary" onClick={handleExport} disabled={submissions.length === 0}>
-      Export CSV ({submissions.length} records)
+    <button className="btn btn-secondary" onClick={handleExport}>
+      Export CSV
     </button>
   );
 }

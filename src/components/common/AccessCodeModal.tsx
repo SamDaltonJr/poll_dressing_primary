@@ -1,30 +1,30 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useAccessCode } from '../../hooks/useAccessCode';
 
-interface AccessCodeGateProps {
-  children: ReactNode;
+interface AccessCodeModalProps {
+  onSuccess: () => void;
+  onClose: () => void;
 }
 
-export default function AccessCodeGate({ children }: AccessCodeGateProps) {
-  const { isValid, error, validate } = useAccessCode();
+export default function AccessCodeModal({ onSuccess, onClose }: AccessCodeModalProps) {
+  const { error, validate } = useAccessCode();
   const [code, setCode] = useState('');
   const [checking, setChecking] = useState(false);
   const [showCode, setShowCode] = useState(false);
 
-  if (isValid) return <>{children}</>;
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setChecking(true);
-    await validate(code);
+    const valid = await validate(code);
     setChecking(false);
+    if (valid) onSuccess();
   }
 
   return (
-    <div className="access-gate">
-      <div className="access-gate-card">
-        <h2>Volunteer Access</h2>
-        <p>Enter the access code to submit a sign placement.</p>
+    <div className="confirm-overlay" onClick={onClose}>
+      <div className="access-modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Volunteer Access</h3>
+        <p>Enter the access code to mark polling sites as dressed.</p>
         <form onSubmit={handleSubmit}>
           <div className="password-input-wrapper">
             <input
@@ -44,11 +44,14 @@ export default function AccessCodeGate({ children }: AccessCodeGateProps) {
               {showCode ? 'Hide' : 'Show'}
             </button>
           </div>
-          <button type="submit" className="btn btn-primary" disabled={checking}>
-            {checking ? 'Verifying...' : 'Enter'}
-          </button>
+          {error && <p className="error-text">{error}</p>}
+          <div className="confirm-actions">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={checking}>
+              {checking ? 'Verifying...' : 'Enter'}
+            </button>
+          </div>
         </form>
-        {error && <p className="error-text">{error}</p>}
       </div>
     </div>
   );
