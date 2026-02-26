@@ -1,6 +1,6 @@
 import {
   doc, setDoc, updateDoc, deleteDoc,
-  collection, serverTimestamp, onSnapshot,
+  collection, serverTimestamp, onSnapshot, increment,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { DressingRecord, DressingInput } from '../types';
@@ -24,6 +24,9 @@ export async function claimLocation(
     dressedBy: 'volunteer',
     revertedAt: null,
     revertedBy: null,
+    reportCount: 0,
+    lastReportedAt: null,
+    lastReportReason: null,
     updatedAt: serverTimestamp(),
   });
 }
@@ -63,6 +66,9 @@ export async function markDressed(
     dressedBy: 'volunteer',
     revertedAt: null,
     revertedBy: null,
+    reportCount: 0,
+    lastReportedAt: null,
+    lastReportReason: null,
     updatedAt: serverTimestamp(),
   });
 }
@@ -85,6 +91,9 @@ export async function adminMarkDressed(
     dressedBy: 'admin',
     revertedAt: null,
     revertedBy: null,
+    reportCount: 0,
+    lastReportedAt: null,
+    lastReportReason: null,
     updatedAt: serverTimestamp(),
   });
 }
@@ -105,6 +114,27 @@ export async function updateDressingVolunteer(
 ): Promise<void> {
   await updateDoc(doc(db, COLLECTION, locationId), {
     ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function reportLocation(
+  locationId: string,
+  reason: string,
+): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, locationId), {
+    reportCount: increment(1),
+    lastReportedAt: serverTimestamp(),
+    lastReportReason: reason,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function dismissReports(locationId: string): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, locationId), {
+    reportCount: 0,
+    lastReportedAt: null,
+    lastReportReason: null,
     updatedAt: serverTimestamp(),
   });
 }

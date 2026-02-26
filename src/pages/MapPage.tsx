@@ -3,6 +3,7 @@ import MapView from '../components/map/MapView';
 import MapFilter from '../components/map/MapFilter';
 import ClaimModal from '../components/map/ClaimModal';
 import ConfirmDressedModal from '../components/map/ConfirmDressedModal';
+import ReportModal from '../components/map/ReportModal';
 import AccessCodeModal from '../components/common/AccessCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
@@ -59,6 +60,7 @@ export default function MapPage() {
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
+  const [reportTarget, setReportTarget] = useState<MapMarker | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
 
   const allMarkers = useMemo<MapMarker[]>(() => {
@@ -137,9 +139,14 @@ export default function MapPage() {
     setShowAccessModal(false);
   }
 
+  function handleReportClick(marker: MapMarker) {
+    setReportTarget(marker);
+  }
+
   function handleCloseModals() {
     setClaimTarget(null);
     setConfirmTarget(null);
+    setReportTarget(null);
     setShowAccessModal(false);
   }
 
@@ -158,6 +165,7 @@ export default function MapPage() {
         dressings={dressings}
         onClaimClick={handleClaimClick}
         onConfirmClick={handleConfirmClick}
+        onReportClick={handleReportClick}
         hasAccess={hasAccess}
         distributionPoints={showDistributionPoints ? distributionPoints : []}
       />
@@ -200,6 +208,14 @@ export default function MapPage() {
           dressing={dressingMap.get(confirmTarget.id)!}
           onClose={handleCloseModals}
           onConfirmed={() => setConfirmTarget(null)}
+        />
+      )}
+
+      {reportTarget && (
+        <ReportModal
+          marker={reportTarget}
+          onClose={() => setReportTarget(null)}
+          onReported={() => setReportTarget(null)}
         />
       )}
     </div>

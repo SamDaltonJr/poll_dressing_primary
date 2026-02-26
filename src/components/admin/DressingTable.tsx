@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { revertDressing, unclaimLocation } from '../../services/dressingService';
+import { revertDressing, unclaimLocation, dismissReports } from '../../services/dressingService';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
@@ -7,7 +7,7 @@ import { allLocations } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
 import type { DressingRecord, MapMarker, LocationStatus } from '../../types';
 
-type FilterMode = 'all' | 'available' | 'claimed' | 'dressed';
+type FilterMode = 'all' | 'available' | 'claimed' | 'dressed' | 'reported';
 
 interface DressingTableProps {
   dressings: DressingRecord[];
@@ -25,6 +25,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   const [unclaimTarget, setUnclaimTarget] = useState<Row | null>(null);
   const [editTarget, setEditTarget] = useState<Row | null>(null);
   const [dressTarget, setDressTarget] = useState<Row | null>(null);
+  const [dismissTarget, setDismissTarget] = useState<Row | null>(null);
 
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
@@ -50,6 +51,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
       if (filter === 'dressed') return r.status === 'dressed';
       if (filter === 'claimed') return r.status === 'claimed';
       if (filter === 'available') return r.status === 'available';
+      if (filter === 'reported') return (r.dressing?.reportCount ?? 0) > 0;
       return true;
     }),
     [rows, filter],
@@ -77,12 +79,24 @@ export default function DressingTable({ dressings }: DressingTableProps) {
     }
   }
 
+  async function handleDismissReports() {
+    if (!dismissTarget) return;
+    try {
+      await dismissReports(dismissTarget.location.id);
+    } catch {
+      alert('Failed to dismiss reports.');
+    } finally {
+      setDismissTarget(null);
+    }
+  }
+
   const typeLabel = (type: string) =>
     MARKER_TYPES[type as keyof typeof MARKER_TYPES]?.label ?? type;
 
   const dressedCount = rows.filter((r) => r.status === 'dressed').length;
   const claimedCount = rows.filter((r) => r.status === 'claimed').length;
   const availableCount = rows.filter((r) => r.status === 'available').length;
+  const reportedCount = rows.filter((r) => (r.dressing?.reportCount ?? 0) > 0).length;
 
   return (
     <>
@@ -111,6 +125,14 @@ export default function DressingTable({ dressings }: DressingTableProps) {
         >
           Dressed ({dressedCount})
         </button>
+        {reportedCount > 0 && (
+          <button
+            className={`filter-tab filter-tab-warning ${filter === 'reported' ? 'active' : ''}`}
+            onClick={() => setFilter('reported')}
+          >
+            Reported ({reportedCount})
+          </button>
+        )}
       </div>
 
       <div className="table-wrapper">
@@ -137,6 +159,11 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                   <span className={`status-badge status-${row.status}`}>
                     {row.status === 'dressed' ? 'Dressed' : row.status === 'claimed' ? 'Claimed' : 'Available'}
                   </span>
+                  {(row.dressing?.reportCount ?? 0) > 0 && (
+                    <span className="report-indicator" title={row.dressing?.lastReportReason ?? ''}>
+                      {row.dressing!.reportCount}
+                    </span>
+                  )}
                 </td>
                 <td>{row.dressing?.volunteerName || '—'}</td>
                 <td className="contact-cell">
@@ -161,6 +188,14 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                       >
                         Revert
                       </button>
+                      {(row.dressing?.reportCount ?? 0) > 0 && (
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => setDismissTarget(row)}
+                        >
+                          Dismiss
+                        </button>
+                      )}
                     </>
                   )}
                   {row.status === 'claimed' && (
@@ -227,6 +262,15 @@ export default function DressingTable({ dressings }: DressingTableProps) {
           dressing={dressTarget.dressing}
           onClose={() => setDressTarget(null)}
           onDressed={() => setDressTarget(null)}
+        />
+      )}
+
+      {dismissTarget && (
+        <ConfirmDialog
+          message={`Dismiss ${dismissTarget.dressing?.reportCount} report(s) for "${dismissTarget.location.label}"?${dismissTarget.dressing?.lastReportReason ? `\n\nLast report: ${dismissTarget.dressing.lastReportReason}` : ''}`}
+          confirmLabel="Dismiss Reports"
+          onConfirm={handleDismissReports}
+          onCancel={() => setDismissTarget(null)}
         />
       )}
     </>

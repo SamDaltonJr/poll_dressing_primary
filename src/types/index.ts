@@ -55,6 +55,9 @@ export interface DressingRecord {
   dressedBy: 'volunteer' | 'admin';
   revertedAt: Timestamp | null;
   revertedBy: string | null;
+  reportCount: number;
+  lastReportedAt: Timestamp | null;
+  lastReportReason: string | null;
   updatedAt: Timestamp;
 }
 

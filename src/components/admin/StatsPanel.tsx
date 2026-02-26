@@ -15,6 +15,7 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
   const totalSigns = dressings
     .filter((d) => d.isDressed)
     .reduce((sum, d) => sum + (d.signCount || 0), 0);
+  const reportedCount = dressings.filter((d) => (d.reportCount ?? 0) > 0).length;
 
   const dualTotal = dualSites.length;
   const dualDressed = dualSites.filter((l) => dressedSet.has(l.id)).length;
@@ -56,6 +57,12 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
         <div className="stat-number">{edOnlyDressed}/{edOnlyTotal}</div>
         <div className="stat-label">Election Day Only</div>
       </div>
+      {reportedCount > 0 && (
+        <div className="stat-card stat-card-warning">
+          <div className="stat-number stat-number-warning">{reportedCount}</div>
+          <div className="stat-label">Reported</div>
+        </div>
+      )}
       <div className="stat-card">
         <div className="stat-number">{totalLocations - totalDressed - totalClaimed}</div>
         <div className="stat-label">Still Needed</div>

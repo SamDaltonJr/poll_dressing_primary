@@ -14,6 +14,7 @@ interface MapViewProps {
   dressings: DressingRecord[];
   onClaimClick: (marker: MapMarker) => void;
   onConfirmClick: (marker: MapMarker) => void;
+  onReportClick: (marker: MapMarker) => void;
   hasAccess: boolean;
   distributionPoints: DistributionPoint[];
 }
@@ -85,7 +86,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, hasAccess, distributionPoints }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, hasAccess, distributionPoints }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -129,6 +130,7 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
             dressing={dressingMap.get(marker.id)}
             onClaimClick={onClaimClick}
             onConfirmClick={onConfirmClick}
+            onReportClick={onReportClick}
             hasAccess={hasAccess}
           />
         ))}
