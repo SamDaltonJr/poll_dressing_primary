@@ -4,16 +4,20 @@ import DressingTable from '../components/admin/DressingTable';
 import StatsPanel from '../components/admin/StatsPanel';
 import ExportButton from '../components/admin/ExportButton';
 import DistributionPointTable from '../components/admin/DistributionPointTable';
+import LocationReportTable from '../components/admin/LocationReportTable';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
+import { useLocationReports } from '../hooks/useLocationReports';
 
-type AdminTab = 'polling' | 'distribution';
+type AdminTab = 'polling' | 'distribution' | 'locationReports';
 
 export default function AdminPage() {
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
+  const { reports: locationReports, loading: lrLoading } = useLocationReports();
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
+  const pendingReportCount = locationReports.filter((r) => r.status === 'pending').length;
 
   return (
     <AdminLogin>
@@ -35,6 +39,12 @@ export default function AdminPage() {
           >
             Distribution Points ({distributionPoints.length})
           </button>
+          <button
+            className={`admin-tab ${activeTab === 'locationReports' ? 'active' : ''}`}
+            onClick={() => setActiveTab('locationReports')}
+          >
+            Location Reports{pendingReportCount > 0 ? ` (${pendingReportCount})` : ''}
+          </button>
         </div>
         {activeTab === 'polling' && (
           loading ? (
@@ -51,6 +61,13 @@ export default function AdminPage() {
             <LoadingSpinner message="Loading distribution points..." />
           ) : (
             <DistributionPointTable points={distributionPoints} />
+          )
+        )}
+        {activeTab === 'locationReports' && (
+          lrLoading ? (
+            <LoadingSpinner message="Loading location reports..." />
+          ) : (
+            <LocationReportTable reports={locationReports} />
           )
         )}
       </div>

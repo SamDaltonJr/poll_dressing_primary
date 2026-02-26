@@ -1,9 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import MapView from '../components/map/MapView';
 import MapFilter from '../components/map/MapFilter';
+import SearchBar from '../components/map/SearchBar';
 import ClaimModal from '../components/map/ClaimModal';
 import ConfirmDressedModal from '../components/map/ConfirmDressedModal';
 import ReportModal from '../components/map/ReportModal';
+import MissingLocationModal from '../components/map/MissingLocationModal';
+import IncorrectLocationModal from '../components/map/IncorrectLocationModal';
 import AccessCodeModal from '../components/common/AccessCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
@@ -61,7 +64,12 @@ export default function MapPage() {
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
   const [reportTarget, setReportTarget] = useState<MapMarker | null>(null);
+  const [incorrectTarget, setIncorrectTarget] = useState<MapMarker | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
+  const [pinDropMode, setPinDropMode] = useState(false);
+  const [pinPosition, setPinPosition] = useState<[number, number] | null>(null);
+  const [showMissingModal, setShowMissingModal] = useState(false);
+  const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
 
   const allMarkers = useMemo<MapMarker[]>(() => {
     return spreadOverlappingMarkers(allLocations);
@@ -143,10 +151,42 @@ export default function MapPage() {
     setReportTarget(marker);
   }
 
+  function handleIncorrectReportClick(marker: MapMarker) {
+    setIncorrectTarget(marker);
+  }
+
+  function handleStartPinDrop() {
+    setPinDropMode(true);
+    setPinPosition(null);
+  }
+
+  function handlePinPlaced(lat: number, lng: number) {
+    setPinPosition([lat, lng]);
+  }
+
+  function handleConfirmPin() {
+    setPinDropMode(false);
+    setShowMissingModal(true);
+  }
+
+  function handleCancelPinDrop() {
+    setPinDropMode(false);
+    setPinPosition(null);
+  }
+
+  function handleSearchSelect(marker: MapMarker) {
+    setFlyToTarget({ lat: marker.latitude, lng: marker.longitude });
+  }
+
+  const handleFlyComplete = useCallback(() => {
+    setFlyToTarget(null);
+  }, []);
+
   function handleCloseModals() {
     setClaimTarget(null);
     setConfirmTarget(null);
     setReportTarget(null);
+    setIncorrectTarget(null);
     setShowAccessModal(false);
   }
 
@@ -157,7 +197,7 @@ export default function MapPage() {
   const totalLocations = stats.dualSite.total + stats.earlyVotingOnly.total + stats.electionDayOnly.total;
 
   return (
-    <div className="map-page">
+    <div className={`map-page ${pinDropMode ? 'pin-drop-active' : ''}`}>
       <MapView
         markers={filteredMarkers}
         dressedIds={dressedIds}
@@ -166,9 +206,16 @@ export default function MapPage() {
         onClaimClick={handleClaimClick}
         onConfirmClick={handleConfirmClick}
         onReportClick={handleReportClick}
+        onIncorrectReportClick={handleIncorrectReportClick}
         hasAccess={hasAccess}
         distributionPoints={showDistributionPoints ? distributionPoints : []}
+        pinDropMode={pinDropMode}
+        pinPosition={pinPosition}
+        onPinPlaced={handlePinPlaced}
+        flyToTarget={flyToTarget}
+        onFlyComplete={handleFlyComplete}
       />
+      <SearchBar markers={allMarkers} onSelect={handleSearchSelect} />
       <MapFilter
         activeTypes={activeTypes}
         onToggle={handleToggle}
@@ -177,6 +224,28 @@ export default function MapPage() {
         onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
         distributionPointCount={distributionPoints.length}
       />
+      {!pinDropMode && (
+        <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
+          + Report Missing Location
+        </button>
+      )}
+
+      {pinDropMode && (
+        <div className="pin-drop-banner">
+          <span>{pinPosition ? 'Pin placed! Drag to adjust, then confirm.' : 'Click the map to place a pin for the missing location.'}</span>
+          <div className="pin-drop-banner-actions">
+            {pinPosition && (
+              <button className="btn btn-primary btn-sm" onClick={handleConfirmPin}>
+                Confirm Location
+              </button>
+            )}
+            <button className="btn btn-secondary btn-sm" onClick={handleCancelPinDrop}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="map-legend">
         <span>{totalDressed} dressed</span>
         <span className="legend-sep">&middot;</span>
@@ -216,6 +285,23 @@ export default function MapPage() {
           marker={reportTarget}
           onClose={() => setReportTarget(null)}
           onReported={() => setReportTarget(null)}
+        />
+      )}
+
+      {incorrectTarget && (
+        <IncorrectLocationModal
+          marker={incorrectTarget}
+          onClose={() => setIncorrectTarget(null)}
+          onSubmitted={() => setIncorrectTarget(null)}
+        />
+      )}
+
+      {showMissingModal && pinPosition && (
+        <MissingLocationModal
+          latitude={pinPosition[0]}
+          longitude={pinPosition[1]}
+          onClose={() => { setShowMissingModal(false); setPinPosition(null); }}
+          onSubmitted={() => { setShowMissingModal(false); setPinPosition(null); }}
         />
       )}
     </div>

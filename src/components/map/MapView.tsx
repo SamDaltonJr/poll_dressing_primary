@@ -4,6 +4,8 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import PollingMarker from './PollingMarker';
 import DistributionPointMarker from './DistributionPointMarker';
+import PinDropHandler from './PinDropHandler';
+import FlyToLocation from './FlyToLocation';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
 import type { MapMarker, DressingRecord, DistributionPoint, LocationStatus } from '../../types';
 
@@ -15,8 +17,14 @@ interface MapViewProps {
   onClaimClick: (marker: MapMarker) => void;
   onConfirmClick: (marker: MapMarker) => void;
   onReportClick: (marker: MapMarker) => void;
+  onIncorrectReportClick: (marker: MapMarker) => void;
   hasAccess: boolean;
   distributionPoints: DistributionPoint[];
+  pinDropMode: boolean;
+  pinPosition: [number, number] | null;
+  onPinPlaced: (lat: number, lng: number) => void;
+  flyToTarget: { lat: number; lng: number } | null;
+  onFlyComplete: () => void;
 }
 
 const GREEN = '#16a34a';
@@ -86,7 +94,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, hasAccess, distributionPoints }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, distributionPoints, pinDropMode, pinPosition, onPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -131,6 +139,7 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
             onClaimClick={onClaimClick}
             onConfirmClick={onConfirmClick}
             onReportClick={onReportClick}
+            onIncorrectReportClick={onIncorrectReportClick}
             hasAccess={hasAccess}
           />
         ))}
@@ -139,6 +148,9 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
       {distributionPoints.map((point) => (
         <DistributionPointMarker key={point.id} point={point} />
       ))}
+
+      <PinDropHandler active={pinDropMode} pinPosition={pinPosition} onPinPlaced={onPinPlaced} />
+      <FlyToLocation target={flyToTarget} onComplete={onFlyComplete} />
     </MapContainer>
   );
 }

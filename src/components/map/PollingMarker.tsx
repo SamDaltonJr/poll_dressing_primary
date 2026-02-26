@@ -9,6 +9,7 @@ interface PollingMarkerProps {
   onClaimClick: (marker: MapMarker) => void;
   onConfirmClick: (marker: MapMarker) => void;
   onReportClick: (marker: MapMarker) => void;
+  onIncorrectReportClick: (marker: MapMarker) => void;
   hasAccess: boolean;
 }
 
@@ -20,7 +21,7 @@ const STATUS_LABEL: Record<LocationStatus, string> = {
   dressed: 'DRESSED',
 };
 
-export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onReportClick, hasAccess }: PollingMarkerProps) {
+export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess }: PollingMarkerProps) {
   const icon = createMarkerIcon(marker.type, status, marker.size);
   const typeLabel = MARKER_TYPES[marker.type].label;
 
@@ -101,6 +102,15 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
                 Confirm Dressed
               </button>
             )}
+            <button
+              className="btn btn-sm marker-popup-report-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onIncorrectReportClick(marker);
+              }}
+            >
+              Report Incorrect Info
+            </button>
           </div>
         </div>
       </Popup>

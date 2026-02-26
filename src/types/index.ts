@@ -89,3 +89,36 @@ export interface DistributionPointInput {
   signCount: number;
   notes?: string;
 }
+
+// Location reports (missing + incorrect)
+export type LocationReportCategory = 'missing' | 'incorrect';
+export type LocationReportStatus = 'pending' | 'resolved';
+
+export interface LocationReport {
+  id: string;
+  category: LocationReportCategory;
+  locationName: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  existingLocationId: string | null;
+  reporterName: string;
+  reporterContact: string;
+  notes: string;
+  status: LocationReportStatus;
+  createdAt: Timestamp;
+  resolvedAt: Timestamp | null;
+  resolvedNote: string | null;
+}
+
+export interface LocationReportInput {
+  category: LocationReportCategory;
+  locationName: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  existingLocationId: string | null;
+  reporterName: string;
+  reporterContact: string;
+  notes: string;
+}

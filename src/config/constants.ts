@@ -77,6 +77,32 @@ export function createDistributionPointIcon(): L.DivIcon {
   });
 }
 
+/** Pin-drop marker icon: purple circle with "+", for missing location reports */
+export function createPinDropIcon(): L.DivIcon {
+  const px = 32;
+  const half = px / 2;
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background-color: #7c3aed;
+      width: ${px}px;
+      height: ${px}px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+    ">+</div>`,
+    iconSize: [px, px],
+    iconAnchor: [half, half],
+    popupAnchor: [0, -(half + 2)],
+  });
+}
+
 // Create colored Leaflet DivIcon; color is driven by location status
 export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?: LocationSize): L.DivIcon {
   const config = MARKER_TYPES[type];

@@ -164,6 +164,11 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                       {row.dressing!.reportCount}
                     </span>
                   )}
+                  {filter === 'reported' && row.dressing?.lastReportReason && (
+                    <div className="report-reason-text">
+                      {row.dressing.lastReportReason}
+                    </div>
+                  )}
                 </td>
                 <td>{row.dressing?.volunteerName || '—'}</td>
                 <td className="contact-cell">
