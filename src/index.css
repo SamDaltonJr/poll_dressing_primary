@@ -248,6 +248,13 @@ body {
   margin-top: 4px;
 }
 
+.marker-popup-signs {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
 .marker-popup-btn {
   margin-top: 8px;
   width: 100%;
@@ -270,9 +277,15 @@ body {
   color: var(--color-success);
 }
 
-.dressing-status.undressed {
+.dressing-status.undressed,
+.dressing-status.available {
   background: #fef2f2;
   color: var(--color-danger);
+}
+
+.dressing-status.claimed {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 /* === Buttons === */
@@ -540,9 +553,15 @@ textarea:focus {
   color: var(--color-success);
 }
 
-.status-undressed {
+.status-undressed,
+.status-available {
   background: #fef2f2;
   color: var(--color-danger);
+}
+
+.status-claimed {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 /* === Table === */
@@ -649,6 +668,15 @@ textarea:focus {
   margin-bottom: 16px;
 }
 
+.dressing-modal-claimed-by {
+  font-size: 0.85rem;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
 .access-modal p {
   color: var(--color-text-muted);
   margin-bottom: 16px;
@@ -707,6 +735,148 @@ textarea:focus {
 .not-found p {
   color: var(--color-text-muted);
   margin-bottom: 24px;
+}
+
+/* === Distribution Point Popup === */
+.distribution-sign-count {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sign-count-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.sign-count-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.marker-popup-notes {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* === Map Filter Separator === */
+.map-filter-separator {
+  border-top: 1px solid var(--color-border);
+  margin: 2px 0;
+}
+
+.filter-dot-diamond {
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+/* === Admin Tabs === */
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.admin-tab {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.admin-tab:hover {
+  color: var(--color-text);
+}
+
+.admin-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* === Distribution Point Admin === */
+.distribution-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.distribution-summary {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.distribution-summary-count {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.distribution-summary-sep {
+  margin: 0 8px;
+}
+
+.sign-count-adjust {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sign-count-adjust button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.sign-count-adjust button:hover {
+  background: var(--color-bg);
+}
+
+.sign-count-adjust span {
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+}
+
+.notes-cell {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* === Form Row (side-by-side fields) === */
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
 }
 
 /* === Responsive === */

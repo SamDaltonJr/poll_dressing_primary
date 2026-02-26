@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import MapView from '../components/map/MapView';
 import MapFilter from '../components/map/MapFilter';
-import DressingModal from '../components/map/DressingModal';
+import ClaimModal from '../components/map/ClaimModal';
+import ConfirmDressedModal from '../components/map/ConfirmDressedModal';
 import AccessCodeModal from '../components/common/AccessCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
+import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useAccessCode } from '../hooks/useAccessCode';
 import { MARKER_TYPES } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
@@ -51,9 +53,12 @@ function getDefaultActiveTypes(): Set<MarkerType> {
 
 export default function MapPage() {
   const { dressings, loading } = useDressings();
+  const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { isValid: hasAccess } = useAccessCode();
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
-  const [dressingTarget, setDressingTarget] = useState<MapMarker | null>(null);
+  const [showDistributionPoints, setShowDistributionPoints] = useState(true);
+  const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
 
   const allMarkers = useMemo<MapMarker[]>(() => {
@@ -68,18 +73,33 @@ export default function MapPage() {
     return set;
   }, [dressings]);
 
+  const claimedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of dressings) {
+      if (d.isClaimed && !d.isDressed) set.add(d.locationId);
+    }
+    return set;
+  }, [dressings]);
+
+  const dressingMap = useMemo(() => {
+    const m = new Map<string, typeof dressings[0]>();
+    for (const d of dressings) m.set(d.locationId, d);
+    return m;
+  }, [dressings]);
+
   const stats = useMemo(() => {
-    const s: Record<MarkerType, { total: number; dressed: number }> = {
-      dualSite: { total: 0, dressed: 0 },
-      earlyVotingOnly: { total: 0, dressed: 0 },
-      electionDayOnly: { total: 0, dressed: 0 },
+    const s: Record<MarkerType, { total: number; dressed: number; claimed: number }> = {
+      dualSite: { total: 0, dressed: 0, claimed: 0 },
+      earlyVotingOnly: { total: 0, dressed: 0, claimed: 0 },
+      electionDayOnly: { total: 0, dressed: 0, claimed: 0 },
     };
     for (const m of allMarkers) {
       s[m.type].total++;
       if (dressedIds.has(m.id)) s[m.type].dressed++;
+      else if (claimedIds.has(m.id)) s[m.type].claimed++;
     }
     return s;
-  }, [allMarkers, dressedIds]);
+  }, [allMarkers, dressedIds, claimedIds]);
 
   const filteredMarkers = useMemo(
     () => allMarkers.filter((m) => activeTypes.has(m.type)),
@@ -95,11 +115,20 @@ export default function MapPage() {
     });
   }
 
-  function handleDressClick(marker: MapMarker) {
+  function handleClaimClick(marker: MapMarker) {
     if (hasAccess) {
-      setDressingTarget(marker);
+      setClaimTarget(marker);
     } else {
-      setDressingTarget(marker);
+      setClaimTarget(marker);
+      setShowAccessModal(true);
+    }
+  }
+
+  function handleConfirmClick(marker: MapMarker) {
+    if (hasAccess) {
+      setConfirmTarget(marker);
+    } else {
+      setConfirmTarget(marker);
       setShowAccessModal(true);
     }
   }
@@ -108,18 +137,16 @@ export default function MapPage() {
     setShowAccessModal(false);
   }
 
-  function handleDressed() {
-    setDressingTarget(null);
-  }
-
   function handleCloseModals() {
-    setDressingTarget(null);
+    setClaimTarget(null);
+    setConfirmTarget(null);
     setShowAccessModal(false);
   }
 
-  if (loading) return <LoadingSpinner message="Loading map data..." />;
+  if (loading || dpLoading) return <LoadingSpinner message="Loading map data..." />;
 
   const totalDressed = stats.dualSite.dressed + stats.earlyVotingOnly.dressed + stats.electionDayOnly.dressed;
+  const totalClaimed = stats.dualSite.claimed + stats.earlyVotingOnly.claimed + stats.electionDayOnly.claimed;
   const totalLocations = stats.dualSite.total + stats.earlyVotingOnly.total + stats.electionDayOnly.total;
 
   return (
@@ -127,19 +154,29 @@ export default function MapPage() {
       <MapView
         markers={filteredMarkers}
         dressedIds={dressedIds}
+        claimedIds={claimedIds}
         dressings={dressings}
-        onDressClick={handleDressClick}
+        onClaimClick={handleClaimClick}
+        onConfirmClick={handleConfirmClick}
         hasAccess={hasAccess}
+        distributionPoints={showDistributionPoints ? distributionPoints : []}
       />
-      <MapFilter activeTypes={activeTypes} onToggle={handleToggle} stats={stats} />
+      <MapFilter
+        activeTypes={activeTypes}
+        onToggle={handleToggle}
+        stats={stats}
+        showDistributionPoints={showDistributionPoints}
+        onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
+        distributionPointCount={distributionPoints.length}
+      />
       <div className="map-legend">
-        <span>{totalDressed}/{totalLocations} sites dressed</span>
+        <span>{totalDressed} dressed</span>
+        <span className="legend-sep">&middot;</span>
+        <span>{totalClaimed} claimed</span>
+        <span className="legend-sep">&middot;</span>
+        <span>{totalLocations - totalDressed - totalClaimed} available</span>
         <span className="legend-sep">|</span>
-        <span>{stats.dualSite.dressed}/{stats.dualSite.total} EV+ED</span>
-        <span className="legend-sep">|</span>
-        <span>{stats.earlyVotingOnly.dressed}/{stats.earlyVotingOnly.total} EV only</span>
-        <span className="legend-sep">|</span>
-        <span>{stats.electionDayOnly.dressed}/{stats.electionDayOnly.total} ED only</span>
+        <span>{totalLocations} total</span>
       </div>
 
       {showAccessModal && (
@@ -149,11 +186,20 @@ export default function MapPage() {
         />
       )}
 
-      {dressingTarget && !showAccessModal && hasAccess && (
-        <DressingModal
-          marker={dressingTarget}
+      {claimTarget && !showAccessModal && hasAccess && (
+        <ClaimModal
+          marker={claimTarget}
           onClose={handleCloseModals}
-          onDressed={handleDressed}
+          onClaimed={() => setClaimTarget(null)}
+        />
+      )}
+
+      {confirmTarget && !showAccessModal && hasAccess && (
+        <ConfirmDressedModal
+          marker={confirmTarget}
+          dressing={dressingMap.get(confirmTarget.id)!}
+          onClose={handleCloseModals}
+          onConfirmed={() => setConfirmTarget(null)}
         />
       )}
     </div>

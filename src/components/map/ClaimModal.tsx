@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { markDressed } from '../../services/dressingService';
+import { claimLocation } from '../../services/dressingService';
 import type { MapMarker } from '../../types';
 
-interface DressingModalProps {
+interface ClaimModalProps {
   marker: MapMarker;
   onClose: () => void;
-  onDressed: () => void;
+  onClaimed: () => void;
 }
 
-export default function DressingModal({ marker, onClose, onDressed }: DressingModalProps) {
+export default function ClaimModal({ marker, onClose, onClaimed }: ClaimModalProps) {
   const [volunteerName, setVolunteerName] = useState(
     () => sessionStorage.getItem('volunteerName') || '',
   );
@@ -26,14 +26,13 @@ export default function DressingModal({ marker, onClose, onDressed }: DressingMo
     setSubmitting(true);
     setError('');
     try {
-      await markDressed(marker.id, { volunteerName, volunteerPhone, volunteerEmail });
-      // Remember volunteer info for next time
+      await claimLocation(marker.id, { volunteerName, volunteerPhone, volunteerEmail });
       sessionStorage.setItem('volunteerName', volunteerName);
       sessionStorage.setItem('volunteerPhone', volunteerPhone);
       sessionStorage.setItem('volunteerEmail', volunteerEmail);
-      onDressed();
+      onClaimed();
     } catch {
-      setError('Failed to mark as dressed. Please try again.');
+      setError('Failed to claim location. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -42,7 +41,7 @@ export default function DressingModal({ marker, onClose, onDressed }: DressingMo
   return (
     <div className="confirm-overlay" onClick={onClose}>
       <div className="dressing-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Mark Site as Dressed</h3>
+        <h3>Claim This Location</h3>
         <p className="dressing-modal-location">
           <strong>{marker.label}</strong><br />
           {marker.address}
@@ -83,7 +82,7 @@ export default function DressingModal({ marker, onClose, onDressed }: DressingMo
           <div className="confirm-actions">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Saving...' : 'Confirm Dressed'}
+              {submitting ? 'Claiming...' : 'Claim Location'}
             </button>
           </div>
         </form>

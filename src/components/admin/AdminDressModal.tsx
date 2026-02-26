@@ -1,24 +1,30 @@
 import { useState, type FormEvent } from 'react';
 import { adminMarkDressed } from '../../services/dressingService';
-import type { MapMarker } from '../../types';
+import type { MapMarker, DressingRecord } from '../../types';
 
 interface AdminDressModalProps {
   marker: MapMarker;
+  dressing?: DressingRecord;
   onClose: () => void;
   onDressed: () => void;
 }
 
-export default function AdminDressModal({ marker, onClose, onDressed }: AdminDressModalProps) {
-  const [volunteerName, setVolunteerName] = useState('');
-  const [volunteerPhone, setVolunteerPhone] = useState('');
-  const [volunteerEmail, setVolunteerEmail] = useState('');
+export default function AdminDressModal({ marker, dressing, onClose, onDressed }: AdminDressModalProps) {
+  const [volunteerName, setVolunteerName] = useState(dressing?.volunteerName ?? '');
+  const [volunteerPhone, setVolunteerPhone] = useState(dressing?.volunteerPhone ?? '');
+  const [volunteerEmail, setVolunteerEmail] = useState(dressing?.volunteerEmail ?? '');
+  const [signCount, setSignCount] = useState('1');
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await adminMarkDressed(marker.id, { volunteerName, volunteerPhone, volunteerEmail });
+      await adminMarkDressed(
+        marker.id,
+        { volunteerName, volunteerPhone, volunteerEmail },
+        parseInt(signCount, 10) || 1,
+      );
       onDressed();
     } catch {
       alert('Failed to mark as dressed.');
@@ -60,6 +66,16 @@ export default function AdminDressModal({ marker, onClose, onDressed }: AdminDre
               type="email"
               value={volunteerEmail}
               onChange={(e) => setVolunteerEmail(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label>Signs Placed</label>
+            <input
+              type="number"
+              min="1"
+              value={signCount}
+              onChange={(e) => setSignCount(e.target.value)}
+              required
             />
           </div>
           <div className="confirm-actions">

@@ -1,19 +1,26 @@
 import { Marker, Popup } from 'react-leaflet';
 import { createMarkerIcon, MARKER_TYPES } from '../../config/constants';
-import type { MapMarker, DressingRecord } from '../../types';
+import type { MapMarker, DressingRecord, LocationStatus } from '../../types';
 
 interface PollingMarkerProps {
   marker: MapMarker;
-  isDressed: boolean;
+  status: LocationStatus;
   dressing?: DressingRecord;
-  onDressClick: (marker: MapMarker) => void;
+  onClaimClick: (marker: MapMarker) => void;
+  onConfirmClick: (marker: MapMarker) => void;
   hasAccess: boolean;
 }
 
 const SIZE_LABELS = { S: 'Small', M: 'Medium', L: 'Large' } as const;
 
-export default function PollingMarker({ marker, isDressed, dressing, onDressClick, hasAccess }: PollingMarkerProps) {
-  const icon = createMarkerIcon(marker.type, isDressed, marker.size);
+const STATUS_LABEL: Record<LocationStatus, string> = {
+  available: 'NOT DRESSED',
+  claimed: 'CLAIMED',
+  dressed: 'DRESSED',
+};
+
+export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, hasAccess }: PollingMarkerProps) {
+  const icon = createMarkerIcon(marker.type, status, marker.size);
   const typeLabel = MARKER_TYPES[marker.type].label;
 
   return (
@@ -27,26 +34,56 @@ export default function PollingMarker({ marker, isDressed, dressing, onDressClic
             {marker.size && (
               <span className="marker-popup-size"> &middot; {SIZE_LABELS[marker.size]}</span>
             )}
-            <div className={`dressing-status ${isDressed ? 'dressed' : 'undressed'}`}>
-              {isDressed ? 'DRESSED' : 'NOT DRESSED'}
+            <div className={`dressing-status ${status}`}>
+              {STATUS_LABEL[status]}
             </div>
-            {isDressed && dressing && (
+
+            {status === 'claimed' && dressing && (
               <p className="marker-popup-volunteer">
-                Dressed by {dressing.volunteerName}
-                {dressing.dressedAt?.toDate && (
-                  <> on {dressing.dressedAt.toDate().toLocaleDateString()}</>
+                Claimed by {dressing.volunteerName}
+                {dressing.claimedAt?.toDate && (
+                  <> on {dressing.claimedAt.toDate().toLocaleDateString()}</>
                 )}
               </p>
             )}
-            {!isDressed && (
+
+            {status === 'dressed' && dressing && (
+              <>
+                <p className="marker-popup-volunteer">
+                  Dressed by {dressing.volunteerName}
+                  {dressing.dressedAt?.toDate && (
+                    <> on {dressing.dressedAt.toDate().toLocaleDateString()}</>
+                  )}
+                </p>
+                {dressing.signCount > 0 && (
+                  <p className="marker-popup-signs">
+                    {dressing.signCount} sign{dressing.signCount !== 1 ? 's' : ''} placed
+                  </p>
+                )}
+              </>
+            )}
+
+            {status === 'available' && (
               <button
                 className="btn btn-primary btn-sm marker-popup-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDressClick(marker);
+                  onClaimClick(marker);
                 }}
               >
-                {hasAccess ? 'Mark as Dressed' : 'Enter Code to Dress'}
+                {hasAccess ? 'Claim This Location' : 'Enter Code to Claim'}
+              </button>
+            )}
+
+            {status === 'claimed' && hasAccess && (
+              <button
+                className="btn btn-primary btn-sm marker-popup-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onConfirmClick(marker);
+                }}
+              >
+                Confirm Dressed
               </button>
             )}
           </div>

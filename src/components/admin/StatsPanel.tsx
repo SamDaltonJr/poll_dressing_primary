@@ -9,6 +9,12 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
   const dressedSet = new Set(
     dressings.filter((d) => d.isDressed).map((d) => d.locationId),
   );
+  const claimedSet = new Set(
+    dressings.filter((d) => d.isClaimed && !d.isDressed).map((d) => d.locationId),
+  );
+  const totalSigns = dressings
+    .filter((d) => d.isDressed)
+    .reduce((sum, d) => sum + (d.signCount || 0), 0);
 
   const dualTotal = dualSites.length;
   const dualDressed = dualSites.filter((l) => dressedSet.has(l.id)).length;
@@ -18,6 +24,7 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
   const edOnlyDressed = electionDayOnly.filter((l) => dressedSet.has(l.id)).length;
   const totalLocations = dualTotal + evOnlyTotal + edOnlyTotal;
   const totalDressed = dualDressed + evOnlyDressed + edOnlyDressed;
+  const totalClaimed = claimedSet.size;
   const pct = totalLocations > 0 ? Math.round((totalDressed / totalLocations) * 100) : 0;
 
   return (
@@ -28,6 +35,14 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${pct}%` }} />
         </div>
+      </div>
+      <div className="stat-card">
+        <div className="stat-number">{totalClaimed}</div>
+        <div className="stat-label">Claimed</div>
+      </div>
+      <div className="stat-card">
+        <div className="stat-number">{totalSigns}</div>
+        <div className="stat-label">Signs Placed</div>
       </div>
       <div className="stat-card">
         <div className="stat-number">{dualDressed}/{dualTotal}</div>
@@ -42,7 +57,7 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
         <div className="stat-label">Election Day Only</div>
       </div>
       <div className="stat-card">
-        <div className="stat-number">{totalLocations - totalDressed}</div>
+        <div className="stat-number">{totalLocations - totalDressed - totalClaimed}</div>
         <div className="stat-label">Still Needed</div>
       </div>
     </div>

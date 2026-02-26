@@ -1,47 +1,58 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import PollingMarker from './PollingMarker';
+import DistributionPointMarker from './DistributionPointMarker';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
-import type { MapMarker, DressingRecord } from '../../types';
+import type { MapMarker, DressingRecord, DistributionPoint, LocationStatus } from '../../types';
 
 interface MapViewProps {
   markers: MapMarker[];
   dressedIds: Set<string>;
+  claimedIds: Set<string>;
   dressings: DressingRecord[];
-  onDressClick: (marker: MapMarker) => void;
+  onClaimClick: (marker: MapMarker) => void;
+  onConfirmClick: (marker: MapMarker) => void;
   hasAccess: boolean;
+  distributionPoints: DistributionPoint[];
 }
 
 const GREEN = '#16a34a';
+const AMBER = '#f59e0b';
 const RED = '#dc2626';
 
-/** Build a cluster icon whose ring shows green (dressed) vs red (undressed) proportion. */
+/** Build a cluster icon showing green/amber/red proportions. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createClusterIcon(cluster: any): L.DivIcon {
   const children = cluster.getAllChildMarkers();
   const count = children.length;
 
   let dressedCount = 0;
+  let claimedCount = 0;
   for (const child of children) {
     const html = (child.getIcon().options as L.DivIconOptions).html ?? '';
-    if (typeof html === 'string' && html.includes(GREEN)) {
-      dressedCount++;
+    if (typeof html === 'string') {
+      if (html.includes(GREEN)) dressedCount++;
+      else if (html.includes(AMBER)) claimedCount++;
     }
   }
 
   const size = count < 20 ? 36 : count < 100 ? 44 : 52;
   const half = size / 2;
 
+  const availableCount = count - dressedCount - claimedCount;
   let background: string;
-  if (dressedCount === 0) {
-    background = RED;
-  } else if (dressedCount === count) {
+  if (dressedCount === count) {
     background = GREEN;
+  } else if (claimedCount === count) {
+    background = AMBER;
+  } else if (availableCount === count) {
+    background = RED;
   } else {
-    const pct = Math.round((dressedCount / count) * 100);
-    background = `conic-gradient(${GREEN} 0% ${pct}%, ${RED} ${pct}% 100%)`;
+    const pctDressed = Math.round((dressedCount / count) * 100);
+    const pctClaimed = Math.round(((dressedCount + claimedCount) / count) * 100);
+    background = `conic-gradient(${GREEN} 0% ${pctDressed}%, ${AMBER} ${pctDressed}% ${pctClaimed}%, ${RED} ${pctClaimed}% 100%)`;
   }
 
   return L.divIcon({
@@ -74,18 +85,25 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, dressings, onDressClick, hasAccess }: MapViewProps) {
-  // Build a lookup for dressing records
+export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, hasAccess, distributionPoints }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
     return m;
   }, [dressings]);
 
-  // Force cluster re-render when dressing data changes
+  const getStatus = useCallback((id: string): LocationStatus => {
+    if (dressedIds.has(id)) return 'dressed';
+    if (claimedIds.has(id)) return 'claimed';
+    return 'available';
+  }, [dressedIds, claimedIds]);
+
+  // Force cluster re-render when dressing/claim data changes
   const clusterKey = useMemo(() => {
-    return Array.from(dressedIds).sort().join(',');
-  }, [dressedIds]);
+    const d = Array.from(dressedIds).sort().join(',');
+    const c = Array.from(claimedIds).sort().join(',');
+    return `${d}|${c}`;
+  }, [dressedIds, claimedIds]);
 
   return (
     <MapContainer
@@ -107,13 +125,18 @@ export default function MapView({ markers, dressedIds, dressings, onDressClick, 
           <PollingMarker
             key={marker.id}
             marker={marker}
-            isDressed={dressedIds.has(marker.id)}
+            status={getStatus(marker.id)}
             dressing={dressingMap.get(marker.id)}
-            onDressClick={onDressClick}
+            onClaimClick={onClaimClick}
+            onConfirmClick={onConfirmClick}
             hasAccess={hasAccess}
           />
         ))}
       </MarkerClusterGroup>
+
+      {distributionPoints.map((point) => (
+        <DistributionPointMarker key={point.id} point={point} />
+      ))}
     </MapContainer>
   );
 }

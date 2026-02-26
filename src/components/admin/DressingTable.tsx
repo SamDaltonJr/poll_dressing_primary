@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
-import { revertDressing } from '../../services/dressingService';
+import { revertDressing, unclaimLocation } from '../../services/dressingService';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
 import { allLocations } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
-import type { DressingRecord, MapMarker } from '../../types';
+import type { DressingRecord, MapMarker, LocationStatus } from '../../types';
 
-type FilterMode = 'all' | 'dressed' | 'undressed';
+type FilterMode = 'all' | 'available' | 'claimed' | 'dressed';
 
 interface DressingTableProps {
   dressings: DressingRecord[];
@@ -16,12 +16,13 @@ interface DressingTableProps {
 interface Row {
   location: MapMarker;
   dressing?: DressingRecord;
-  isDressed: boolean;
+  status: LocationStatus;
 }
 
 export default function DressingTable({ dressings }: DressingTableProps) {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [revertTarget, setRevertTarget] = useState<Row | null>(null);
+  const [unclaimTarget, setUnclaimTarget] = useState<Row | null>(null);
   const [editTarget, setEditTarget] = useState<Row | null>(null);
   const [dressTarget, setDressTarget] = useState<Row | null>(null);
 
@@ -36,15 +37,19 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   const rows = useMemo<Row[]>(() =>
     locations.map((loc) => {
       const d = dressingMap.get(loc.id);
-      return { location: loc, dressing: d, isDressed: d?.isDressed ?? false };
+      let status: LocationStatus = 'available';
+      if (d?.isDressed) status = 'dressed';
+      else if (d?.isClaimed) status = 'claimed';
+      return { location: loc, dressing: d, status };
     }),
     [locations, dressingMap],
   );
 
   const filteredRows = useMemo(
     () => rows.filter((r) => {
-      if (filter === 'dressed') return r.isDressed;
-      if (filter === 'undressed') return !r.isDressed;
+      if (filter === 'dressed') return r.status === 'dressed';
+      if (filter === 'claimed') return r.status === 'claimed';
+      if (filter === 'available') return r.status === 'available';
       return true;
     }),
     [rows, filter],
@@ -61,11 +66,23 @@ export default function DressingTable({ dressings }: DressingTableProps) {
     }
   }
 
+  async function handleUnclaim() {
+    if (!unclaimTarget) return;
+    try {
+      await unclaimLocation(unclaimTarget.location.id);
+    } catch {
+      alert('Failed to unclaim location.');
+    } finally {
+      setUnclaimTarget(null);
+    }
+  }
+
   const typeLabel = (type: string) =>
     MARKER_TYPES[type as keyof typeof MARKER_TYPES]?.label ?? type;
 
-  const dressedCount = rows.filter((r) => r.isDressed).length;
-  const undressedCount = rows.length - dressedCount;
+  const dressedCount = rows.filter((r) => r.status === 'dressed').length;
+  const claimedCount = rows.filter((r) => r.status === 'claimed').length;
+  const availableCount = rows.filter((r) => r.status === 'available').length;
 
   return (
     <>
@@ -77,16 +94,22 @@ export default function DressingTable({ dressings }: DressingTableProps) {
           All ({rows.length})
         </button>
         <button
+          className={`filter-tab ${filter === 'available' ? 'active' : ''}`}
+          onClick={() => setFilter('available')}
+        >
+          Available ({availableCount})
+        </button>
+        <button
+          className={`filter-tab ${filter === 'claimed' ? 'active' : ''}`}
+          onClick={() => setFilter('claimed')}
+        >
+          Claimed ({claimedCount})
+        </button>
+        <button
           className={`filter-tab ${filter === 'dressed' ? 'active' : ''}`}
           onClick={() => setFilter('dressed')}
         >
           Dressed ({dressedCount})
-        </button>
-        <button
-          className={`filter-tab ${filter === 'undressed' ? 'active' : ''}`}
-          onClick={() => setFilter('undressed')}
-        >
-          Not Dressed ({undressedCount})
         </button>
       </div>
 
@@ -100,7 +123,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
               <th>Status</th>
               <th>Volunteer</th>
               <th>Contact</th>
-              <th>Dressed At</th>
+              <th>Signs</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -111,8 +134,8 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                 <td>{typeLabel(row.location.type)}</td>
                 <td className="address-cell">{row.location.address}</td>
                 <td>
-                  <span className={`status-badge ${row.isDressed ? 'status-dressed' : 'status-undressed'}`}>
-                    {row.isDressed ? 'Dressed' : 'Not Dressed'}
+                  <span className={`status-badge status-${row.status}`}>
+                    {row.status === 'dressed' ? 'Dressed' : row.status === 'claimed' ? 'Claimed' : 'Available'}
                   </span>
                 </td>
                 <td>{row.dressing?.volunteerName || '—'}</td>
@@ -121,10 +144,10 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                   {row.dressing?.volunteerEmail && <div className="email-text">{row.dressing.volunteerEmail}</div>}
                 </td>
                 <td>
-                  {row.dressing?.dressedAt?.toDate?.()?.toLocaleDateString() || '—'}
+                  {row.status === 'dressed' && row.dressing?.signCount ? row.dressing.signCount : '—'}
                 </td>
                 <td className="actions-cell">
-                  {row.isDressed ? (
+                  {row.status === 'dressed' && (
                     <>
                       <button
                         className="btn btn-sm btn-secondary"
@@ -139,7 +162,24 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                         Revert
                       </button>
                     </>
-                  ) : (
+                  )}
+                  {row.status === 'claimed' && (
+                    <>
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => setDressTarget(row)}
+                      >
+                        Mark Dressed
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => setUnclaimTarget(row)}
+                      >
+                        Unclaim
+                      </button>
+                    </>
+                  )}
+                  {row.status === 'available' && (
                     <button
                       className="btn btn-sm btn-primary"
                       onClick={() => setDressTarget(row)}
@@ -156,10 +196,19 @@ export default function DressingTable({ dressings }: DressingTableProps) {
 
       {revertTarget && (
         <ConfirmDialog
-          message={`Revert "${revertTarget.location.label}" to undressed?`}
+          message={`Revert "${revertTarget.location.label}" to claimed?`}
           confirmLabel="Revert"
           onConfirm={handleRevert}
           onCancel={() => setRevertTarget(null)}
+        />
+      )}
+
+      {unclaimTarget && (
+        <ConfirmDialog
+          message={`Unclaim "${unclaimTarget.location.label}"? This will remove the volunteer assignment.`}
+          confirmLabel="Unclaim"
+          onConfirm={handleUnclaim}
+          onCancel={() => setUnclaimTarget(null)}
         />
       )}
 
@@ -175,6 +224,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
       {dressTarget && (
         <AdminDressModal
           marker={dressTarget.location}
+          dressing={dressTarget.dressing}
           onClose={() => setDressTarget(null)}
           onDressed={() => setDressTarget(null)}
         />
