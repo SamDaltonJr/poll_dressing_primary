@@ -16,7 +16,7 @@ interface ReportModalProps {
 }
 
 export default function ReportModal({ marker, onClose, onReported }: ReportModalProps) {
-  const [reason, setReason] = useState(REASONS[0]);
+  const [reason, setReason] = useState<typeof REASONS[number]>(REASONS[0]);
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
