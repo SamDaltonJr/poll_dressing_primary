@@ -60,7 +60,9 @@ export default function MapPage() {
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
-  const { isValid: hasAccess } = useAccessCode();
+  const { isValid: hasAccessFromHook } = useAccessCode();
+  const [localAccess, setLocalAccess] = useState(false);
+  const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
@@ -148,6 +150,7 @@ export default function MapPage() {
 
   function handleAccessSuccess() {
     setShowAccessModal(false);
+    setLocalAccess(true);
   }
 
   function handleReportClick(marker: MapMarker) {
