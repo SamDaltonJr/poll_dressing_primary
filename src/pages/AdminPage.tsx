@@ -5,17 +5,22 @@ import StatsPanel from '../components/admin/StatsPanel';
 import ExportButton from '../components/admin/ExportButton';
 import DistributionPointTable from '../components/admin/DistributionPointTable';
 import LocationReportTable from '../components/admin/LocationReportTable';
+import SignSubmissionTable from '../components/admin/SignSubmissionTable';
+import SignStatsPanel from '../components/admin/SignStatsPanel';
+import SignExportButton from '../components/admin/SignExportButton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useLocationReports } from '../hooks/useLocationReports';
+import { useSubmissions } from '../hooks/useSubmissions';
 
-type AdminTab = 'polling' | 'distribution' | 'locationReports';
+type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs';
 
 export default function AdminPage() {
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { reports: locationReports, loading: lrLoading } = useLocationReports();
+  const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   const pendingReportCount = locationReports.filter((r) => r.status === 'pending').length;
 
@@ -24,7 +29,11 @@ export default function AdminPage() {
       <div className="admin-page">
         <div className="admin-header">
           <h2>Admin Dashboard</h2>
-          <ExportButton dressings={dressings} />
+          {activeTab === 'signs' ? (
+            <SignExportButton submissions={signSubmissions} />
+          ) : (
+            <ExportButton dressings={dressings} />
+          )}
         </div>
         <div className="admin-tabs">
           <button
@@ -32,6 +41,12 @@ export default function AdminPage() {
             onClick={() => setActiveTab('polling')}
           >
             Polling Locations
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'signs' ? 'active' : ''}`}
+            onClick={() => setActiveTab('signs')}
+          >
+            Sign Placements ({signSubmissions.length})
           </button>
           <button
             className={`admin-tab ${activeTab === 'distribution' ? 'active' : ''}`}
@@ -53,6 +68,16 @@ export default function AdminPage() {
             <>
               <StatsPanel dressings={dressings} />
               <DressingTable dressings={dressings} />
+            </>
+          )
+        )}
+        {activeTab === 'signs' && (
+          subsLoading ? (
+            <LoadingSpinner message="Loading sign submissions..." />
+          ) : (
+            <>
+              <SignStatsPanel submissions={signSubmissions} />
+              <SignSubmissionTable submissions={signSubmissions} />
             </>
           )
         )}

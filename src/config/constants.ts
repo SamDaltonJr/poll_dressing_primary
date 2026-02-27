@@ -14,6 +14,9 @@ L.Icon.Default.mergeOptions({
 // Map defaults — centered on Dallas-Fort Worth area
 export const MAP_CENTER: [number, number] = [32.78, -96.80];
 export const MAP_ZOOM = 10;
+
+// Nominatim viewbox for DFW area (lon_min, lat_max, lon_max, lat_min)
+export const DFW_VIEWBOX = '-97.8,33.4,-96.0,32.5';
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
@@ -97,6 +100,33 @@ export function createPinDropIcon(): L.DivIcon {
       font-size: 18px;
       font-weight: 700;
     ">+</div>`,
+    iconSize: [px, px],
+    iconAnchor: [half, half],
+    popupAnchor: [0, -(half + 2)],
+  });
+}
+
+/** Sign placement marker icon: white box with black border and bold "T" */
+export function createSignMarkerIcon(): L.DivIcon {
+  const px = 20;
+  const half = px / 2;
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background-color: white;
+      width: ${px}px;
+      height: ${px}px;
+      border-radius: 3px;
+      border: 2px solid black;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    ">T</div>`,
     iconSize: [px, px],
     iconAnchor: [half, half],
     popupAnchor: [0, -(half + 2)],

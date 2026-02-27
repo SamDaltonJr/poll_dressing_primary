@@ -3,11 +3,12 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import PollingMarker from './PollingMarker';
+import SignMarker from './SignMarker';
 import DistributionPointMarker from './DistributionPointMarker';
 import PinDropHandler from './PinDropHandler';
 import FlyToLocation from './FlyToLocation';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
-import type { MapMarker, DressingRecord, DistributionPoint, LocationStatus } from '../../types';
+import type { MapMarker, DressingRecord, DistributionPoint, SignSubmission, LocationStatus } from '../../types';
 
 interface MapViewProps {
   markers: MapMarker[];
@@ -19,6 +20,7 @@ interface MapViewProps {
   onReportClick: (marker: MapMarker) => void;
   onIncorrectReportClick: (marker: MapMarker) => void;
   hasAccess: boolean;
+  signSubmissions: SignSubmission[];
   distributionPoints: DistributionPoint[];
   pinDropMode: boolean;
   pinPosition: [number, number] | null;
@@ -94,7 +96,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, distributionPoints, pinDropMode, pinPosition, onPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, signSubmissions, distributionPoints, pinDropMode, pinPosition, onPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -147,6 +149,10 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
 
       {distributionPoints.map((point) => (
         <DistributionPointMarker key={point.id} point={point} />
+      ))}
+
+      {signSubmissions.map((sub) => (
+        <SignMarker key={sub.id} submission={sub} />
       ))}
 
       <PinDropHandler active={pinDropMode} pinPosition={pinPosition} onPinPlaced={onPinPlaced} />

@@ -29,10 +29,12 @@ body {
   color: var(--color-text);
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -42,6 +44,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .main-content {
@@ -115,6 +118,7 @@ body {
 .map-container {
   flex: 1;
   min-height: calc(100vh - var(--header-height) - 40px);
+  min-height: calc(100dvh - var(--header-height) - 40px);
   z-index: 1;
 }
 
@@ -122,6 +126,7 @@ body {
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding: 8px 16px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   text-align: center;
   font-size: 0.85rem;
   color: var(--color-text-muted);
@@ -956,7 +961,7 @@ textarea:focus {
 /* === Pin Drop / Missing Location === */
 .pin-drop-btn {
   position: absolute;
-  bottom: 60px;
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   left: 16px;
   z-index: 999;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -1086,6 +1091,259 @@ input.search-bar-input {
   color: var(--color-text-muted);
 }
 
+/* === Submission Form === */
+.submission-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  width: 100%;
+}
+
+.submission-form h2 {
+  margin-bottom: 20px;
+}
+
+.submission-success {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.submission-success h2 {
+  color: var(--color-success);
+  margin-bottom: 8px;
+}
+
+.submission-success p {
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* === Location Picker === */
+.location-picker {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.location-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: var(--color-bg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:not(:last-child) {
+  border-right: 1px solid var(--color-border);
+}
+
+.tab.active {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.location-mode-content {
+  padding: 16px;
+}
+
+.selected-location {
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-success);
+}
+
+.mini-map {
+  height: 250px;
+  border-radius: var(--radius);
+  margin-top: 8px;
+}
+
+.pin-drop-map .search-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* === GPS Button === */
+.gps-button-wrapper {
+  text-align: center;
+}
+
+.gps-button-wrapper .btn {
+  width: 100%;
+}
+
+/* === Address Search === */
+.address-search {
+  position: relative;
+}
+
+.address-results {
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.address-results li {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.address-results li:last-child {
+  border-bottom: none;
+}
+
+.address-results li:hover {
+  background: var(--color-bg);
+}
+
+.search-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* === Photo Uploader === */
+.photo-uploader {
+  text-align: center;
+}
+
+.photo-upload-label {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--color-bg);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.photo-upload-label:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.photo-upload-label input {
+  display: none;
+}
+
+.photo-preview {
+  margin-top: 12px;
+}
+
+.photo-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+
+/* === Sign Popup Photo === */
+.marker-popup-photo {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.marker-popup-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* === Sign Filter Icon === */
+.filter-dot-sign {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: white;
+  border: 2px solid #333;
+  box-shadow: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+
+.filter-dot-sign::after {
+  content: 'T';
+  font-size: 7px;
+  font-weight: 900;
+}
+
+/* === Sign Admin Stats === */
+.stat-card-wide {
+  grid-column: 1 / -1;
+  text-align: left;
+}
+
+.stat-detail {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.area-list {
+  list-style: none;
+  margin-top: 8px;
+}
+
+.area-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.85rem;
+}
+
+.area-list li:last-child {
+  border-bottom: none;
+}
+
+.area-count {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* === Sign Table Thumbnail === */
+.table-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
 /* === Admin: Report Reason Descriptor === */
 .report-reason-text {
   margin-top: 4px;
@@ -1156,7 +1414,7 @@ input.search-bar-input {
   }
 
   .pin-drop-btn {
-    bottom: 52px;
+    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
     left: 8px;
     font-size: 0.75rem;
     padding: 6px 12px;
@@ -1176,5 +1434,23 @@ input.search-bar-input {
     left: 8px;
     right: 8px;
     width: auto;
+  }
+
+  .submission-form {
+    padding: 16px 12px;
+  }
+
+  .table-thumb {
+    width: 36px;
+    height: 36px;
+  }
+
+  .admin-tabs {
+    flex-wrap: wrap;
+  }
+
+  .admin-tab {
+    font-size: 0.8rem;
+    padding: 8px 12px;
   }
 }

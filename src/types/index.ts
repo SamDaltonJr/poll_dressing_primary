@@ -122,3 +122,42 @@ export interface LocationReportInput {
   reporterContact: string;
   notes: string;
 }
+
+// Sign submission types (from big_sign_mapper)
+export type PostingMethod = 'fence' | 'tPost' | 'other';
+
+export interface SignSubmission {
+  id: string;
+  volunteerName: string;
+  volunteerPhone: string;
+  volunteerEmail: string;
+  photoUrl: string;
+  photoPath: string;
+  notes: string;
+  latitude: number;
+  longitude: number;
+  address: string;
+  postingMethod: PostingMethod;
+  signCount: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface SignSubmissionInput {
+  volunteerName: string;
+  volunteerPhone: string;
+  volunteerEmail: string;
+  photo: File;
+  notes: string;
+  latitude: number;
+  longitude: number;
+  address: string;
+  postingMethod: PostingMethod;
+  signCount: number;
+}
+
+export interface GeocodingResult {
+  displayName: string;
+  lat: number;
+  lon: number;
+}

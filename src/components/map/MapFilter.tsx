@@ -8,9 +8,12 @@ interface MapFilterProps {
   showDistributionPoints: boolean;
   onToggleDistributionPoints: () => void;
   distributionPointCount: number;
+  showSignPlacements: boolean;
+  onToggleSignPlacements: () => void;
+  signPlacementCount: number;
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount }: MapFilterProps) {
   return (
     <div className="map-filter">
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
@@ -40,6 +43,16 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
         <span className="filter-dot filter-dot-diamond" style={{ backgroundColor: '#2563eb' }} />
         <span className="filter-label">Sign Distribution</span>
         <span className="filter-progress">{distributionPointCount}</span>
+      </label>
+      <label className="map-filter-item">
+        <input
+          type="checkbox"
+          checked={showSignPlacements}
+          onChange={onToggleSignPlacements}
+        />
+        <span className="filter-dot filter-dot-sign" />
+        <span className="filter-label">Sign Placements</span>
+        <span className="filter-progress">{signPlacementCount}</span>
       </label>
       <div className="filter-legend">
         <span className="filter-dot" style={{ backgroundColor: '#16a34a' }} />

@@ -11,6 +11,7 @@ import AccessCodeModal from '../components/common/AccessCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
+import { useSubmissions } from '../hooks/useSubmissions';
 import { useAccessCode } from '../hooks/useAccessCode';
 import { MARKER_TYPES } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
@@ -58,9 +59,11 @@ function getDefaultActiveTypes(): Set<MarkerType> {
 export default function MapPage() {
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
+  const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const { isValid: hasAccess } = useAccessCode();
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
+  const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
   const [reportTarget, setReportTarget] = useState<MapMarker | null>(null);
@@ -190,7 +193,7 @@ export default function MapPage() {
     setShowAccessModal(false);
   }
 
-  if (loading || dpLoading) return <LoadingSpinner message="Loading map data..." />;
+  if (loading || dpLoading || subsLoading) return <LoadingSpinner message="Loading map data..." />;
 
   const totalDressed = stats.dualSite.dressed + stats.earlyVotingOnly.dressed + stats.electionDayOnly.dressed;
   const totalClaimed = stats.dualSite.claimed + stats.earlyVotingOnly.claimed + stats.electionDayOnly.claimed;
@@ -208,6 +211,7 @@ export default function MapPage() {
         onReportClick={handleReportClick}
         onIncorrectReportClick={handleIncorrectReportClick}
         hasAccess={hasAccess}
+        signSubmissions={showSignPlacements ? signSubmissions : []}
         distributionPoints={showDistributionPoints ? distributionPoints : []}
         pinDropMode={pinDropMode}
         pinPosition={pinPosition}
@@ -223,6 +227,9 @@ export default function MapPage() {
         showDistributionPoints={showDistributionPoints}
         onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
         distributionPointCount={distributionPoints.length}
+        showSignPlacements={showSignPlacements}
+        onToggleSignPlacements={() => setShowSignPlacements((prev) => !prev)}
+        signPlacementCount={signSubmissions.length}
       />
       {!pinDropMode && (
         <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
@@ -253,7 +260,13 @@ export default function MapPage() {
         <span className="legend-sep">&middot;</span>
         <span>{totalLocations - totalDressed - totalClaimed} available</span>
         <span className="legend-sep">|</span>
-        <span>{totalLocations} total</span>
+        <span>{totalLocations} locations</span>
+        {signSubmissions.length > 0 && (
+          <>
+            <span className="legend-sep">&middot;</span>
+            <span>{signSubmissions.length} sign{signSubmissions.length !== 1 ? 's' : ''}</span>
+          </>
+        )}
       </div>
 
       {showAccessModal && (
