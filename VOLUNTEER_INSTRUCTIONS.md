@@ -1,17 +1,17 @@
-# Big Sign Mapper - Volunteer Instructions
+# Campaign Sign Tracker - Volunteer Instructions
 
 ## What Is This?
 
-Big Sign Mapper is a web tool that tracks where campaign signs have been placed across North Texas. When you place a sign, you log it on the site so the team can see coverage across Dallas, Tarrant, Denton, and Collin counties.
+Campaign Sign Tracker is a mobile-friendly web app for tracking campaign sign placement at polling locations across North Texas. The app helps coordinate volunteers so every site gets covered — you claim a location, place signs, and confirm in the app. The team also uses it to track big sign placements at high-visibility intersections.
 
-The map also shows **Early Voting** and **Election Day** polling locations so you can prioritize high-visibility placements near where voters will be.
+The map shows **Early Voting** and **Election Day** polling locations across Dallas, Tarrant, Denton, and Collin counties so you can prioritize high-visibility placements near where voters will be.
 
 ---
 
 ## What You Need
 
 - A smartphone (preferred) or computer with internet access
-- The **access code** provided by your team lead
+- The **access code** provided by your coordinator
 - A camera (your phone camera works great)
 
 ---
@@ -20,114 +20,150 @@ The map also shows **Early Voting** and **Election Day** polling locations so yo
 
 Open this link in your phone or computer browser:
 
-**https://samdaltonjr.github.io/big_sign_mapper/**
+**https://samdaltonjr.github.io/poll_dressing_primary/#/**
 
-You'll see three tabs at the top:
+You'll see four tabs at the top:
 
 | Tab | What It Does |
 |-----|-------------|
-| **Map** | View all placed signs and polling locations |
-| **Submit** | Log a new sign placement |
+| **Map** | View all polling locations and placed signs on an interactive map |
+| **Submit** | Log a new big sign placement (intersections, fences, medians) |
+| **My Locations** | Look up polling locations you've claimed by email or phone |
 | **Admin** | Dashboard for team leads (password protected) |
 
 ---
 
-## How to Submit a Sign Placement
+## How It Works — Claim → Place → Confirm
 
-### Step 1: Go to the Submit Page
+### Step 1: Open the App & Browse the Map
 
-Tap **Submit** in the top navigation bar. You'll be asked for the **access code** - enter it and tap **Enter**. You only need to do this once per browser session.
+Scan the QR code or visit the URL. You'll see an interactive map with colored circle pins for every polling location. Use the **search bar** (top-left) to find a specific location by name. Use the **filter checkboxes** (top-right) to show or hide different location types.
 
-### Step 2: Enter Your Name
+### Step 2: Claim a Location
 
-Type your name so the team knows who placed the sign.
+Tap any **red (available)** pin, then tap **"Claim This Location"** (or **"Enter Code to Claim"** if you haven't entered the access code yet). Enter the code from your coordinator, then fill in your name, phone, and email. Tap **Claim Location**.
 
-### Step 3: Set the Sign Location
+After claiming, you'll see **nearby unclaimed locations** suggested — consider claiming a few that are close together to build an efficient route.
 
-You have three options - pick whichever works best:
+### Step 3: Place Signs & Confirm Dressed
 
-- **Use My Current Location** (recommended when you're at the sign) - Tap the GPS button and your phone will pinpoint your location automatically.
-- **Search by Address** - Type the address or intersection and select from the suggestions.
-- **Drop a Pin on the Map** - Tap the map to place a pin exactly where the sign is. You can drag the pin to adjust.
+Drive to the location and place signs outside the 100-ft boundary. Return to the app, tap your now-amber pin, and tap **"Confirm Dressed."** Enter how many signs you placed and submit. The pin turns green and the status bar updates live.
 
-### Step 4: Upload a Photo
+### Step 4: Track Your Assignments — My Locations
 
-Tap the photo upload area to either:
-- **Take a photo** directly with your phone camera
-- **Choose an existing photo** from your gallery
+Go to the **My Locations** tab and enter the email or phone number you used when claiming. You'll see:
 
-The photo is automatically compressed so it uploads quickly, even on slower connections.
+- **Pending** locations — claimed but not yet dressed, with a **"Get Directions"** button that opens Google Maps with all your stops as a multi-stop route
+- **Dressed** locations — confirmed with sign counts
 
-### Step 5: Add Notes (Optional)
+This is the fastest way to see your full assignment list and plan your route.
 
-Include any helpful details, such as:
-- "Property owner gave permission"
-- "High visibility corner, faces east on Main St"
-- "Near the intersection with Elm"
-- "Sign is on the median strip"
+### Step 5: Report Issues or Missing Locations
 
-### Step 6: Submit
-
-Tap **Submit** and you're done! Your sign will appear on the map immediately. You can tap **Submit Another** to log the next sign without re-entering the access code.
+On dressed (green) pins, tap **"Report Issue"** for problems like missing or damaged signs. On any pin, tap **"Report Incorrect Info"** if address/name/pin is wrong. Use **"+ Report Missing Location"** at the bottom to add unlisted polling sites via pin drop.
 
 ---
 
-## Using the Map
+## Map Pin Colors & Markers
 
-### Viewing Signs and Polling Locations
+| Marker | Meaning |
+|--------|---------|
+| **Red circle** | Available — no one has claimed this site yet |
+| **Amber circle** | Claimed — a volunteer is assigned, signs not yet placed |
+| **Green circle** | Dressed — signs confirmed on the ground |
+| **Cluster circles** | Zoomed out, pins group into numbered clusters with color rings showing the mix |
+| **Blue diamond "S"** | Sign distribution pickup points — shows sign count |
+| **White box "T"** | Big sign placements logged via the Submit tab |
 
-The map shows three types of markers:
+### Pin Sizes (EV Locations Only)
 
-- **Blue dots** = Big Signs placed by volunteers (that's you!)
-- **Red dots** = Early Voting locations (sized by turnout: Large/Medium/Small)
-- **Purple dots** = Election Day (Dem Primary) polling locations
+| Dot Size | Meaning | Priority |
+|----------|---------|----------|
+| **Large** | 300+ Dem ballots cast | Highest priority |
+| **Medium** | 150–299 Dem ballots | High priority |
+| **Small** | Under 150 Dem ballots | Standard |
 
-### Filtering the Map
+Prioritize large pins first for maximum voter visibility.
 
-Use the **checkboxes** in the top-right corner to show or hide any marker type. The legend at the bottom shows total counts.
+### Filter Checkboxes (Top of Map)
 
-### Cluster Numbers
+Toggle visibility of: Early Voting + Election Day, EV Only, ED Only, Sign Distribution Points, and Sign Placements.
 
-When zoomed out, polling locations group into numbered circles. The colored ring around each number shows the mix of red (early voting) and purple (election day) locations inside. Zoom in to see individual locations.
+---
 
-### Viewing Details
+## Submit Tab — Big Sign Placements
 
-Tap any marker to see its details:
-- **Signs**: Volunteer name, address, photo, and notes
-- **Polling locations**: Location name and address
+For big signs placed at high-visibility locations (intersections, medians, fences). The form includes:
+
+1. Your name, phone, and email
+2. Sign location (GPS / address search / pin drop)
+3. Photo upload (auto-compressed for fast uploads)
+4. Posting method (fence / T-post / other)
+5. Sign count (signs are single-sided — use 2 for high-visibility spots)
+6. Optional notes
+
+**Sign pickup contacts:**
+- **Sam Dalton** — spdaltonjr@gmail.com — (214) 686-8608
+- **Rob Strobel** — rob@jamestalarico.com — (859) 489-8880
+
+---
+
+## My Locations — Track Your Assignments
+
+The **My Locations** page lets you quickly look up all the polling locations you've claimed:
+
+1. Tap **"My Locations"** in the navigation bar
+2. Enter the **email** or **phone number** you used when claiming
+3. Tap **"Look Up My Locations"**
+
+You'll see your locations split into **Pending** (not yet dressed) and **Dressed** (confirmed). For pending locations, use the **"Get Directions"** button to open Google Maps with all stops as a multi-stop route. If you have many stops, directions are split into batches automatically.
+
+---
+
+## Key Features
+
+| Feature | Details |
+|---------|---------|
+| **Access Code** | Required to claim & dress. Get from coordinator. Saved per session. |
+| **Auto-fill** | Name, phone, and email auto-fill after your first claim. |
+| **Confirm Dressed** | Only appears on your claimed (amber) pin. Enter sign count, then confirm. |
+| **Nearby Suggestions** | After claiming, see nearby unclaimed locations to build an efficient route. |
+| **My Locations** | Look up your claimed locations + get multi-stop directions. |
+| **Three report types** | Report Issue (dressed pins), Report Incorrect Info (any pin), Report Missing Location (pin drop). |
+
+---
+
+## Sign Placement Rules
+
+- Signs must be placed **OUTSIDE the 100-ft electioneering boundary** (TX Election Code Sec. 61.003)
+- No earlier than **24 hours** before voting begins
+- Place on **public right-of-way** or **private property with permission**
+- Don't block sidewalks, ADA access, or driveways
+- Remove after polls close
+
+**ELECTION DAY SITES (Tues 3/3/2026):** Dress ONLY Mon 3/2 between 7 PM–12 AM, OR early Tues morning before polls open at 7 AM.
 
 ---
 
 ## Sign Placement Tips
 
-### Where to Place Signs
+### Where to Place
 
-1. **Near polling locations** - Check the map for red and purple dots. Placing signs where voters will see them on their way to vote has the highest impact.
-2. **High-traffic intersections** - Busy corners and medians where cars stop at lights.
-3. **Major roads and highways** - Along routes with high visibility to drivers.
-4. **Near schools, churches, and community centers** - Many of these are polling locations.
-5. **Neighborhood entrances** - Catch residents as they come and go.
+1. **Near polling locations** — highest impact where voters will see them
+2. **High-traffic intersections** — busy corners and medians
+3. **Major roads and highways** — maximum visibility to drivers
+4. **Near schools, churches, community centers** — many are polling locations
+5. **Neighborhood entrances** — catch residents coming and going
 
-### Placement Best Practices
+### Best Practices
 
-- **Face the sign toward traffic** so it's readable by drivers and pedestrians.
-- **Place on public right-of-way** (the strip between the sidewalk and the street) or on private property **with the owner's permission**.
-- **Don't block sidewalks, driveways, or sight lines** at intersections.
-- **Push stakes fully into the ground** so the sign is sturdy and won't blow over.
-- **Avoid placing directly on utility poles, traffic signs, or government property** - signs placed here may be removed.
-- **Check local ordinances** - some cities have rules about sign size, placement distance from roads, or timing relative to elections.
-
-### Size Guide for Polling Locations on the Map
-
-Early voting locations on the map are sized by Democratic primary turnout:
-
-| Dot Size | Meaning | Priority |
-|----------|---------|----------|
-| **Large** (red) | 300+ Dem ballots cast (Tier 1) | Highest priority |
-| **Medium** (red) | 150-299 Dem ballots (Tier 2) | High priority |
-| **Small** (red) | Under 150 Dem ballots (Tier 3/4) | Standard |
-
-Focus sign placements near the **larger red dots** first for maximum voter visibility.
+- Face the sign toward traffic
+- Place on public right-of-way or private property with permission
+- Don't block sidewalks, driveways, or sight lines at intersections
+- Push stakes fully into the ground / secure firmly to fences
+- Avoid utility poles, traffic signs, or government property
+- Use 2 signs back-to-back for high-traffic locations (signs are single-sided)
+- Check local ordinances for specific rules
 
 ---
 
@@ -135,24 +171,28 @@ Focus sign placements near the **larger red dots** first for maximum voter visib
 
 | Problem | Solution |
 |---------|----------|
-| "Invalid access code" | Double-check the code with your team lead. It's case-sensitive. |
-| GPS not working | Make sure location services are enabled in your phone settings and that your browser has permission to access your location. You can also search by address or drop a pin instead. |
-| Photo won't upload | Make sure the file is an image (JPG, PNG, HEIC). Try taking a new photo directly from the form. |
-| Map is blank or not loading | Check your internet connection and refresh the page. |
-| Sign isn't showing on map | It should appear immediately. Try refreshing the map page. If it still doesn't show, re-submit. |
-| Form says "Please set the sign location" | Make sure you've set the location using GPS, address search, or pin drop before submitting. |
+| "Invalid access code" | Double-check with coordinator. Case-sensitive. |
+| GPS not working | Enable location services + browser permissions. Use address search or pin drop instead. |
+| Photo won't upload | Must be an image (JPG, PNG, HEIC). Try taking a new photo from the form. |
+| Map blank / not loading | Check internet connection. Refresh the page. |
+| Sign not showing on map | Refresh. Make sure "Sign Placements" is checked in filter panel. Re-submit if needed. |
+| My Locations shows no results | Use the same email or phone you used when claiming. |
+| How to un-claim a location | Contact your coordinator — only admins can reassign. |
 
 ---
 
 ## Quick Reference
 
-1. Go to **https://samdaltonjr.github.io/big_sign_mapper/**
-2. Tap **Submit**
-3. Enter the **access code**
-4. Fill in your **name**, set the **location**, upload a **photo**
-5. Tap **Submit**
-6. Repeat for each sign!
+1. Go to **https://samdaltonjr.github.io/poll_dressing_primary/#/**
+2. **Map tab** → Tap a red pin → **Claim This Location**
+3. Enter access code + name/phone/email
+4. Drive to location → Place signs outside 100-ft boundary
+5. Return to app → Tap amber pin → **Confirm Dressed**
+6. Check **My Locations** for your full list + directions
+7. Repeat for each location!
+
+**TIP:** Save to your home screen — tap Share → "Add to Home Screen." Works like a native app!
 
 ---
 
-*Questions? Contact your team lead for the access code or any issues not covered here.*
+*Questions? Contact your campaign coordinator for the access code and any issues.*

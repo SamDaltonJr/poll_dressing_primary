@@ -1838,3 +1838,420 @@ input.search-bar-input {
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
+
+/* === Instructions Pages === */
+.instructions-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+  width: 100%;
+}
+
+.instructions-page h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: var(--color-text);
+}
+
+.instructions-subtitle {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  margin-bottom: 32px;
+}
+
+.instructions-section {
+  margin-bottom: 36px;
+}
+
+.instructions-section h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-primary);
+  color: var(--color-text);
+}
+
+.instructions-section h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.instructions-section p {
+  margin-bottom: 10px;
+  line-height: 1.65;
+}
+
+.instructions-section ul,
+.instructions-section ol {
+  margin: 8px 0 12px 24px;
+  line-height: 1.65;
+}
+
+.instructions-section li {
+  margin-bottom: 6px;
+}
+
+.instructions-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.instructions-link:hover {
+  text-decoration: underline;
+}
+
+/* Steps */
+.instructions-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.instructions-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.instructions-step-number {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.instructions-step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.instructions-step-content h3 {
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+.instructions-step-content p {
+  margin-bottom: 8px;
+}
+
+.instructions-step-content ul,
+.instructions-step-content ol {
+  margin: 6px 0 8px 20px;
+}
+
+/* Callouts */
+.instructions-callout {
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 12px 0;
+}
+
+.instructions-callout strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.instructions-callout p {
+  margin-bottom: 6px;
+}
+
+.instructions-callout ul {
+  margin: 6px 0 0 20px;
+}
+
+.instructions-callout-warning {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+}
+
+.instructions-callout-danger {
+  background: #fef2f2;
+  border-left: 4px solid var(--color-danger);
+}
+
+/* Tips */
+.instructions-tip {
+  background: #eff6ff;
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.instructions-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* Pin Dot Indicators */
+.pin-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 2px;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.pin-dot-red { background: #dc2626; }
+.pin-dot-amber { background: #f59e0b; }
+.pin-dot-green { background: #16a34a; }
+
+.pin-dot-blue-diamond {
+  width: 14px;
+  height: 14px;
+  background: #2563eb;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.pin-dot-sign-box {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 2px;
+  border: 2px solid #333;
+  box-shadow: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-dot-sign-box::after {
+  content: 'T';
+  font-size: 8px;
+  font-weight: 900;
+  color: #333;
+  line-height: 1;
+}
+
+/* Legend */
+.instructions-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.instructions-legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.instructions-legend-item > span {
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.instructions-legend-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* Size Indicators */
+.instructions-sizes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.instructions-size-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.size-indicator {
+  border-radius: 50%;
+  background: #dc2626;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.size-large { width: 20px; height: 20px; }
+.size-medium { width: 16px; height: 16px; }
+.size-small { width: 12px; height: 12px; }
+
+/* FAQ */
+.instructions-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.instructions-faq-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.instructions-faq-item strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text);
+}
+
+.instructions-faq-item p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Quick Reference */
+.instructions-quick-ref {
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+
+.instructions-quick-ref ol {
+  margin: 0 0 0 20px;
+}
+
+.instructions-quick-ref li {
+  padding: 4px 0;
+}
+
+/* Options (location picker methods) */
+.instructions-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.instructions-option {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+
+.instructions-option strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.instructions-option p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* Contact Cards */
+.instructions-contacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.instructions-contact-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.instructions-contact-card strong {
+  font-size: 1.05rem;
+}
+
+.instructions-contact-card a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.instructions-contact-card a:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.instructions-footer {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.instructions-footer p {
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.instructions-footer-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.instructions-footer-actions .btn {
+  text-decoration: none;
+  min-width: 140px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .instructions-page {
+    padding: 20px 12px 40px;
+  }
+
+  .instructions-page h1 {
+    font-size: 1.4rem;
+  }
+
+  .instructions-step {
+    gap: 12px;
+  }
+
+  .instructions-step-number {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    font-size: 0.9rem;
+  }
+
+  .instructions-contacts {
+    grid-template-columns: 1fr;
+  }
+
+  .instructions-footer-actions {
+    flex-direction: column;
+  }
+
+  .instructions-footer-actions .btn {
+    width: 100%;
+  }
+}
