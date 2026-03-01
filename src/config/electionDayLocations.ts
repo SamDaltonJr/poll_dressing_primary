@@ -5645,6 +5645,14 @@ const electionDayLocations: RawMapMarker[] = [
     latitude: 32.54077,
     longitude: -97.11488,
   },
+  {
+    id: 'ed-V1040',
+    type: 'electionDay',
+    label: 'Northway Christian Church',
+    address: '7202 W Northwest Hwy, Dallas, TX 75225',
+    latitude: 32.86453,
+    longitude: -96.78172,
+  },
 ];
 
 export default electionDayLocations;
