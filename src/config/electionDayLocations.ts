@@ -4369,8 +4369,8 @@ const electionDayLocations: RawMapMarker[] = [
     type: 'electionDay',
     label: 'Collin College Plano Campus',
     address: '2800 E. Spring Creek Parkway, Plano, TX 75074',
-    latitude: 33.04902,
-    longitude: -96.67234,
+    latitude: 33.04969,
+    longitude: -96.67806,
   },
   {
     id: 'ed-C0070',
@@ -5077,8 +5077,8 @@ const electionDayLocations: RawMapMarker[] = [
     type: 'electionDay',
     label: 'The Grove at Frisco Commons',
     address: '8300 McKinney Road, Frisco, TX 75034',
-    latitude: 33.1508,
-    longitude: -96.8236,
+    latitude: 33.15469,
+    longitude: -96.81181,
   },
   {
     id: 'ed-D0069',

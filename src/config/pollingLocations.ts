@@ -1399,8 +1399,8 @@ const pollingLocations: RawMapMarker[] = [
     size: 'S',
     label: 'Collin College Plano Campus',
     address: '4000 Jupiter Road, Plano, TX 75074',
-    latitude: 33.02293,
-    longitude: -96.69870,
+    latitude: 33.04969,
+    longitude: -96.67806,
   },
   {
     id: 'ev-CC012',
@@ -1615,8 +1615,8 @@ const pollingLocations: RawMapMarker[] = [
     size: 'S',
     label: 'The Grove at Frisco Commons',
     address: '8300 McKinney Road, Frisco, TX 75034',
-    latitude: 33.1508,
-    longitude: -96.8236,
+    latitude: 33.15469,
+    longitude: -96.81181,
   },
   {
     id: 'ev-CC036',
