@@ -1501,14 +1501,6 @@ const electionDayLocations: RawMapMarker[] = [
     longitude: -96.87619,
   },
   {
-    id: 'ed-V4076',
-    type: 'electionDay',
-    label: 'Stevens Park Elem School',
-    address: '2615 W Colorado Blvd, DALLAS, TX 75211',
-    latitude: 32.76,
-    longitude: -96.86369,
-  },
-  {
     id: 'ed-V4055',
     type: 'electionDay',
     label: 'Leslie Stemmons Elementary Sch',
