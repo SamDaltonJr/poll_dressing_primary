@@ -1,14 +1,16 @@
 import { useState, type FormEvent } from 'react';
 import { claimLocation } from '../../services/dressingService';
-import type { MapMarker } from '../../types';
+import NearbySuggestions from './NearbySuggestions';
+import type { MapMarker, DressingRecord } from '../../types';
 
 interface ClaimModalProps {
   marker: MapMarker;
+  dressings: DressingRecord[];
   onClose: () => void;
   onClaimed: () => void;
 }
 
-export default function ClaimModal({ marker, onClose, onClaimed }: ClaimModalProps) {
+export default function ClaimModal({ marker, dressings, onClose, onClaimed }: ClaimModalProps) {
   const [volunteerName, setVolunteerName] = useState(
     () => sessionStorage.getItem('volunteerName') || '',
   );
@@ -20,6 +22,7 @@ export default function ClaimModal({ marker, onClose, onClaimed }: ClaimModalPro
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [claimed, setClaimed] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -30,12 +33,30 @@ export default function ClaimModal({ marker, onClose, onClaimed }: ClaimModalPro
       sessionStorage.setItem('volunteerName', volunteerName);
       sessionStorage.setItem('volunteerPhone', volunteerPhone);
       sessionStorage.setItem('volunteerEmail', volunteerEmail);
-      onClaimed();
+      setClaimed(true);
     } catch {
       setError('Failed to claim location. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (claimed) {
+    return (
+      <div className="confirm-overlay" onClick={onClaimed}>
+        <div className="dressing-modal" onClick={(e) => e.stopPropagation()}>
+          <h3>Location Claimed!</h3>
+          <p className="dressing-modal-location">
+            <strong>{marker.label}</strong><br />
+            {marker.address}
+          </p>
+          <NearbySuggestions referenceLocation={marker} dressings={dressings} />
+          <div className="confirm-actions">
+            <button className="btn btn-primary" onClick={onClaimed}>Done</button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

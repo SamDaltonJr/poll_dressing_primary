@@ -282,6 +282,7 @@ export default function MapPage() {
       {claimTarget && !showAccessModal && hasAccess && (
         <ClaimModal
           marker={claimTarget}
+          dressings={dressings}
           onClose={handleCloseModals}
           onClaimed={() => setClaimTarget(null)}
         />

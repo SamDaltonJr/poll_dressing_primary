@@ -9,13 +9,14 @@ import SignSubmissionTable from '../components/admin/SignSubmissionTable';
 import SignStatsPanel from '../components/admin/SignStatsPanel';
 import SignExportButton from '../components/admin/SignExportButton';
 import LocationReportExportButton from '../components/admin/LocationReportExportButton';
+import PendingRemindersTable from '../components/admin/PendingRemindersTable';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useLocationReports } from '../hooks/useLocationReports';
 import { useSubmissions } from '../hooks/useSubmissions';
 
-type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs';
+type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders';
 
 export default function AdminPage() {
   const { dressings, loading } = useDressings();
@@ -24,6 +25,7 @@ export default function AdminPage() {
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   const pendingReportCount = locationReports.filter((r) => r.status === 'pending').length;
+  const pendingReminderCount = dressings.filter((d) => d.isClaimed && !d.isDressed && d.volunteerEmail).length;
 
   return (
     <AdminLogin>
@@ -63,6 +65,12 @@ export default function AdminPage() {
           >
             Location Reports{pendingReportCount > 0 ? ` (${pendingReportCount})` : ''}
           </button>
+          <button
+            className={`admin-tab ${activeTab === 'reminders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reminders')}
+          >
+            Reminders{pendingReminderCount > 0 ? ` (${pendingReminderCount})` : ''}
+          </button>
         </div>
         {activeTab === 'polling' && (
           loading ? (
@@ -96,6 +104,13 @@ export default function AdminPage() {
             <LoadingSpinner message="Loading location reports..." />
           ) : (
             <LocationReportTable reports={locationReports} />
+          )
+        )}
+        {activeTab === 'reminders' && (
+          loading ? (
+            <LoadingSpinner message="Loading dressing data..." />
+          ) : (
+            <PendingRemindersTable dressings={dressings} />
           )
         )}
       </div>

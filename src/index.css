@@ -1522,3 +1522,176 @@ input.search-bar-input {
     padding: 8px 12px;
   }
 }
+
+/* === Reminder Table === */
+.reminder-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.reminder-summary {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.reminder-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.last-reminded {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.volunteer-locations {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.volunteer-location-item {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* === Outline Button === */
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* === Expandable Nearby Rows (Admin) === */
+.expanded-row > td {
+  background: var(--color-bg);
+  padding: 0;
+}
+
+.expanded-row-detail {
+  padding: 12px 16px !important;
+  border-left: 3px solid var(--color-primary);
+}
+
+.nearby-list-admin {
+  list-style: none;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nearby-item-admin {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.nearby-item-admin .nearby-item-name {
+  font-weight: 500;
+  min-width: 200px;
+}
+
+.nearby-item-admin .nearby-item-address {
+  color: var(--color-text-muted);
+  flex: 1;
+}
+
+.nearby-item-admin .nearby-item-distance {
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.nearby-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* === Nearby Suggestions (Volunteer Modal) === */
+.nearby-suggestions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.nearby-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.nearby-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nearby-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+}
+
+.nearby-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.nearby-item-info .nearby-item-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.nearby-item-info .nearby-item-address {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nearby-item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.nearby-item-type {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.nearby-item-distance {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+}
+
+/* === Empty State === */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+}

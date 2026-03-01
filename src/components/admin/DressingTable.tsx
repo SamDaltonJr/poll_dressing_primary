@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { revertDressing, unclaimLocation, dismissReports } from '../../services/dressingService';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
 import { allLocations, getCounty } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
+import { findNearbyUnclaimed } from '../../utils/geo';
 import type { DressingRecord, MapMarker, LocationStatus } from '../../types';
 
 type FilterMode = 'all' | 'available' | 'claimed' | 'dressed' | 'reported';
@@ -22,6 +23,32 @@ interface Row {
   county: string;
 }
 
+function NearbyPanel({ location, claimedOrDressedIds }: { location: MapMarker; claimedOrDressedIds: Set<string> }) {
+  const nearby = useMemo(
+    () => findNearbyUnclaimed(location.latitude, location.longitude, allLocations, claimedOrDressedIds, location.id),
+    [location, claimedOrDressedIds],
+  );
+
+  if (nearby.length === 0) {
+    return <p className="nearby-empty">No unclaimed locations within 5 miles.</p>;
+  }
+
+  return (
+    <div>
+      <strong>Nearby unclaimed locations:</strong>
+      <ul className="nearby-list-admin">
+        {nearby.map((n) => (
+          <li key={n.location.id} className="nearby-item-admin">
+            <span className="nearby-item-name">{n.location.label}</span>
+            <span className="nearby-item-address">{n.location.address}</span>
+            <span className="nearby-item-distance">{n.distanceMiles.toFixed(1)} mi</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function DressingTable({ dressings }: DressingTableProps) {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [search, setSearch] = useState('');
@@ -32,11 +59,20 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   const [editTarget, setEditTarget] = useState<Row | null>(null);
   const [dressTarget, setDressTarget] = useState<Row | null>(null);
   const [dismissTarget, setDismissTarget] = useState<Row | null>(null);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
     return m;
+  }, [dressings]);
+
+  const claimedOrDressedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of dressings) {
+      if (d.isClaimed || d.isDressed) set.add(d.locationId);
+    }
+    return set;
   }, [dressings]);
 
   const locations = useMemo(() => allLocations, []);
@@ -242,87 +278,109 @@ export default function DressingTable({ dressings }: DressingTableProps) {
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((row) => (
-              <tr key={row.location.id}>
-                <td>{row.location.label}</td>
-                <td>{typeLabel(row.location.type)}</td>
-                <td>{row.county}</td>
-                <td className="address-cell">{row.location.address}</td>
-                <td>
-                  <span className={`status-badge status-${row.status}`}>
-                    {row.status === 'dressed' ? 'Dressed' : row.status === 'claimed' ? 'Claimed' : 'Available'}
-                  </span>
-                  {(row.dressing?.reportCount ?? 0) > 0 && (
-                    <span className="report-indicator" title={row.dressing?.lastReportReason ?? ''}>
-                      {row.dressing!.reportCount}
-                    </span>
-                  )}
-                  {filter === 'reported' && row.dressing?.lastReportReason && (
-                    <div className="report-reason-text">
-                      {row.dressing.lastReportReason}
-                    </div>
-                  )}
-                </td>
-                <td>{row.dressing?.volunteerName || '—'}</td>
-                <td className="contact-cell">
-                  {row.dressing?.volunteerPhone && <div>{row.dressing.volunteerPhone}</div>}
-                  {row.dressing?.volunteerEmail && <div className="email-text">{row.dressing.volunteerEmail}</div>}
-                </td>
-                <td>
-                  {row.status === 'dressed' && row.dressing?.signCount ? row.dressing.signCount : '—'}
-                </td>
-                <td className="actions-cell">
-                  {row.status === 'dressed' && (
-                    <>
-                      <button
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => setEditTarget(row)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => setRevertTarget(row)}
-                      >
-                        Revert
-                      </button>
+            {sortedRows.map((row) => {
+              const isExpanded = expandedRowId === row.location.id;
+              return (
+                <React.Fragment key={row.location.id}>
+                  <tr>
+                    <td>{row.location.label}</td>
+                    <td>{typeLabel(row.location.type)}</td>
+                    <td>{row.county}</td>
+                    <td className="address-cell">{row.location.address}</td>
+                    <td>
+                      <span className={`status-badge status-${row.status}`}>
+                        {row.status === 'dressed' ? 'Dressed' : row.status === 'claimed' ? 'Claimed' : 'Available'}
+                      </span>
                       {(row.dressing?.reportCount ?? 0) > 0 && (
+                        <span className="report-indicator" title={row.dressing?.lastReportReason ?? ''}>
+                          {row.dressing!.reportCount}
+                        </span>
+                      )}
+                      {filter === 'reported' && row.dressing?.lastReportReason && (
+                        <div className="report-reason-text">
+                          {row.dressing.lastReportReason}
+                        </div>
+                      )}
+                    </td>
+                    <td>{row.dressing?.volunteerName || '—'}</td>
+                    <td className="contact-cell">
+                      {row.dressing?.volunteerPhone && <div>{row.dressing.volunteerPhone}</div>}
+                      {row.dressing?.volunteerEmail && <div className="email-text">{row.dressing.volunteerEmail}</div>}
+                    </td>
+                    <td>
+                      {row.status === 'dressed' && row.dressing?.signCount ? row.dressing.signCount : '—'}
+                    </td>
+                    <td className="actions-cell">
+                      <button
+                        className={`btn btn-sm ${isExpanded ? 'btn-secondary' : 'btn-outline'}`}
+                        onClick={() => setExpandedRowId(isExpanded ? null : row.location.id)}
+                        title="Show nearby unclaimed locations"
+                      >
+                        Nearby
+                      </button>
+                      {row.status === 'dressed' && (
+                        <>
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => setEditTarget(row)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => setRevertTarget(row)}
+                          >
+                            Revert
+                          </button>
+                          {(row.dressing?.reportCount ?? 0) > 0 && (
+                            <button
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => setDismissTarget(row)}
+                            >
+                              Dismiss
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {row.status === 'claimed' && (
+                        <>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => setDressTarget(row)}
+                          >
+                            Mark Dressed
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => setUnclaimTarget(row)}
+                          >
+                            Unclaim
+                          </button>
+                        </>
+                      )}
+                      {row.status === 'available' && (
                         <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => setDismissTarget(row)}
+                          className="btn btn-sm btn-primary"
+                          onClick={() => setDressTarget(row)}
                         >
-                          Dismiss
+                          Mark Dressed
                         </button>
                       )}
-                    </>
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr className="expanded-row">
+                      <td colSpan={9} className="expanded-row-detail">
+                        <NearbyPanel
+                          location={row.location}
+                          claimedOrDressedIds={claimedOrDressedIds}
+                        />
+                      </td>
+                    </tr>
                   )}
-                  {row.status === 'claimed' && (
-                    <>
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => setDressTarget(row)}
-                      >
-                        Mark Dressed
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => setUnclaimTarget(row)}
-                      >
-                        Unclaim
-                      </button>
-                    </>
-                  )}
-                  {row.status === 'available' && (
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() => setDressTarget(row)}
-                    >
-                      Mark Dressed
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
