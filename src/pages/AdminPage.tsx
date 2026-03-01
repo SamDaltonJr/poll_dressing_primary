@@ -8,6 +8,7 @@ import LocationReportTable from '../components/admin/LocationReportTable';
 import SignSubmissionTable from '../components/admin/SignSubmissionTable';
 import SignStatsPanel from '../components/admin/SignStatsPanel';
 import SignExportButton from '../components/admin/SignExportButton';
+import LocationReportExportButton from '../components/admin/LocationReportExportButton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
@@ -31,6 +32,8 @@ export default function AdminPage() {
           <h2>Admin Dashboard</h2>
           {activeTab === 'signs' ? (
             <SignExportButton submissions={signSubmissions} />
+          ) : activeTab === 'locationReports' ? (
+            <LocationReportExportButton reports={locationReports} />
           ) : (
             <ExportButton dressings={dressings} />
           )}
