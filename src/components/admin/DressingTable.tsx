@@ -3,7 +3,7 @@ import { revertDressing, unclaimLocation, dismissReports } from '../../services/
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
-import { allLocations, getCounty } from '../../config/categorizeLocations';
+import { activeLocations, getCounty } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
 import { findNearbyUnclaimed } from '../../utils/geo';
 import type { DressingRecord, MapMarker, LocationStatus } from '../../types';
@@ -25,7 +25,7 @@ interface Row {
 
 function NearbyPanel({ location, claimedOrDressedIds }: { location: MapMarker; claimedOrDressedIds: Set<string> }) {
   const nearby = useMemo(
-    () => findNearbyUnclaimed(location.latitude, location.longitude, allLocations, claimedOrDressedIds, location.id),
+    () => findNearbyUnclaimed(location.latitude, location.longitude, activeLocations, claimedOrDressedIds, location.id),
     [location, claimedOrDressedIds],
   );
 
@@ -75,7 +75,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
     return set;
   }, [dressings]);
 
-  const locations = useMemo(() => allLocations, []);
+  const locations = useMemo(() => activeLocations, []);
 
   const rows = useMemo<Row[]>(() =>
     locations.map((loc) => {

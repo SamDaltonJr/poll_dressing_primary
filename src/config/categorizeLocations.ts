@@ -103,6 +103,11 @@ export const allLocations: MapMarker[] = [
 
 export { dualSites, earlyVotingOnly, electionDayOnly };
 
+/** Active locations excluding early-voting-only sites (EV window has passed) */
+export const activeLocations: MapMarker[] = allLocations.filter(
+  (loc) => loc.type !== 'earlyVotingOnly',
+);
+
 /**
  * Derive county name from a location ID prefix.
  * Early voting IDs: ev-E (Dallas), ev-TC (Tarrant), ev-DN (Denton),

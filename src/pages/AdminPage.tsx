@@ -10,13 +10,15 @@ import SignStatsPanel from '../components/admin/SignStatsPanel';
 import SignExportButton from '../components/admin/SignExportButton';
 import LocationReportExportButton from '../components/admin/LocationReportExportButton';
 import PendingRemindersTable from '../components/admin/PendingRemindersTable';
+import VolunteerLocationCounts from '../components/admin/VolunteerLocationCounts';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { activeLocations } from '../config/categorizeLocations';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useLocationReports } from '../hooks/useLocationReports';
 import { useSubmissions } from '../hooks/useSubmissions';
 
-type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders';
+type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers';
 
 export default function AdminPage() {
   const { dressings, loading } = useDressings();
@@ -25,7 +27,9 @@ export default function AdminPage() {
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   const pendingReportCount = locationReports.filter((r) => r.status === 'pending').length;
-  const pendingReminderCount = dressings.filter((d) => d.isClaimed && !d.isDressed && d.volunteerEmail).length;
+  const activeLocationIds = new Set(activeLocations.map((l) => l.id));
+  const pendingReminderCount = dressings.filter((d) => activeLocationIds.has(d.locationId) && d.isClaimed && !d.isDressed && d.volunteerEmail).length;
+  const volunteerCount = new Set(dressings.filter((d) => activeLocationIds.has(d.locationId) && d.isClaimed && d.volunteerName).map((d) => d.volunteerEmail || d.volunteerPhone || d.volunteerName)).size;
 
   return (
     <AdminLogin>
@@ -71,6 +75,12 @@ export default function AdminPage() {
           >
             Reminders{pendingReminderCount > 0 ? ` (${pendingReminderCount})` : ''}
           </button>
+          <button
+            className={`admin-tab ${activeTab === 'volunteers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('volunteers')}
+          >
+            Volunteers{volunteerCount > 0 ? ` (${volunteerCount})` : ''}
+          </button>
         </div>
         {activeTab === 'polling' && (
           loading ? (
@@ -111,6 +121,13 @@ export default function AdminPage() {
             <LoadingSpinner message="Loading dressing data..." />
           ) : (
             <PendingRemindersTable dressings={dressings} />
+          )
+        )}
+        {activeTab === 'volunteers' && (
+          loading ? (
+            <LoadingSpinner message="Loading dressing data..." />
+          ) : (
+            <VolunteerLocationCounts dressings={dressings} />
           )
         )}
       </div>

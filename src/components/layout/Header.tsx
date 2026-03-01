@@ -10,6 +10,7 @@ export default function Header() {
         <nav className="header-nav">
           <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Map</Link>
           <Link to="/submit" className={location.pathname === '/submit' ? 'active' : ''}>Submit</Link>
+          <Link to="/my-locations" className={location.pathname === '/my-locations' ? 'active' : ''}>My Locations</Link>
           <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>Admin</Link>
         </nav>
       </div>

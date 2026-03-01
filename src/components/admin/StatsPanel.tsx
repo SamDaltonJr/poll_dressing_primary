@@ -1,4 +1,4 @@
-import { dualSites, earlyVotingOnly, electionDayOnly } from '../../config/categorizeLocations';
+import { dualSites, electionDayOnly } from '../../config/categorizeLocations';
 import type { DressingRecord } from '../../types';
 
 interface StatsPanelProps {
@@ -19,12 +19,10 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
 
   const dualTotal = dualSites.length;
   const dualDressed = dualSites.filter((l) => dressedSet.has(l.id)).length;
-  const evOnlyTotal = earlyVotingOnly.length;
-  const evOnlyDressed = earlyVotingOnly.filter((l) => dressedSet.has(l.id)).length;
   const edOnlyTotal = electionDayOnly.length;
   const edOnlyDressed = electionDayOnly.filter((l) => dressedSet.has(l.id)).length;
-  const totalLocations = dualTotal + evOnlyTotal + edOnlyTotal;
-  const totalDressed = dualDressed + evOnlyDressed + edOnlyDressed;
+  const totalLocations = dualTotal + edOnlyTotal;
+  const totalDressed = dualDressed + edOnlyDressed;
   const totalClaimed = claimedSet.size;
   const pct = totalLocations > 0 ? Math.round((totalDressed / totalLocations) * 100) : 0;
 
@@ -48,10 +46,6 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
       <div className="stat-card">
         <div className="stat-number">{dualDressed}/{dualTotal}</div>
         <div className="stat-label">EV + Election Day</div>
-      </div>
-      <div className="stat-card">
-        <div className="stat-number">{evOnlyDressed}/{evOnlyTotal}</div>
-        <div className="stat-label">Early Voting Only</div>
       </div>
       <div className="stat-card">
         <div className="stat-number">{edOnlyDressed}/{edOnlyTotal}</div>

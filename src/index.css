@@ -1559,6 +1559,22 @@ input.search-bar-input {
   line-height: 1.4;
 }
 
+/* === Volunteer Location Counts === */
+.volunteer-counts-section {
+  padding-top: 8px;
+}
+
+.volunteer-counts-heading {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.volunteer-counts-subtitle {
+  margin: 0 0 16px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
 /* === Outline Button === */
 .btn-outline {
   background: transparent;
@@ -1693,5 +1709,132 @@ input.search-bar-input {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
+  color: var(--color-text-muted);
+}
+
+/* === My Locations Page === */
+.my-locations-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  width: 100%;
+}
+
+.my-locations-page h2 {
+  margin-bottom: 4px;
+}
+
+.my-locations-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+
+.my-locations-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.my-locations-form .btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.my-locations-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+}
+
+.my-locations-empty .text-muted {
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.my-locations-summary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.my-locations-directions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.my-locations-directions .btn {
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.my-locations-group {
+  margin-bottom: 24px;
+}
+
+.my-locations-group-heading {
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.my-locations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-location-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.my-location-card-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.my-location-card-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.my-location-card-address {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.my-location-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.my-location-card-type {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.my-location-card-signs {
+  font-size: 0.8rem;
   color: var(--color-text-muted);
 }

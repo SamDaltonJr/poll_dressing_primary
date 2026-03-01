@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { allLocations } from '../../config/categorizeLocations';
+import { activeLocations } from '../../config/categorizeLocations';
 import { buildReminderMailto, buildBulkReminderMailtos } from '../../utils/mailto';
 import type { DressingRecord, MapMarker } from '../../types';
 
@@ -36,7 +36,7 @@ export default function PendingRemindersTable({ dressings }: PendingRemindersTab
 
   const locationMap = useMemo(() => {
     const m = new Map<string, MapMarker>();
-    for (const loc of allLocations) m.set(loc.id, loc);
+    for (const loc of activeLocations) m.set(loc.id, loc);
     return m;
   }, []);
 
