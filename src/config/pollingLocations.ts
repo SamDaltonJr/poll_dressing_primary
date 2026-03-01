@@ -1400,7 +1400,7 @@ const pollingLocations: RawMapMarker[] = [
     label: 'Collin College Plano Campus',
     address: '4000 Jupiter Road, Plano, TX 75074',
     latitude: 33.02293,
-    longitude: -96.79156,
+    longitude: -96.69870,
   },
   {
     id: 'ev-CC012',
@@ -2000,6 +2000,24 @@ const pollingLocations: RawMapMarker[] = [
     address: '4729 S Carrier Pkwy, GRAND PRAIRIE, TX 75052',
     latitude: 32.65603,
     longitude: -97.00491,
+  },
+  {
+    id: 'ev-DN-170',
+    type: 'earlyVoting',
+    size: 'S',
+    label: 'Frisco Fire Station #10',
+    address: '2151 Fields Pkwy., Frisco, TX 75034',
+    latitude: 33.20042,
+    longitude: -96.87062,
+  },
+  {
+    id: 'ev-DN-171',
+    type: 'earlyVoting',
+    size: 'S',
+    label: 'Aubrey Area Library',
+    address: '226 Countryside Dr., Aubrey, TX 76227',
+    latitude: 33.29020,
+    longitude: -96.99044,
   },
 ];
 
