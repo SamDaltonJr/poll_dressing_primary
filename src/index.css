@@ -513,11 +513,54 @@ textarea:focus {
   transition: width 0.3s ease;
 }
 
+/* === Table Toolbar (admin) === */
+.table-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.table-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input {
+  flex: 1;
+  max-width: 400px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color 0.15s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 /* === Filter Tabs (admin) === */
 .filter-tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .filter-tab {
@@ -596,6 +639,27 @@ textarea:focus {
   font-size: 0.8rem;
   text-transform: uppercase;
   color: var(--color-text-muted);
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.sortable-th:hover {
+  color: var(--color-text);
+}
+
+.sort-indicator {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  font-size: 0.75rem;
+}
+
+.sort-indicator.active {
+  opacity: 1;
+  color: var(--color-primary);
 }
 
 .address-cell {
@@ -1411,6 +1475,10 @@ input.search-bar-input {
 
   .filter-tabs {
     flex-wrap: wrap;
+  }
+
+  .search-input {
+    max-width: 100%;
   }
 
   .pin-drop-btn {

@@ -3,11 +3,13 @@ import { revertDressing, unclaimLocation, dismissReports } from '../../services/
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
-import { allLocations } from '../../config/categorizeLocations';
+import { allLocations, getCounty } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
 import type { DressingRecord, MapMarker, LocationStatus } from '../../types';
 
 type FilterMode = 'all' | 'available' | 'claimed' | 'dressed' | 'reported';
+type SortKey = 'location' | 'type' | 'county' | 'address' | 'status' | 'volunteer' | 'signs';
+type SortDir = 'asc' | 'desc';
 
 interface DressingTableProps {
   dressings: DressingRecord[];
@@ -17,10 +19,14 @@ interface Row {
   location: MapMarker;
   dressing?: DressingRecord;
   status: LocationStatus;
+  county: string;
 }
 
 export default function DressingTable({ dressings }: DressingTableProps) {
   const [filter, setFilter] = useState<FilterMode>('all');
+  const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('location');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [revertTarget, setRevertTarget] = useState<Row | null>(null);
   const [unclaimTarget, setUnclaimTarget] = useState<Row | null>(null);
   const [editTarget, setEditTarget] = useState<Row | null>(null);
@@ -41,21 +47,78 @@ export default function DressingTable({ dressings }: DressingTableProps) {
       let status: LocationStatus = 'available';
       if (d?.isDressed) status = 'dressed';
       else if (d?.isClaimed) status = 'claimed';
-      return { location: loc, dressing: d, status };
+      return { location: loc, dressing: d, status, county: getCounty(loc.id) };
     }),
     [locations, dressingMap],
   );
 
-  const filteredRows = useMemo(
-    () => rows.filter((r) => {
-      if (filter === 'dressed') return r.status === 'dressed';
-      if (filter === 'claimed') return r.status === 'claimed';
-      if (filter === 'available') return r.status === 'available';
-      if (filter === 'reported') return (r.dressing?.reportCount ?? 0) > 0;
-      return true;
-    }),
-    [rows, filter],
-  );
+  const filteredRows = useMemo(() => {
+    let result = rows;
+
+    // Apply status filter
+    if (filter === 'dressed') result = result.filter((r) => r.status === 'dressed');
+    else if (filter === 'claimed') result = result.filter((r) => r.status === 'claimed');
+    else if (filter === 'available') result = result.filter((r) => r.status === 'available');
+    else if (filter === 'reported') result = result.filter((r) => (r.dressing?.reportCount ?? 0) > 0);
+
+    // Apply search
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      result = result.filter((r) =>
+        r.location.label.toLowerCase().includes(q) ||
+        r.location.address.toLowerCase().includes(q) ||
+        r.county.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [rows, filter, search]);
+
+  const sortedRows = useMemo(() => {
+    const statusOrder: Record<LocationStatus, number> = { available: 0, claimed: 1, dressed: 2 };
+
+    return [...filteredRows].sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'location':
+          cmp = a.location.label.localeCompare(b.location.label);
+          break;
+        case 'type':
+          cmp = a.location.type.localeCompare(b.location.type);
+          break;
+        case 'county':
+          cmp = a.county.localeCompare(b.county);
+          break;
+        case 'address':
+          cmp = a.location.address.localeCompare(b.location.address);
+          break;
+        case 'status':
+          cmp = statusOrder[a.status] - statusOrder[b.status];
+          break;
+        case 'volunteer':
+          cmp = (a.dressing?.volunteerName || '').localeCompare(b.dressing?.volunteerName || '');
+          break;
+        case 'signs':
+          cmp = (a.dressing?.signCount ?? 0) - (b.dressing?.signCount ?? 0);
+          break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [filteredRows, sortKey, sortDir]);
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
+
+  function sortIndicator(key: SortKey) {
+    if (sortKey !== key) return <span className="sort-indicator"> ⇅</span>;
+    return <span className="sort-indicator active">{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>;
+  }
 
   async function handleRevert() {
     if (!revertTarget) return;
@@ -100,60 +163,90 @@ export default function DressingTable({ dressings }: DressingTableProps) {
 
   return (
     <>
-      <div className="filter-tabs">
-        <button
-          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All ({rows.length})
-        </button>
-        <button
-          className={`filter-tab ${filter === 'available' ? 'active' : ''}`}
-          onClick={() => setFilter('available')}
-        >
-          Available ({availableCount})
-        </button>
-        <button
-          className={`filter-tab ${filter === 'claimed' ? 'active' : ''}`}
-          onClick={() => setFilter('claimed')}
-        >
-          Claimed ({claimedCount})
-        </button>
-        <button
-          className={`filter-tab ${filter === 'dressed' ? 'active' : ''}`}
-          onClick={() => setFilter('dressed')}
-        >
-          Dressed ({dressedCount})
-        </button>
-        {reportedCount > 0 && (
+      <div className="table-toolbar">
+        <div className="filter-tabs">
           <button
-            className={`filter-tab filter-tab-warning ${filter === 'reported' ? 'active' : ''}`}
-            onClick={() => setFilter('reported')}
+            className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setFilter('all')}
           >
-            Reported ({reportedCount})
+            All ({rows.length})
           </button>
-        )}
+          <button
+            className={`filter-tab ${filter === 'available' ? 'active' : ''}`}
+            onClick={() => setFilter('available')}
+          >
+            Available ({availableCount})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'claimed' ? 'active' : ''}`}
+            onClick={() => setFilter('claimed')}
+          >
+            Claimed ({claimedCount})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'dressed' ? 'active' : ''}`}
+            onClick={() => setFilter('dressed')}
+          >
+            Dressed ({dressedCount})
+          </button>
+          {reportedCount > 0 && (
+            <button
+              className={`filter-tab filter-tab-warning ${filter === 'reported' ? 'active' : ''}`}
+              onClick={() => setFilter('reported')}
+            >
+              Reported ({reportedCount})
+            </button>
+          )}
+        </div>
+        <div className="table-search">
+          <input
+            type="text"
+            placeholder="Search by name, address, or county..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input"
+          />
+          {search && (
+            <span className="search-count">{sortedRows.length} result{sortedRows.length !== 1 ? 's' : ''}</span>
+          )}
+        </div>
       </div>
 
       <div className="table-wrapper">
-        <table className="submissions-table">
+        <table className="submissions-table sortable-table">
           <thead>
             <tr>
-              <th>Location</th>
-              <th>Type</th>
-              <th>Address</th>
-              <th>Status</th>
-              <th>Volunteer</th>
+              <th className="sortable-th" onClick={() => handleSort('location')}>
+                Location{sortIndicator('location')}
+              </th>
+              <th className="sortable-th" onClick={() => handleSort('type')}>
+                Type{sortIndicator('type')}
+              </th>
+              <th className="sortable-th" onClick={() => handleSort('county')}>
+                County{sortIndicator('county')}
+              </th>
+              <th className="sortable-th" onClick={() => handleSort('address')}>
+                Address{sortIndicator('address')}
+              </th>
+              <th className="sortable-th" onClick={() => handleSort('status')}>
+                Status{sortIndicator('status')}
+              </th>
+              <th className="sortable-th" onClick={() => handleSort('volunteer')}>
+                Volunteer{sortIndicator('volunteer')}
+              </th>
               <th>Contact</th>
-              <th>Signs</th>
+              <th className="sortable-th" onClick={() => handleSort('signs')}>
+                Signs{sortIndicator('signs')}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredRows.map((row) => (
+            {sortedRows.map((row) => (
               <tr key={row.location.id}>
                 <td>{row.location.label}</td>
                 <td>{typeLabel(row.location.type)}</td>
+                <td>{row.county}</td>
                 <td className="address-cell">{row.location.address}</td>
                 <td>
                   <span className={`status-badge status-${row.status}`}>

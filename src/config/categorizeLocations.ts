@@ -102,3 +102,48 @@ export const allLocations: MapMarker[] = [
 ];
 
 export { dualSites, earlyVotingOnly, electionDayOnly };
+
+/**
+ * Derive county name from a location ID prefix.
+ * Early voting IDs: ev-E (Dallas), ev-TC (Tarrant), ev-DN (Denton),
+ *   ev-CC (Collin), ev-PK (Parker), ev-EL (Ellis), ev-RW (Rockwall),
+ *   ev-KF (Kaufman)
+ * Election day IDs: ed-V (Dallas), ed-T (Tarrant), ed-D (Denton),
+ *   ed-C (Collin), ed-PK (Parker), ed-EL (Ellis), ed-RW (Rockwall),
+ *   ed-KF (Kaufman), ed-JN (Johnson)
+ * Dual site IDs: dual-ev-... (same as early voting after stripping prefix)
+ */
+export function getCounty(id: string): string {
+  // Dual sites reuse the early-voting ID after "dual-"
+  const raw = id.startsWith('dual-') ? id.slice(5) : id;
+
+  if (raw.startsWith('ev-')) {
+    const suffix = raw.slice(3); // after "ev-"
+    if (suffix.startsWith('E')) return 'Dallas';
+    if (suffix.startsWith('TC')) return 'Tarrant';
+    if (suffix.startsWith('DN')) return 'Denton';
+    if (suffix.startsWith('CC')) return 'Collin';
+    if (suffix.startsWith('PK')) return 'Parker';
+    if (suffix.startsWith('EL')) return 'Ellis';
+    if (suffix.startsWith('RW')) return 'Rockwall';
+    if (suffix.startsWith('KF')) return 'Kaufman';
+    if (suffix.startsWith('JN')) return 'Johnson';
+  }
+
+  if (raw.startsWith('ed-')) {
+    const suffix = raw.slice(3); // after "ed-"
+    if (suffix.startsWith('V')) return 'Dallas';
+    if (suffix.startsWith('T')) return 'Tarrant';
+    if (suffix.startsWith('DN')) return 'Denton';
+    if (suffix.startsWith('D')) return 'Denton';
+    if (suffix.startsWith('CC')) return 'Collin';
+    if (suffix.startsWith('C')) return 'Collin';
+    if (suffix.startsWith('PK')) return 'Parker';
+    if (suffix.startsWith('EL')) return 'Ellis';
+    if (suffix.startsWith('RW')) return 'Rockwall';
+    if (suffix.startsWith('KF')) return 'Kaufman';
+    if (suffix.startsWith('JN')) return 'Johnson';
+  }
+
+  return 'Unknown';
+}
