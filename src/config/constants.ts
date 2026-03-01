@@ -35,7 +35,7 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     color: '#dc2626',
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
-    defaultVisible: true,
+    defaultVisible: false,
   },
   electionDayOnly: {
     label: 'Election Day Only',
