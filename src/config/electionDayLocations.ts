@@ -1361,8 +1361,8 @@ const electionDayLocations: RawMapMarker[] = [
     type: 'electionDay',
     label: 'Mesquite City Hall',
     address: '757 S Galloway Ave, MESQUITE, TX 75149',
-    latitude: 32.75977,
-    longitude: -96.59886,
+    latitude: 32.77394,
+    longitude: -96.59994,
   },
   {
     id: 'ed-V0003',

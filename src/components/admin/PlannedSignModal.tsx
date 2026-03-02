@@ -40,7 +40,7 @@ export default function PlannedSignModal({ sign, latitude, longitude, onClose, o
         address,
         latitude: parseFloat(lat),
         longitude: parseFloat(lng),
-        notes: notes || undefined,
+        ...(notes.trim() ? { notes: notes.trim() } : {}),
         status,
       };
       if (sign) {
