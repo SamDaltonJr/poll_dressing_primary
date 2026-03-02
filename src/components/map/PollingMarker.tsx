@@ -91,7 +91,7 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
               </button>
             )}
 
-            {status === 'claimed' && hasAccess && (
+            {status === 'claimed' && (
               <button
                 className="btn btn-primary btn-sm marker-popup-btn"
                 onClick={(e) => {
@@ -99,7 +99,7 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
                   onConfirmClick(marker);
                 }}
               >
-                Confirm Dressed
+                {hasAccess ? 'Mark as Dressed' : 'Enter Code to Mark Dressed'}
               </button>
             )}
             <button
