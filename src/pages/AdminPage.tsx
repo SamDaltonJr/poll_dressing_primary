@@ -19,6 +19,7 @@ import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useLocationReports } from '../hooks/useLocationReports';
 import { useSubmissions } from '../hooks/useSubmissions';
 import { usePlannedSigns } from '../hooks/usePlannedSigns';
+import { useSignPickups } from '../hooks/useSignPickups';
 
 type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns';
 
@@ -28,6 +29,7 @@ export default function AdminPage() {
   const { reports: locationReports, loading: lrLoading } = useLocationReports();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const { signs: plannedSigns, loading: psLoading } = usePlannedSigns();
+  const { pickups: signPickups, loading: pickupsLoading } = useSignPickups();
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   const pendingReportCount = locationReports.filter((r) => r.status === 'pending').length;
   const activeLocationIds = new Set(activeLocations.map((l) => l.id));
@@ -133,10 +135,10 @@ export default function AdminPage() {
           )
         )}
         {activeTab === 'reminders' && (
-          loading ? (
+          loading || pickupsLoading ? (
             <LoadingSpinner message="Loading dressing data..." />
           ) : (
-            <PendingRemindersTable dressings={dressings} />
+            <PendingRemindersTable dressings={dressings} pickups={signPickups} />
           )
         )}
         {activeTab === 'volunteers' && (

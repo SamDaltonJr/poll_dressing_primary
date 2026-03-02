@@ -149,6 +149,15 @@ export interface PlannedSignLocationInput {
   status?: PlannedSignStatus;
 }
 
+// Sign pickup tracking (admin checks off volunteers who collected signs)
+export interface SignPickup {
+  id: string;
+  volunteerEmail: string;
+  signCount: number;
+  pickedUpAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // Sign submission types (from big_sign_mapper)
 export type PostingMethod = 'fence' | 'tPost' | 'other';
 
