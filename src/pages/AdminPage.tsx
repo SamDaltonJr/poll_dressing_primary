@@ -135,17 +135,17 @@ export default function AdminPage() {
           )
         )}
         {activeTab === 'reminders' && (
-          loading || pickupsLoading ? (
-            <LoadingSpinner message="Loading dressing data..." />
-          ) : (
-            <PendingRemindersTable dressings={dressings} pickups={signPickups} />
-          )
-        )}
-        {activeTab === 'volunteers' && (
           loading ? (
             <LoadingSpinner message="Loading dressing data..." />
           ) : (
-            <VolunteerLocationCounts dressings={dressings} />
+            <PendingRemindersTable dressings={dressings} />
+          )
+        )}
+        {activeTab === 'volunteers' && (
+          loading || pickupsLoading ? (
+            <LoadingSpinner message="Loading volunteer data..." />
+          ) : (
+            <VolunteerLocationCounts dressings={dressings} pickups={signPickups} />
           )
         )}
       </div>

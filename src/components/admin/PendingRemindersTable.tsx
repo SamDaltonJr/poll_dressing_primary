@@ -1,12 +1,10 @@
 import { useState, useMemo } from 'react';
 import { activeLocations } from '../../config/categorizeLocations';
 import { buildReminderMailto, buildBulkReminderMailtos } from '../../utils/mailto';
-import { setSignPickup, removeSignPickup, updateSignPickupCount } from '../../services/signPickupService';
-import type { DressingRecord, MapMarker, SignPickup } from '../../types';
+import type { DressingRecord, MapMarker } from '../../types';
 
 interface PendingRemindersTableProps {
   dressings: DressingRecord[];
-  pickups: SignPickup[];
 }
 
 interface VolunteerGroup {
@@ -32,7 +30,7 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function PendingRemindersTable({ dressings, pickups }: PendingRemindersTableProps) {
+export default function PendingRemindersTable({ dressings }: PendingRemindersTableProps) {
   const [reminderTimestamps, setReminderTimestamps] = useState<Record<string, string>>({});
   const [copiedAll, setCopiedAll] = useState(false);
 
@@ -41,13 +39,6 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
     for (const loc of activeLocations) m.set(loc.id, loc);
     return m;
   }, []);
-
-  // Build a lookup map from pickups: email → SignPickup
-  const pickupMap = useMemo(() => {
-    const m = new Map<string, SignPickup>();
-    for (const p of pickups) m.set(p.volunteerEmail, p);
-    return m;
-  }, [pickups]);
 
   const volunteerGroups = useMemo<VolunteerGroup[]>(() => {
     const groups = new Map<string, VolunteerGroup>();
@@ -69,48 +60,12 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
     return [...groups.values()];
   }, [dressings, locationMap]);
 
-  const sortedGroups = useMemo(
-    () => [...volunteerGroups].sort((a, b) => {
-      const aPickedUp = pickupMap.has(a.email) ? 1 : 0;
-      const bPickedUp = pickupMap.has(b.email) ? 1 : 0;
-      return aPickedUp - bPickedUp;
-    }),
-    [volunteerGroups, pickupMap],
-  );
-
-  const pickedUpCount = useMemo(
-    () => volunteerGroups.filter((g) => pickupMap.has(g.email)).length,
-    [volunteerGroups, pickupMap],
-  );
-
   const totalLocations = useMemo(
     () => volunteerGroups.reduce((sum, g) => sum + g.locations.length, 0),
     [volunteerGroups],
   );
 
   const appUrl = window.location.origin + window.location.pathname;
-
-  async function handleTogglePickedUp(email: string) {
-    try {
-      if (pickupMap.has(email)) {
-        await removeSignPickup(email);
-      } else {
-        await setSignPickup(email, 0);
-      }
-    } catch {
-      alert('Failed to update pickup status.');
-    }
-  }
-
-  async function handleSignCountChange(email: string, value: string) {
-    if (!pickupMap.has(email)) return;
-    const count = Math.max(0, parseInt(value, 10) || 0);
-    try {
-      await updateSignPickupCount(email, count);
-    } catch {
-      alert('Failed to update sign count.');
-    }
-  }
 
   function handleSendReminder(group: VolunteerGroup) {
     const url = buildReminderMailto(
@@ -166,7 +121,7 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
     <>
       <div className="reminder-toolbar">
         <span className="reminder-summary">
-          {volunteerGroups.length} volunteer{volunteerGroups.length !== 1 ? 's' : ''} with pending claims ({totalLocations} location{totalLocations !== 1 ? 's' : ''} total){pickedUpCount > 0 && ` · ${pickedUpCount} picked up`}
+          {volunteerGroups.length} volunteer{volunteerGroups.length !== 1 ? 's' : ''} with pending claims ({totalLocations} location{totalLocations !== 1 ? 's' : ''} total)
         </span>
         <div className="reminder-actions">
           <button className="btn btn-sm btn-secondary" onClick={handleCopyEmails}>
@@ -182,8 +137,6 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
         <table className="submissions-table">
           <thead>
             <tr>
-              <th className="pickup-col">Picked Up</th>
-              <th className="sign-count-col"># Signs</th>
               <th>Volunteer</th>
               <th>Email</th>
               <th>Locations</th>
@@ -192,52 +145,30 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
             </tr>
           </thead>
           <tbody>
-            {sortedGroups.map((group) => {
-              const pickup = pickupMap.get(group.email);
-              return (
-                <tr key={group.email} className={pickup ? 'picked-up-row' : ''}>
-                  <td className="pickup-col">
-                    <input
-                      type="checkbox"
-                      className="pickup-checkbox"
-                      checked={!!pickup}
-                      onChange={() => handleTogglePickedUp(group.email)}
-                    />
-                  </td>
-                  <td className="sign-count-col">
-                    <input
-                      type="number"
-                      className="sign-count-input"
-                      min="0"
-                      value={pickup ? pickup.signCount || '' : ''}
-                      onChange={(e) => handleSignCountChange(group.email, e.target.value)}
-                      placeholder="0"
-                      disabled={!pickup}
-                    />
-                  </td>
-                  <td>{group.name}</td>
-                  <td className="email-text">{group.email}</td>
-                  <td>
-                    <div className="volunteer-locations">
-                      {group.locations.map((l) => (
-                        <div key={l.location.id} className="volunteer-location-item">
-                          {l.location.label}
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="last-reminded">{getLastRemindedDisplay(group.email)}</td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() => handleSendReminder(group)}
-                    >
-                      Send Reminder
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+            {volunteerGroups.map((group) => (
+              <tr key={group.email}>
+                <td>{group.name}</td>
+                <td className="email-text">{group.email}</td>
+                <td>
+                  <div className="volunteer-locations">
+                    {group.locations.map((l) => (
+                      <div key={l.location.id} className="volunteer-location-item">
+                        {l.location.label}
+                      </div>
+                    ))}
+                  </div>
+                </td>
+                <td className="last-reminded">{getLastRemindedDisplay(group.email)}</td>
+                <td>
+                  <button
+                    className="btn btn-sm btn-primary"
+                    onClick={() => handleSendReminder(group)}
+                  >
+                    Send Reminder
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
