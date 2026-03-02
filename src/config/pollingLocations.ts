@@ -20,8 +20,8 @@ const pollingLocations: RawMapMarker[] = [
     size: 'L',
     label: 'Friendship West Baptist Church',
     address: '2020 W Wheatland Rd, DALLAS, TX 75232',
-    latitude: 32.65179,
-    longitude: -96.79052,
+    latitude: 32.64656,
+    longitude: -96.85069,
   },
   {
     id: 'ev-E3202',

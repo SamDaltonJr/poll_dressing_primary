@@ -982,10 +982,9 @@ textarea:focus {
 }
 
 .notes-cell {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 300px;
+  white-space: normal;
+  word-break: break-word;
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }
