@@ -9,10 +9,13 @@ import MissingLocationModal from '../components/map/MissingLocationModal';
 import IncorrectLocationModal from '../components/map/IncorrectLocationModal';
 import AccessCodeModal from '../components/common/AccessCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import PlannedSignModal from '../components/admin/PlannedSignModal';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useSubmissions } from '../hooks/useSubmissions';
+import { usePlannedSigns } from '../hooks/usePlannedSigns';
 import { useAccessCode } from '../hooks/useAccessCode';
+import { useAdminAuth } from '../hooks/useAdminAuth';
 import { MARKER_TYPES } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
 import type { MapMarker, MarkerType } from '../types';
@@ -60,12 +63,15 @@ export default function MapPage() {
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
+  const { signs: plannedSigns, loading: psLoading } = usePlannedSigns();
   const { isValid: hasAccessFromHook } = useAccessCode();
+  const { isAdmin } = useAdminAuth();
   const [localAccess, setLocalAccess] = useState(false);
   const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
+  const [showPlannedSigns, setShowPlannedSigns] = useState(true);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
   const [reportTarget, setReportTarget] = useState<MapMarker | null>(null);
@@ -74,6 +80,9 @@ export default function MapPage() {
   const [pinDropMode, setPinDropMode] = useState(false);
   const [pinPosition, setPinPosition] = useState<[number, number] | null>(null);
   const [showMissingModal, setShowMissingModal] = useState(false);
+  const [adminPinDropMode, setAdminPinDropMode] = useState(false);
+  const [adminPinPosition, setAdminPinPosition] = useState<[number, number] | null>(null);
+  const [showPlannedSignModal, setShowPlannedSignModal] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
 
   const allMarkers = useMemo<MapMarker[]>(() => {
@@ -180,6 +189,25 @@ export default function MapPage() {
     setPinPosition(null);
   }
 
+  function handleStartAdminPinDrop() {
+    setAdminPinDropMode(true);
+    setAdminPinPosition(null);
+  }
+
+  function handleAdminPinPlaced(lat: number, lng: number) {
+    setAdminPinPosition([lat, lng]);
+  }
+
+  function handleConfirmAdminPin() {
+    setAdminPinDropMode(false);
+    setShowPlannedSignModal(true);
+  }
+
+  function handleCancelAdminPinDrop() {
+    setAdminPinDropMode(false);
+    setAdminPinPosition(null);
+  }
+
   function handleSearchSelect(marker: MapMarker) {
     setFlyToTarget({ lat: marker.latitude, lng: marker.longitude });
   }
@@ -196,14 +224,14 @@ export default function MapPage() {
     setShowAccessModal(false);
   }
 
-  if (loading || dpLoading || subsLoading) return <LoadingSpinner message="Loading map data..." />;
+  if (loading || dpLoading || subsLoading || psLoading) return <LoadingSpinner message="Loading map data..." />;
 
   const totalDressed = stats.dualSite.dressed + stats.earlyVotingOnly.dressed + stats.electionDayOnly.dressed;
   const totalClaimed = stats.dualSite.claimed + stats.earlyVotingOnly.claimed + stats.electionDayOnly.claimed;
   const totalLocations = stats.dualSite.total + stats.earlyVotingOnly.total + stats.electionDayOnly.total;
 
   return (
-    <div className={`map-page ${pinDropMode ? 'pin-drop-active' : ''}`}>
+    <div className={`map-page ${(pinDropMode || adminPinDropMode) ? 'pin-drop-active' : ''}`}>
       <MapView
         markers={filteredMarkers}
         dressedIds={dressedIds}
@@ -216,9 +244,13 @@ export default function MapPage() {
         hasAccess={hasAccess}
         signSubmissions={showSignPlacements ? signSubmissions : []}
         distributionPoints={showDistributionPoints ? distributionPoints : []}
+        plannedSigns={showPlannedSigns ? plannedSigns : []}
         pinDropMode={pinDropMode}
         pinPosition={pinPosition}
         onPinPlaced={handlePinPlaced}
+        adminPinDropMode={adminPinDropMode}
+        adminPinPosition={adminPinPosition}
+        onAdminPinPlaced={handleAdminPinPlaced}
         flyToTarget={flyToTarget}
         onFlyComplete={handleFlyComplete}
       />
@@ -233,8 +265,18 @@ export default function MapPage() {
         showSignPlacements={showSignPlacements}
         onToggleSignPlacements={() => setShowSignPlacements((prev) => !prev)}
         signPlacementCount={signSubmissions.length}
+        showPlannedSigns={showPlannedSigns}
+        onTogglePlannedSigns={() => setShowPlannedSigns((prev) => !prev)}
+        plannedSignCount={plannedSigns.length}
       />
-      {!pinDropMode && (
+
+      {isAdmin && !pinDropMode && !adminPinDropMode && (
+        <button className="btn btn-secondary admin-pin-drop-btn" onClick={handleStartAdminPinDrop}>
+          + Plan Sign Location
+        </button>
+      )}
+
+      {!pinDropMode && !adminPinDropMode && (
         <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
           + Report Missing Location
         </button>
@@ -256,6 +298,22 @@ export default function MapPage() {
         </div>
       )}
 
+      {adminPinDropMode && (
+        <div className="pin-drop-banner" style={{ borderColor: '#7c3aed' }}>
+          <span>{adminPinPosition ? 'Pin placed! Drag to adjust, then confirm.' : 'Click the map to place a planned sign location.'}</span>
+          <div className="pin-drop-banner-actions">
+            {adminPinPosition && (
+              <button className="btn btn-primary btn-sm" onClick={handleConfirmAdminPin}>
+                Confirm Location
+              </button>
+            )}
+            <button className="btn btn-secondary btn-sm" onClick={handleCancelAdminPinDrop}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="map-legend">
         <span>{totalDressed} dressed</span>
         <span className="legend-sep">&middot;</span>
@@ -268,6 +326,12 @@ export default function MapPage() {
           <>
             <span className="legend-sep">&middot;</span>
             <span>{signSubmissions.length} sign{signSubmissions.length !== 1 ? 's' : ''}</span>
+          </>
+        )}
+        {plannedSigns.length > 0 && (
+          <>
+            <span className="legend-sep">&middot;</span>
+            <span>{plannedSigns.filter((s) => s.status === 'planned').length} planned</span>
           </>
         )}
       </div>
@@ -319,6 +383,15 @@ export default function MapPage() {
           longitude={pinPosition[1]}
           onClose={() => { setShowMissingModal(false); setPinPosition(null); }}
           onSubmitted={() => { setShowMissingModal(false); setPinPosition(null); }}
+        />
+      )}
+
+      {showPlannedSignModal && adminPinPosition && (
+        <PlannedSignModal
+          latitude={adminPinPosition[0]}
+          longitude={adminPinPosition[1]}
+          onClose={() => { setShowPlannedSignModal(false); setAdminPinPosition(null); }}
+          onSaved={() => { setShowPlannedSignModal(false); setAdminPinPosition(null); }}
         />
       )}
     </div>

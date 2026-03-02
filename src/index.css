@@ -374,6 +374,24 @@ body {
   background: var(--color-danger-hover);
 }
 
+.btn-warning {
+  background: #f97316;
+  color: #fff;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #ea580c;
+}
+
+.btn-success {
+  background: #16a34a;
+  color: #fff;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #15803d;
+}
+
 .btn-lg {
   padding: 14px 28px;
   font-size: 1.05rem;
@@ -1067,6 +1085,16 @@ textarea:focus {
   padding: 8px 16px;
 }
 
+.admin-pin-drop-btn {
+  position: absolute;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  left: 16px;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-size: 0.85rem;
+  padding: 8px 16px;
+}
+
 .pin-drop-banner {
   position: absolute;
   top: 12px;
@@ -1401,6 +1429,26 @@ input.search-bar-input {
   font-weight: 900;
 }
 
+.filter-dot-planned {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: white;
+  border: 2px dashed #7c3aed;
+  box-shadow: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-dot-planned::after {
+  content: 'P';
+  font-size: 7px;
+  font-weight: 900;
+  color: #7c3aed;
+}
+
 /* === Sign Admin Stats === */
 .stat-card-wide {
   grid-column: 1 / -1;
@@ -1553,6 +1601,13 @@ input.search-bar-input {
 
   .pin-drop-btn {
     bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+    left: 8px;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+
+  .admin-pin-drop-btn {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
     left: 8px;
     font-size: 0.75rem;
     padding: 6px 12px;

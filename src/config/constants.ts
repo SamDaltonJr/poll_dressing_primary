@@ -20,7 +20,7 @@ export const DFW_VIEWBOX = '-97.8,33.4,-96.0,32.5';
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-import type { MarkerType, MarkerTypeConfig, LocationSize, LocationStatus } from '../types';
+import type { MarkerType, MarkerTypeConfig, LocationSize, LocationStatus, PlannedSignStatus } from '../types';
 
 export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
   dualSite: {
@@ -127,6 +127,36 @@ export function createSignMarkerIcon(): L.DivIcon {
       font-weight: 700;
       line-height: 1;
     ">T</div>`,
+    iconSize: [px, px],
+    iconAnchor: [half, half],
+    popupAnchor: [0, -(half + 2)],
+  });
+}
+
+/** Planned sign location icon: dashed orange square with "P" (planned), solid green (placed) */
+export function createPlannedSignIcon(status: PlannedSignStatus = 'planned'): L.DivIcon {
+  const px = 22;
+  const half = px / 2;
+  const isPlaced = status === 'placed';
+  const borderColor = isPlaced ? '#16a34a' : '#7c3aed';
+  const borderStyle = isPlaced ? 'solid' : 'dashed';
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background-color: white;
+      width: ${px}px;
+      height: ${px}px;
+      border-radius: 3px;
+      border: 2.5px ${borderStyle} ${borderColor};
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: ${borderColor};
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    ">P</div>`,
     iconSize: [px, px],
     iconAnchor: [half, half],
     popupAnchor: [0, -(half + 2)],

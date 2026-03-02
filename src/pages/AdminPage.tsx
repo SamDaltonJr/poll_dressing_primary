@@ -11,20 +11,23 @@ import SignExportButton from '../components/admin/SignExportButton';
 import LocationReportExportButton from '../components/admin/LocationReportExportButton';
 import PendingRemindersTable from '../components/admin/PendingRemindersTable';
 import VolunteerLocationCounts from '../components/admin/VolunteerLocationCounts';
+import PlannedSignTable from '../components/admin/PlannedSignTable';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { activeLocations } from '../config/categorizeLocations';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useLocationReports } from '../hooks/useLocationReports';
 import { useSubmissions } from '../hooks/useSubmissions';
+import { usePlannedSigns } from '../hooks/usePlannedSigns';
 
-type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers';
+type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns';
 
 export default function AdminPage() {
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { reports: locationReports, loading: lrLoading } = useLocationReports();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
+  const { signs: plannedSigns, loading: psLoading } = usePlannedSigns();
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   const pendingReportCount = locationReports.filter((r) => r.status === 'pending').length;
   const activeLocationIds = new Set(activeLocations.map((l) => l.id));
@@ -56,6 +59,12 @@ export default function AdminPage() {
             onClick={() => setActiveTab('signs')}
           >
             Sign Placements ({signSubmissions.length})
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'plannedSigns' ? 'active' : ''}`}
+            onClick={() => setActiveTab('plannedSigns')}
+          >
+            Planned Signs ({plannedSigns.length})
           </button>
           <button
             className={`admin-tab ${activeTab === 'distribution' ? 'active' : ''}`}
@@ -100,6 +109,13 @@ export default function AdminPage() {
               <SignStatsPanel submissions={signSubmissions} />
               <SignSubmissionTable submissions={signSubmissions} />
             </>
+          )
+        )}
+        {activeTab === 'plannedSigns' && (
+          psLoading ? (
+            <LoadingSpinner message="Loading planned signs..." />
+          ) : (
+            <PlannedSignTable signs={plannedSigns} />
           )
         )}
         {activeTab === 'distribution' && (

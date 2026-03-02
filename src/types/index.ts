@@ -125,6 +125,30 @@ export interface LocationReportInput {
   notes: string;
 }
 
+// Planned sign locations (admin-managed)
+export type PlannedSignStatus = 'planned' | 'placed';
+
+export interface PlannedSignLocation {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  notes?: string;
+  status: PlannedSignStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface PlannedSignLocationInput {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  notes?: string;
+  status?: PlannedSignStatus;
+}
+
 // Sign submission types (from big_sign_mapper)
 export type PostingMethod = 'fence' | 'tPost' | 'other';
 

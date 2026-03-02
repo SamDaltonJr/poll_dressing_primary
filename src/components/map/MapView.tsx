@@ -5,10 +5,11 @@ import L from 'leaflet';
 import PollingMarker from './PollingMarker';
 import SignMarker from './SignMarker';
 import DistributionPointMarker from './DistributionPointMarker';
+import PlannedSignMarker from './PlannedSignMarker';
 import PinDropHandler from './PinDropHandler';
 import FlyToLocation from './FlyToLocation';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
-import type { MapMarker, DressingRecord, DistributionPoint, SignSubmission, LocationStatus } from '../../types';
+import type { MapMarker, DressingRecord, DistributionPoint, SignSubmission, PlannedSignLocation, LocationStatus } from '../../types';
 
 interface MapViewProps {
   markers: MapMarker[];
@@ -22,9 +23,13 @@ interface MapViewProps {
   hasAccess: boolean;
   signSubmissions: SignSubmission[];
   distributionPoints: DistributionPoint[];
+  plannedSigns: PlannedSignLocation[];
   pinDropMode: boolean;
   pinPosition: [number, number] | null;
   onPinPlaced: (lat: number, lng: number) => void;
+  adminPinDropMode: boolean;
+  adminPinPosition: [number, number] | null;
+  onAdminPinPlaced: (lat: number, lng: number) => void;
   flyToTarget: { lat: number; lng: number } | null;
   onFlyComplete: () => void;
 }
@@ -96,7 +101,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, signSubmissions, distributionPoints, pinDropMode, pinPosition, onPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -155,7 +160,12 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
         <SignMarker key={sub.id} submission={sub} />
       ))}
 
+      {plannedSigns.map((sign) => (
+        <PlannedSignMarker key={sign.id} sign={sign} />
+      ))}
+
       <PinDropHandler active={pinDropMode} pinPosition={pinPosition} onPinPlaced={onPinPlaced} />
+      <PinDropHandler active={adminPinDropMode} pinPosition={adminPinPosition} onPinPlaced={onAdminPinPlaced} />
       <FlyToLocation target={flyToTarget} onComplete={onFlyComplete} />
     </MapContainer>
   );

@@ -11,9 +11,12 @@ interface MapFilterProps {
   showSignPlacements: boolean;
   onToggleSignPlacements: () => void;
   signPlacementCount: number;
+  showPlannedSigns: boolean;
+  onTogglePlannedSigns: () => void;
+  plannedSignCount: number;
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
   return (
     <div className="map-filter">
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
@@ -54,6 +57,16 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
         <span className="filter-label">Sign Placements</span>
         <span className="filter-progress">{signPlacementCount}</span>
       </label>
+      <label className="map-filter-item">
+        <input
+          type="checkbox"
+          checked={showPlannedSigns}
+          onChange={onTogglePlannedSigns}
+        />
+        <span className="filter-dot filter-dot-planned" />
+        <span className="filter-label">Planned Signs</span>
+        <span className="filter-progress">{plannedSignCount}</span>
+      </label>
       <div className="filter-legend">
         <span className="filter-dot" style={{ backgroundColor: '#16a34a' }} />
         <span className="filter-legend-label">Dressed</span>
@@ -63,6 +76,8 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
         <span className="filter-legend-label">Available</span>
         <span className="filter-dot filter-dot-diamond" style={{ backgroundColor: '#2563eb', marginLeft: 8 }} />
         <span className="filter-legend-label">Signs</span>
+        <span className="filter-dot filter-dot-planned" style={{ marginLeft: 8 }} />
+        <span className="filter-legend-label">Planned</span>
       </div>
     </div>
   );
