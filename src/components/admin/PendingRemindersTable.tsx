@@ -103,6 +103,7 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
   }
 
   async function handleSignCountChange(email: string, value: string) {
+    if (!pickupMap.has(email)) return;
     const count = Math.max(0, parseInt(value, 10) || 0);
     try {
       await updateSignPickupCount(email, count);
@@ -208,9 +209,10 @@ export default function PendingRemindersTable({ dressings, pickups }: PendingRem
                       type="number"
                       className="sign-count-input"
                       min="0"
-                      value={pickup?.signCount || ''}
+                      value={pickup ? pickup.signCount || '' : ''}
                       onChange={(e) => handleSignCountChange(group.email, e.target.value)}
                       placeholder="0"
+                      disabled={!pickup}
                     />
                   </td>
                   <td>{group.name}</td>

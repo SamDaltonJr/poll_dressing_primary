@@ -1699,17 +1699,22 @@ input.search-bar-input {
 }
 
 .sign-count-col {
-  width: 70px;
+  width: 85px;
   text-align: center;
 }
 
 .sign-count-input {
-  width: 56px;
+  width: 64px;
   padding: 4px 6px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   font-size: 0.85rem;
   text-align: center;
+}
+
+.sign-count-input:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .sign-count-input::-webkit-inner-spin-button {
