@@ -28,6 +28,7 @@ export interface RawMapMarker {
   label: string;
   address: string;
   size?: LocationSize;
+  evTotal?: number;
 }
 
 /** Categorized location used throughout the app */
@@ -39,6 +40,7 @@ export interface MapMarker {
   label: string;
   address: string;
   size?: LocationSize;
+  evTotal?: number;
 }
 
 // Dressing records stored in Firestore (doc ID = location ID)
