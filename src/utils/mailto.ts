@@ -22,6 +22,13 @@ export function buildReminderMailto(
     `You can view the map and manage your claims here:`,
     appUrl,
     ``,
+    `Join our Signal group chat for updates and coordination:`,
+    `https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2`,
+    ``,
+    `If you have any questions, reach out to us:`,
+    `  Sam Dalton - (214) 686-8608 - spdaltonjr@gmail.com`,
+    `  Rob Strobel - (859) 489-8880 - rob@jamestalarico.com`,
+    ``,
     `Thank you for volunteering!`,
   ].join('\n');
 
@@ -40,6 +47,13 @@ export function buildBulkReminderMailtos(emails: string[], appUrl: string): stri
     ``,
     `You can view the map and manage your claim here:`,
     appUrl,
+    ``,
+    `Join our Signal group chat for updates and coordination:`,
+    `https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2`,
+    ``,
+    `If you have any questions, reach out to us:`,
+    `  Sam Dalton - (214) 686-8608 - spdaltonjr@gmail.com`,
+    `  Rob Strobel - (859) 489-8880 - rob@jamestalarico.com`,
     ``,
     `Thank you for volunteering!`,
   ].join('\n');
