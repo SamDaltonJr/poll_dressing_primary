@@ -497,8 +497,8 @@ const pollingLocations: RawMapMarker[] = [
     size: 'M',
     label: 'Irving City Hall',
     address: '825 W Irving Blvd, IRVING, TX 75060',
-    latitude: 32.81291,
-    longitude: -96.93683,
+    latitude: 32.81394,
+    longitude: -96.95569,
   },
   {
     id: 'ev-E4629',
