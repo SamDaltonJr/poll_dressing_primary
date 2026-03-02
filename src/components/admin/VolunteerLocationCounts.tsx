@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { activeLocations } from '../../config/categorizeLocations';
+import { buildMassEmailMailtos } from '../../utils/mailto';
 import { setSignPickup, removeSignPickup, updateSignPickupCount } from '../../services/signPickupService';
 import type { DressingRecord, SignPickup } from '../../types';
 
@@ -74,6 +75,28 @@ export default function VolunteerLocationCounts({ dressings, pickups }: Voluntee
     [volunteers, pickupMap],
   );
 
+  const [copiedAll, setCopiedAll] = useState(false);
+
+  const volunteerEmails = useMemo(
+    () => volunteers.filter((v) => v.email).map((v) => v.email),
+    [volunteers],
+  );
+
+  const appUrl = window.location.origin + window.location.pathname;
+
+  async function handleCopyEmails() {
+    await navigator.clipboard.writeText(volunteerEmails.join(', '));
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
+  }
+
+  function handleEmailAll() {
+    const urls = buildMassEmailMailtos(volunteerEmails, appUrl);
+    for (const url of urls) {
+      window.open(url);
+    }
+  }
+
   async function handleTogglePickedUp(email: string) {
     if (!email) return;
     try {
@@ -103,10 +126,19 @@ export default function VolunteerLocationCounts({ dressings, pickups }: Voluntee
 
   return (
     <div className="volunteer-counts-section">
-      <h3 className="volunteer-counts-heading">Volunteer Location Counts</h3>
-      <p className="volunteer-counts-subtitle">
-        {volunteers.length} volunteer{volunteers.length !== 1 ? 's' : ''} assigned to locations{pickedUpCount > 0 && ` \u00b7 ${pickedUpCount} picked up signs`}
-      </p>
+      <div className="reminder-toolbar">
+        <span className="reminder-summary">
+          {volunteers.length} volunteer{volunteers.length !== 1 ? 's' : ''} assigned to locations{pickedUpCount > 0 && ` \u00b7 ${pickedUpCount} picked up signs`}
+        </span>
+        <div className="reminder-actions">
+          <button className="btn btn-sm btn-secondary" onClick={handleCopyEmails}>
+            {copiedAll ? 'Copied!' : 'Copy Emails'}
+          </button>
+          <button className="btn btn-sm btn-primary" onClick={handleEmailAll}>
+            Email All{volunteerEmails.length > 50 ? ` (${Math.ceil(volunteerEmails.length / 50)} batches)` : ''}
+          </button>
+        </div>
+      </div>
       <div className="table-wrapper">
         <table className="submissions-table">
           <thead>

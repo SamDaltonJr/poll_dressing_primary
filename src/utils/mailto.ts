@@ -68,3 +68,35 @@ export function buildBulkReminderMailtos(emails: string[], appUrl: string): stri
     return `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 }
+
+/** Build mailto: link(s) for a mass email to all volunteers. Body is left mostly empty for the admin to fill in. */
+export function buildMassEmailMailtos(emails: string[], appUrl: string): string[] {
+  const subject = 'Campaign Sign Tracker — Volunteer Update';
+  const body = [
+    `Hi volunteers!`,
+    ``,
+    ``,
+    ``,
+    `You can view the map and manage your claims here:`,
+    appUrl,
+    ``,
+    `Join our Signal group chat for updates and coordination:`,
+    `https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2`,
+    ``,
+    `If you have any questions, reach out to us:`,
+    `  Sam Dalton - (214) 686-8608 - spdaltonjr@gmail.com`,
+    `  Rob Strobel - (859) 489-8880 - rob@jamestalarico.com`,
+    ``,
+    `Thank you for volunteering!`,
+  ].join('\n');
+
+  const batches: string[][] = [];
+  for (let i = 0; i < emails.length; i += MAX_MAILTO_EMAILS) {
+    batches.push(emails.slice(i, i + MAX_MAILTO_EMAILS));
+  }
+
+  return batches.map((batch) => {
+    const bcc = batch.join(',');
+    return `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+}
