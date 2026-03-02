@@ -1,8 +1,10 @@
 import { useState, useMemo, type FormEvent } from 'react';
 import { useDressings } from '../hooks/useDressings';
+import { unclaimLocation } from '../services/dressingService';
 import { activeLocations } from '../config/categorizeLocations';
 import { MARKER_TYPES } from '../config/constants';
 import { buildDirectionsUrls } from '../utils/directions';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { MapMarker, DressingRecord } from '../types';
 
@@ -13,6 +15,8 @@ interface VolunteerLocation {
 
 export default function MyLocationsPage() {
   const { dressings, loading } = useDressings();
+
+  const [unclaimTarget, setUnclaimTarget] = useState<VolunteerLocation | null>(null);
 
   const [lookupValue, setLookupValue] = useState(
     () =>
@@ -72,6 +76,17 @@ export default function MyLocationsPage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSearchTerm(lookupValue);
+  }
+
+  async function handleUnclaim() {
+    if (!unclaimTarget) return;
+    try {
+      await unclaimLocation(unclaimTarget.location.id);
+    } catch {
+      alert('Failed to unclaim location.');
+    } finally {
+      setUnclaimTarget(null);
+    }
   }
 
   if (loading) return <LoadingSpinner message="Loading data..." />;
@@ -166,6 +181,12 @@ export default function MyLocationsPage() {
                       <span className="my-location-card-type">
                         {MARKER_TYPES[item.location.type]?.label}
                       </span>
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => setUnclaimTarget(item)}
+                      >
+                        Unclaim
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -204,6 +225,15 @@ export default function MyLocationsPage() {
             </div>
           )}
         </>
+      )}
+
+      {unclaimTarget && (
+        <ConfirmDialog
+          message={`Unclaim "${unclaimTarget.location.label}"? This will make it available for other volunteers.`}
+          confirmLabel="Unclaim"
+          onConfirm={handleUnclaim}
+          onCancel={() => setUnclaimTarget(null)}
+        />
       )}
     </div>
   );

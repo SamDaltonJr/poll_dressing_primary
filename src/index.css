@@ -1964,6 +1964,10 @@ input.search-bar-input {
   color: var(--color-text-muted);
 }
 
+.my-location-card-meta .btn {
+  margin-top: 4px;
+}
+
 /* === Instructions Pages === */
 .instructions-page {
   max-width: 760px;
