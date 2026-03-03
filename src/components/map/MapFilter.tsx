@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MARKER_TYPES } from '../../config/constants';
 import type { MarkerType } from '../../types';
 
@@ -17,8 +18,35 @@ interface MapFilterProps {
 }
 
 export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
+
+  if (collapsed) {
+    return (
+      <button
+        className="map-filter-toggle"
+        onClick={() => setCollapsed(false)}
+        title="Show legend"
+        aria-label="Show map legend"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2" />
+          <polyline points="2 17 12 22 22 17" />
+          <polyline points="2 12 12 17 22 12" />
+        </svg>
+      </button>
+    );
+  }
+
   return (
     <div className="map-filter">
+      <button
+        className="map-filter-collapse"
+        onClick={() => setCollapsed(true)}
+        title="Minimize legend"
+        aria-label="Minimize map legend"
+      >
+        &times;
+      </button>
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
         ([type, config]) => {
           const s = stats[type] || { total: 0, dressed: 0, claimed: 0 };

@@ -156,6 +156,10 @@ body {
   z-index: 1;
 }
 
+.search-toggle {
+  display: none;
+}
+
 .map-legend {
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
@@ -185,6 +189,37 @@ body {
   flex-direction: column;
   gap: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.map-filter-collapse {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0 2px;
+}
+
+.map-filter-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 999;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  color: var(--color-text-muted);
 }
 
 .map-filter-item {
@@ -1581,9 +1616,15 @@ input.search-bar-input {
 
   .map-filter {
     top: 52px;
+    left: 52px;
     right: 8px;
     padding: 8px 10px;
     font-size: 0.8rem;
+  }
+
+  .map-filter-toggle {
+    top: 52px;
+    right: 8px;
   }
 
   .leaflet-top.leaflet-left {
@@ -1619,6 +1660,23 @@ input.search-bar-input {
     top: 8px;
     white-space: normal;
     text-align: center;
+  }
+
+  .search-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 12px;
+    right: 56px;
+    z-index: 1101;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    padding: 0;
   }
 
   .search-bar {

@@ -72,6 +72,7 @@ export default function MapPage() {
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(() => window.innerWidth > 640);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
   const [reportTarget, setReportTarget] = useState<MapMarker | null>(null);
@@ -254,7 +255,17 @@ export default function MapPage() {
         flyToTarget={flyToTarget}
         onFlyComplete={handleFlyComplete}
       />
-      <SearchBar markers={allMarkers} onSelect={handleSearchSelect} />
+      <button
+        className="search-toggle"
+        onClick={() => setSearchOpen((prev) => !prev)}
+        aria-label={searchOpen ? 'Hide search' : 'Show search'}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+      {searchOpen && <SearchBar markers={allMarkers} onSelect={handleSearchSelect} />}
       <MapFilter
         activeTypes={activeTypes}
         onToggle={handleToggle}
