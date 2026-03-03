@@ -124,12 +124,13 @@ export function getCounty(id: string): string {
 
   if (raw.startsWith('ev-')) {
     const suffix = raw.slice(3); // after "ev-"
+    if (suffix.startsWith('EL')) return 'Ellis';
     if (suffix.startsWith('E')) return 'Dallas';
     if (suffix.startsWith('TC')) return 'Tarrant';
     if (suffix.startsWith('DN')) return 'Denton';
     if (suffix.startsWith('CC')) return 'Collin';
     if (suffix.startsWith('PK')) return 'Parker';
-    if (suffix.startsWith('EL')) return 'Ellis';
+    if (suffix.startsWith('PC')) return 'Parker';
     if (suffix.startsWith('RW')) return 'Rockwall';
     if (suffix.startsWith('KF')) return 'Kaufman';
     if (suffix.startsWith('JN')) return 'Johnson';
@@ -144,6 +145,7 @@ export function getCounty(id: string): string {
     if (suffix.startsWith('CC')) return 'Collin';
     if (suffix.startsWith('C')) return 'Collin';
     if (suffix.startsWith('PK')) return 'Parker';
+    if (suffix.startsWith('PC')) return 'Parker';
     if (suffix.startsWith('EL')) return 'Ellis';
     if (suffix.startsWith('RW')) return 'Rockwall';
     if (suffix.startsWith('KF')) return 'Kaufman';

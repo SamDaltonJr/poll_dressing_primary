@@ -160,15 +160,15 @@ export default function SubmissionForm() {
       <div className="form-group">
         <label htmlFor="signCount">Number of signs placed</label>
         <p className="field-hint">Signs are single-sided. Use 2 for higher visibility locations.</p>
-        <input
+        <select
           id="signCount"
-          type="number"
-          min={1}
-          max={10}
           value={signCount}
-          onChange={(e) => setSignCount(parseInt(e.target.value) || 1)}
+          onChange={(e) => setSignCount(parseInt(e.target.value))}
           required
-        />
+        >
+          <option value={1}>1 sign</option>
+          <option value={2}>2 signs</option>
+        </select>
       </div>
 
       <div className="form-group">

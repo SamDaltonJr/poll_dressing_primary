@@ -2,6 +2,7 @@ import { useState } from 'react';
 import AdminLogin from '../components/admin/AdminLogin';
 import DressingTable from '../components/admin/DressingTable';
 import StatsPanel from '../components/admin/StatsPanel';
+import CountyStatsPanel from '../components/admin/CountyStatsPanel';
 import ExportButton from '../components/admin/ExportButton';
 import DistributionPointTable from '../components/admin/DistributionPointTable';
 import LocationReportTable from '../components/admin/LocationReportTable';
@@ -21,7 +22,7 @@ import { useSubmissions } from '../hooks/useSubmissions';
 import { usePlannedSigns } from '../hooks/usePlannedSigns';
 import { useSignPickups } from '../hooks/useSignPickups';
 
-type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns';
+type AdminTab = 'polling' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns' | 'stats';
 
 export default function AdminPage() {
   const { dressings, loading } = useDressings();
@@ -92,6 +93,12 @@ export default function AdminPage() {
           >
             Volunteers{volunteerCount > 0 ? ` (${volunteerCount})` : ''}
           </button>
+          <button
+            className={`admin-tab ${activeTab === 'stats' ? 'active' : ''}`}
+            onClick={() => setActiveTab('stats')}
+          >
+            Stats
+          </button>
         </div>
         {activeTab === 'polling' && (
           loading ? (
@@ -146,6 +153,13 @@ export default function AdminPage() {
             <LoadingSpinner message="Loading volunteer data..." />
           ) : (
             <VolunteerLocationCounts dressings={dressings} pickups={signPickups} />
+          )
+        )}
+        {activeTab === 'stats' && (
+          loading ? (
+            <LoadingSpinner message="Loading stats..." />
+          ) : (
+            <CountyStatsPanel dressings={dressings} />
           )
         )}
       </div>

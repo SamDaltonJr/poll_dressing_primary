@@ -71,7 +71,7 @@ export default function MapPage() {
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
-  const [showPlannedSigns, setShowPlannedSigns] = useState(true);
+  const [showPlannedSigns, setShowPlannedSigns] = useState(false);
   const [searchOpen, setSearchOpen] = useState(() => window.innerWidth > 640);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
