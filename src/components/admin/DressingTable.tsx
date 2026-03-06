@@ -111,7 +111,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   }, [rows, filter, search]);
 
   const sortedRows = useMemo(() => {
-    const statusOrder: Record<LocationStatus, number> = { available: 0, claimed: 1, dressed: 2 };
+    const statusOrder: Record<LocationStatus, number> = { available: 0, claimed: 1, dressed: 2, retrieved: 3 };
 
     return [...filteredRows].sort((a, b) => {
       let cmp = 0;
