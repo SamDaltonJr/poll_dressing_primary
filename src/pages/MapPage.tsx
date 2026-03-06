@@ -4,12 +4,15 @@ import MapFilter from '../components/map/MapFilter';
 import SearchBar from '../components/map/SearchBar';
 import ClaimModal from '../components/map/ClaimModal';
 import ConfirmDressedModal from '../components/map/ConfirmDressedModal';
+import ConfirmRetrievedModal from '../components/map/ConfirmRetrievedModal';
 import ReportModal from '../components/map/ReportModal';
 import MissingLocationModal from '../components/map/MissingLocationModal';
 import IncorrectLocationModal from '../components/map/IncorrectLocationModal';
 import AccessCodeModal from '../components/common/AccessCodeModal';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PlannedSignModal from '../components/admin/PlannedSignModal';
+import { markSignRetrieved } from '../services/submissionService';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useSubmissions } from '../hooks/useSubmissions';
@@ -18,7 +21,7 @@ import { useAccessCode } from '../hooks/useAccessCode';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { MARKER_TYPES } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
-import type { MapMarker, MarkerType } from '../types';
+import type { MapMarker, MarkerType, SignSubmission } from '../types';
 
 const OFFSET = 0.0003;
 
@@ -75,6 +78,8 @@ export default function MapPage() {
   const [searchOpen, setSearchOpen] = useState(() => window.innerWidth > 640);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
+  const [retrieveTarget, setRetrieveTarget] = useState<MapMarker | null>(null);
+  const [signRetrieveTarget, setSignRetrieveTarget] = useState<SignSubmission | null>(null);
   const [reportTarget, setReportTarget] = useState<MapMarker | null>(null);
   const [incorrectTarget, setIncorrectTarget] = useState<MapMarker | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
@@ -106,6 +111,14 @@ export default function MapPage() {
     return set;
   }, [dressings]);
 
+  const retrievedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of dressings) {
+      if (d.isRetrieved) set.add(d.locationId);
+    }
+    return set;
+  }, [dressings]);
+
   const dressingMap = useMemo(() => {
     const m = new Map<string, typeof dressings[0]>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -113,18 +126,19 @@ export default function MapPage() {
   }, [dressings]);
 
   const stats = useMemo(() => {
-    const s: Record<MarkerType, { total: number; dressed: number; claimed: number }> = {
-      dualSite: { total: 0, dressed: 0, claimed: 0 },
-      earlyVotingOnly: { total: 0, dressed: 0, claimed: 0 },
-      electionDayOnly: { total: 0, dressed: 0, claimed: 0 },
+    const s: Record<MarkerType, { total: number; dressed: number; claimed: number; retrieved: number }> = {
+      dualSite: { total: 0, dressed: 0, claimed: 0, retrieved: 0 },
+      earlyVotingOnly: { total: 0, dressed: 0, claimed: 0, retrieved: 0 },
+      electionDayOnly: { total: 0, dressed: 0, claimed: 0, retrieved: 0 },
     };
     for (const m of allMarkers) {
       s[m.type].total++;
-      if (dressedIds.has(m.id)) s[m.type].dressed++;
+      if (retrievedIds.has(m.id)) s[m.type].retrieved++;
+      else if (dressedIds.has(m.id)) s[m.type].dressed++;
       else if (claimedIds.has(m.id)) s[m.type].claimed++;
     }
     return s;
-  }, [allMarkers, dressedIds, claimedIds]);
+  }, [allMarkers, retrievedIds, dressedIds, claimedIds]);
 
   const filteredMarkers = useMemo(
     () => allMarkers.filter((m) => activeTypes.has(m.type)),
@@ -155,6 +169,35 @@ export default function MapPage() {
     } else {
       setConfirmTarget(marker);
       setShowAccessModal(true);
+    }
+  }
+
+  function handleRetrieveClick(marker: MapMarker) {
+    if (hasAccess) {
+      setRetrieveTarget(marker);
+    } else {
+      setRetrieveTarget(marker);
+      setShowAccessModal(true);
+    }
+  }
+
+  function handleSignRetrieveClick(submission: SignSubmission) {
+    if (hasAccess) {
+      setSignRetrieveTarget(submission);
+    } else {
+      setSignRetrieveTarget(submission);
+      setShowAccessModal(true);
+    }
+  }
+
+  async function handleConfirmSignRetrieve() {
+    if (!signRetrieveTarget) return;
+    try {
+      await markSignRetrieved(signRetrieveTarget.id);
+    } catch {
+      alert('Failed to mark sign as retrieved.');
+    } finally {
+      setSignRetrieveTarget(null);
     }
   }
 
@@ -220,6 +263,8 @@ export default function MapPage() {
   function handleCloseModals() {
     setClaimTarget(null);
     setConfirmTarget(null);
+    setRetrieveTarget(null);
+    setSignRetrieveTarget(null);
     setReportTarget(null);
     setIncorrectTarget(null);
     setShowAccessModal(false);
@@ -229,6 +274,7 @@ export default function MapPage() {
 
   const totalDressed = stats.dualSite.dressed + stats.earlyVotingOnly.dressed + stats.electionDayOnly.dressed;
   const totalClaimed = stats.dualSite.claimed + stats.earlyVotingOnly.claimed + stats.electionDayOnly.claimed;
+  const totalRetrieved = stats.dualSite.retrieved + stats.earlyVotingOnly.retrieved + stats.electionDayOnly.retrieved;
   const totalLocations = stats.dualSite.total + stats.earlyVotingOnly.total + stats.electionDayOnly.total;
 
   return (
@@ -237,11 +283,14 @@ export default function MapPage() {
         markers={filteredMarkers}
         dressedIds={dressedIds}
         claimedIds={claimedIds}
+        retrievedIds={retrievedIds}
         dressings={dressings}
         onClaimClick={handleClaimClick}
         onConfirmClick={handleConfirmClick}
+        onRetrieveClick={handleRetrieveClick}
         onReportClick={handleReportClick}
         onIncorrectReportClick={handleIncorrectReportClick}
+        onSignRetrieveClick={handleSignRetrieveClick}
         hasAccess={hasAccess}
         signSubmissions={showSignPlacements ? signSubmissions : []}
         distributionPoints={showDistributionPoints ? distributionPoints : []}
@@ -326,11 +375,13 @@ export default function MapPage() {
       )}
 
       <div className="map-legend">
+        <span>{totalRetrieved} retrieved</span>
+        <span className="legend-sep">&middot;</span>
         <span>{totalDressed} dressed</span>
         <span className="legend-sep">&middot;</span>
         <span>{totalClaimed} claimed</span>
         <span className="legend-sep">&middot;</span>
-        <span>{totalLocations - totalDressed - totalClaimed} available</span>
+        <span>{totalLocations - totalDressed - totalClaimed - totalRetrieved} available</span>
         <span className="legend-sep">|</span>
         <span>{totalLocations} locations</span>
         {signSubmissions.length > 0 && (
@@ -369,6 +420,24 @@ export default function MapPage() {
           dressing={dressingMap.get(confirmTarget.id)!}
           onClose={handleCloseModals}
           onConfirmed={() => setConfirmTarget(null)}
+        />
+      )}
+
+      {retrieveTarget && !showAccessModal && hasAccess && (
+        <ConfirmRetrievedModal
+          marker={retrieveTarget}
+          dressing={dressingMap.get(retrieveTarget.id)!}
+          onClose={handleCloseModals}
+          onConfirmed={() => setRetrieveTarget(null)}
+        />
+      )}
+
+      {signRetrieveTarget && !showAccessModal && hasAccess && (
+        <ConfirmDialog
+          message={`Mark the sign at "${signRetrieveTarget.address}" as retrieved?`}
+          confirmLabel="Confirm Retrieved"
+          onConfirm={handleConfirmSignRetrieve}
+          onCancel={() => setSignRetrieveTarget(null)}
         />
       )}
 

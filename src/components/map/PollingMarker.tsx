@@ -8,6 +8,7 @@ interface PollingMarkerProps {
   dressing?: DressingRecord;
   onClaimClick: (marker: MapMarker) => void;
   onConfirmClick: (marker: MapMarker) => void;
+  onRetrieveClick: (marker: MapMarker) => void;
   onReportClick: (marker: MapMarker) => void;
   onIncorrectReportClick: (marker: MapMarker) => void;
   hasAccess: boolean;
@@ -19,9 +20,10 @@ const STATUS_LABEL: Record<LocationStatus, string> = {
   available: 'NOT DRESSED',
   claimed: 'CLAIMED',
   dressed: 'DRESSED',
+  retrieved: 'RETRIEVED',
 };
 
-export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess }: PollingMarkerProps) {
+export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, hasAccess }: PollingMarkerProps) {
   const icon = createMarkerIcon(marker.type, status, marker.size);
   const typeLabel = MARKER_TYPES[marker.type].label;
 
@@ -68,6 +70,15 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
                   </p>
                 )}
                 <button
+                  className="btn btn-primary btn-sm marker-popup-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRetrieveClick(marker);
+                  }}
+                >
+                  {hasAccess ? 'Signs Retrieved' : 'Enter Code to Mark Retrieved'}
+                </button>
+                <button
                   className="btn btn-sm marker-popup-report-btn"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -76,6 +87,28 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
                 >
                   Report Issue
                 </button>
+              </>
+            )}
+
+            {status === 'retrieved' && dressing && (
+              <>
+                <p className="marker-popup-volunteer">
+                  Dressed by {dressing.volunteerName}
+                  {dressing.dressedAt?.toDate && (
+                    <> on {dressing.dressedAt.toDate().toLocaleDateString()}</>
+                  )}
+                </p>
+                {dressing.signCount > 0 && (
+                  <p className="marker-popup-signs">
+                    {dressing.signCount} sign{dressing.signCount !== 1 ? 's' : ''} placed
+                  </p>
+                )}
+                <p className="marker-popup-signs">
+                  {dressing.retrievedSignCount} sign{dressing.retrievedSignCount !== 1 ? 's' : ''} retrieved
+                  {dressing.retrievedAt?.toDate && (
+                    <> on {dressing.retrievedAt.toDate().toLocaleDateString()}</>
+                  )}
+                </p>
               </>
             )}
 

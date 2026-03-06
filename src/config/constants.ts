@@ -28,6 +28,7 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     color: '#dc2626',
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
+    retrievedColor: '#7c3aed',
     defaultVisible: true,
   },
   earlyVotingOnly: {
@@ -35,6 +36,7 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     color: '#dc2626',
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
+    retrievedColor: '#7c3aed',
     defaultVisible: false,
   },
   electionDayOnly: {
@@ -42,6 +44,7 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     color: '#dc2626',
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
+    retrievedColor: '#7c3aed',
     defaultVisible: true,
   },
 };
@@ -106,10 +109,12 @@ export function createPinDropIcon(): L.DivIcon {
   });
 }
 
-/** Sign placement marker icon: white box with black border and bold "T" */
-export function createSignMarkerIcon(): L.DivIcon {
+/** Sign placement marker icon: white box with black border and bold "T", or purple if retrieved */
+export function createSignMarkerIcon(retrieved = false): L.DivIcon {
   const px = 20;
   const half = px / 2;
+  const borderColor = retrieved ? '#7c3aed' : 'black';
+  const textColor = retrieved ? '#7c3aed' : 'black';
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="
@@ -117,12 +122,12 @@ export function createSignMarkerIcon(): L.DivIcon {
       width: ${px}px;
       height: ${px}px;
       border-radius: 3px;
-      border: 2px solid black;
+      border: 2px solid ${borderColor};
       box-shadow: 0 2px 6px rgba(0,0,0,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: black;
+      color: ${textColor};
       font-size: 13px;
       font-weight: 700;
       line-height: 1;
@@ -166,7 +171,8 @@ export function createPlannedSignIcon(status: PlannedSignStatus = 'planned'): L.
 // Create colored Leaflet DivIcon; color is driven by location status
 export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?: LocationSize): L.DivIcon {
   const config = MARKER_TYPES[type];
-  const color = status === 'dressed' ? config.dressedColor
+  const color = status === 'retrieved' ? config.retrievedColor
+    : status === 'dressed' ? config.dressedColor
     : status === 'claimed' ? config.claimedColor
     : config.color;
   const px = SIZE_PX[size ?? 'M'];

@@ -1,12 +1,14 @@
 import { useState, useMemo, type FormEvent } from 'react';
 import { useDressings } from '../hooks/useDressings';
+import { useSubmissions } from '../hooks/useSubmissions';
 import { unclaimLocation } from '../services/dressingService';
+import { markSignRetrieved } from '../services/submissionService';
 import { activeLocations } from '../config/categorizeLocations';
 import { MARKER_TYPES } from '../config/constants';
 import { buildDirectionsUrls } from '../utils/directions';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import type { MapMarker, DressingRecord } from '../types';
+import type { MapMarker, DressingRecord, SignSubmission } from '../types';
 
 interface VolunteerLocation {
   location: MapMarker;
@@ -15,8 +17,10 @@ interface VolunteerLocation {
 
 export default function MyLocationsPage() {
   const { dressings, loading } = useDressings();
+  const { submissions, loading: subsLoading } = useSubmissions();
 
   const [unclaimTarget, setUnclaimTarget] = useState<VolunteerLocation | null>(null);
+  const [signRetrieveTarget, setSignRetrieveTarget] = useState<SignSubmission | null>(null);
 
   const [lookupValue, setLookupValue] = useState(
     () =>
@@ -62,16 +66,44 @@ export default function MyLocationsPage() {
     [myLocations],
   );
   const dressed = useMemo(
-    () => myLocations.filter((ml) => ml.dressing.isDressed),
+    () => myLocations.filter((ml) => ml.dressing.isDressed && !ml.dressing.isRetrieved),
     [myLocations],
   );
+  const retrieved = useMemo(
+    () => myLocations.filter((ml) => ml.dressing.isRetrieved),
+    [myLocations],
+  );
+
+  const mySigns = useMemo<SignSubmission[]>(() => {
+    if (!searchTerm) return [];
+    const term = searchTerm.toLowerCase().trim();
+    const termDigits = term.replace(/\D/g, '');
+
+    return submissions.filter((s) => {
+      if (s.volunteerEmail && s.volunteerEmail.toLowerCase() === term) return true;
+      if (termDigits.length >= 10 && s.volunteerPhone) {
+        const phoneDigits = s.volunteerPhone.replace(/\D/g, '');
+        const normTerm = termDigits.length === 11 && termDigits.startsWith('1') ? termDigits.slice(1) : termDigits;
+        const normPhone = phoneDigits.length === 11 && phoneDigits.startsWith('1') ? phoneDigits.slice(1) : phoneDigits;
+        return normTerm === normPhone;
+      }
+      return false;
+    });
+  }, [submissions, searchTerm]);
+
+  const mySignsActive = useMemo(() => mySigns.filter((s) => !s.isRetrieved), [mySigns]);
+  const mySignsRetrieved = useMemo(() => mySigns.filter((s) => s.isRetrieved), [mySigns]);
 
   const directionUrls = useMemo(
     () => buildDirectionsUrls(pending.map((p) => p.location.address)),
     [pending],
   );
 
-  const volunteerName = myLocations.length > 0 ? myLocations[0].dressing.volunteerName : '';
+  const volunteerName = myLocations.length > 0
+    ? myLocations[0].dressing.volunteerName
+    : mySigns.length > 0
+    ? mySigns[0].volunteerName
+    : '';
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -89,7 +121,18 @@ export default function MyLocationsPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner message="Loading data..." />;
+  async function handleSignRetrieve() {
+    if (!signRetrieveTarget) return;
+    try {
+      await markSignRetrieved(signRetrieveTarget.id);
+    } catch {
+      alert('Failed to mark sign as retrieved.');
+    } finally {
+      setSignRetrieveTarget(null);
+    }
+  }
+
+  if (loading || subsLoading) return <LoadingSpinner message="Loading data..." />;
 
   return (
     <div className="my-locations-page">
@@ -115,21 +158,22 @@ export default function MyLocationsPage() {
         </button>
       </form>
 
-      {searchTerm && myLocations.length === 0 && (
+      {searchTerm && myLocations.length === 0 && mySigns.length === 0 && (
         <div className="my-locations-empty">
-          <p>No claimed locations found for "{searchTerm}".</p>
+          <p>No locations or signs found for "{searchTerm}".</p>
           <p className="text-muted">
             Make sure you're using the same email or phone number you used when
-            claiming locations.
+            claiming locations or submitting signs.
           </p>
         </div>
       )}
 
-      {myLocations.length > 0 && (
+      {(myLocations.length > 0 || mySigns.length > 0) && (
         <>
           <div className="my-locations-summary">
             Hi {volunteerName}! You have {myLocations.length} location
-            {myLocations.length !== 1 ? 's' : ''}.
+            {myLocations.length !== 1 ? 's' : ''}
+            {mySigns.length > 0 && <> and {mySigns.length} big sign{mySigns.length !== 1 ? 's' : ''}</>}.
           </div>
 
           {pending.length > 0 && directionUrls.length > 0 && (
@@ -224,6 +268,94 @@ export default function MyLocationsPage() {
               </div>
             </div>
           )}
+
+          {retrieved.length > 0 && (
+            <div className="my-locations-group">
+              <h3 className="my-locations-group-heading">
+                Retrieved ({retrieved.length})
+              </h3>
+              <div className="my-locations-list">
+                {retrieved.map((item) => (
+                  <div key={item.location.id} className="my-location-card">
+                    <div className="my-location-card-info">
+                      <span className="my-location-card-name">
+                        {item.location.label}
+                      </span>
+                      <span className="my-location-card-address">
+                        {item.location.address}
+                      </span>
+                    </div>
+                    <div className="my-location-card-meta">
+                      <span className="dressing-status retrieved">Retrieved</span>
+                      {item.dressing.retrievedSignCount > 0 && (
+                        <span className="my-location-card-signs">
+                          {item.dressing.retrievedSignCount} sign
+                          {item.dressing.retrievedSignCount !== 1 ? 's' : ''} retrieved
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mySignsActive.length > 0 && (
+            <div className="my-locations-group">
+              <h3 className="my-locations-group-heading">
+                Big Signs — Active ({mySignsActive.length})
+              </h3>
+              <div className="my-locations-list">
+                {mySignsActive.map((sign) => (
+                  <div key={sign.id} className="my-location-card">
+                    <div className="my-location-card-info">
+                      <span className="my-location-card-name">
+                        {sign.address}
+                      </span>
+                      <span className="my-location-card-address">
+                        {sign.signCount} sign{sign.signCount !== 1 ? 's' : ''}
+                        {sign.postingMethod && <> &middot; {sign.postingMethod}</>}
+                      </span>
+                    </div>
+                    <div className="my-location-card-meta">
+                      <span className="dressing-status dressed">Active</span>
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => setSignRetrieveTarget(sign)}
+                      >
+                        Mark Retrieved
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mySignsRetrieved.length > 0 && (
+            <div className="my-locations-group">
+              <h3 className="my-locations-group-heading">
+                Big Signs — Retrieved ({mySignsRetrieved.length})
+              </h3>
+              <div className="my-locations-list">
+                {mySignsRetrieved.map((sign) => (
+                  <div key={sign.id} className="my-location-card">
+                    <div className="my-location-card-info">
+                      <span className="my-location-card-name">
+                        {sign.address}
+                      </span>
+                      <span className="my-location-card-address">
+                        {sign.signCount} sign{sign.signCount !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="my-location-card-meta">
+                      <span className="dressing-status retrieved">Retrieved</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -233,6 +365,15 @@ export default function MyLocationsPage() {
           confirmLabel="Unclaim"
           onConfirm={handleUnclaim}
           onCancel={() => setUnclaimTarget(null)}
+        />
+      )}
+
+      {signRetrieveTarget && (
+        <ConfirmDialog
+          message={`Mark the sign at "${signRetrieveTarget.address}" as retrieved?`}
+          confirmLabel="Confirm Retrieved"
+          onConfirm={handleSignRetrieve}
+          onCancel={() => setSignRetrieveTarget(null)}
         />
       )}
     </div>

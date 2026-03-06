@@ -362,6 +362,11 @@ body {
   color: #92400e;
 }
 
+.dressing-status.retrieved {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
 /* === Buttons === */
 .btn {
   display: inline-flex;

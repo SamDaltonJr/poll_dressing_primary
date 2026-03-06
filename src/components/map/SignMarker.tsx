@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import { createSignMarkerIcon } from '../../config/constants';
 import type { SignSubmission } from '../../types';
@@ -8,15 +9,17 @@ const METHOD_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
-const signIcon = createSignMarkerIcon();
-
 interface SignMarkerProps {
   submission: SignSubmission;
+  onRetrieveClick?: (submission: SignSubmission) => void;
+  hasAccess?: boolean;
 }
 
-export default function SignMarker({ submission }: SignMarkerProps) {
+export default function SignMarker({ submission, onRetrieveClick, hasAccess }: SignMarkerProps) {
+  const icon = useMemo(() => createSignMarkerIcon(!!submission.isRetrieved), [submission.isRetrieved]);
+
   return (
-    <Marker position={[submission.latitude, submission.longitude]} icon={signIcon}>
+    <Marker position={[submission.latitude, submission.longitude]} icon={icon}>
       <Popup maxWidth={280}>
         <div className="marker-popup">
           <div className="marker-popup-info">
@@ -38,6 +41,24 @@ export default function SignMarker({ submission }: SignMarkerProps) {
             <p className="marker-popup-date">
               {submission.createdAt?.toDate?.()?.toLocaleDateString() || ''}
             </p>
+            {submission.isRetrieved ? (
+              <div className="dressing-status retrieved" style={{ marginTop: 6 }}>
+                RETRIEVED
+                {submission.retrievedAt?.toDate && (
+                  <> on {submission.retrievedAt.toDate().toLocaleDateString()}</>
+                )}
+              </div>
+            ) : onRetrieveClick && (
+              <button
+                className="btn btn-primary btn-sm marker-popup-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRetrieveClick(submission);
+                }}
+              >
+                {hasAccess ? 'Sign Retrieved' : 'Enter Code to Mark Retrieved'}
+              </button>
+            )}
           </div>
         </div>
       </Popup>

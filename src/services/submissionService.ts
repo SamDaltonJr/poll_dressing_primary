@@ -41,6 +41,14 @@ export async function updateSubmission(
   });
 }
 
+export async function markSignRetrieved(id: string): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, id), {
+    isRetrieved: true,
+    retrievedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function deleteSubmission(id: string, photoPath: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTION, id));
   await deletePhoto(photoPath);

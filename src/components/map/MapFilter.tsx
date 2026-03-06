@@ -5,7 +5,7 @@ import type { MarkerType } from '../../types';
 interface MapFilterProps {
   activeTypes: Set<MarkerType>;
   onToggle: (type: MarkerType) => void;
-  stats: Record<MarkerType, { total: number; dressed: number; claimed: number }>;
+  stats: Record<MarkerType, { total: number; dressed: number; claimed: number; retrieved: number }>;
   showDistributionPoints: boolean;
   onToggleDistributionPoints: () => void;
   distributionPointCount: number;
@@ -96,7 +96,9 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
         <span className="filter-progress">{plannedSignCount}</span>
       </label>
       <div className="filter-legend">
-        <span className="filter-dot" style={{ backgroundColor: '#16a34a' }} />
+        <span className="filter-dot" style={{ backgroundColor: '#7c3aed' }} />
+        <span className="filter-legend-label">Retrieved</span>
+        <span className="filter-dot" style={{ backgroundColor: '#16a34a', marginLeft: 8 }} />
         <span className="filter-legend-label">Dressed</span>
         <span className="filter-dot" style={{ backgroundColor: '#f59e0b', marginLeft: 8 }} />
         <span className="filter-legend-label">Claimed</span>

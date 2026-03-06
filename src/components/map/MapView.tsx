@@ -15,11 +15,14 @@ interface MapViewProps {
   markers: MapMarker[];
   dressedIds: Set<string>;
   claimedIds: Set<string>;
+  retrievedIds: Set<string>;
   dressings: DressingRecord[];
   onClaimClick: (marker: MapMarker) => void;
   onConfirmClick: (marker: MapMarker) => void;
+  onRetrieveClick: (marker: MapMarker) => void;
   onReportClick: (marker: MapMarker) => void;
   onIncorrectReportClick: (marker: MapMarker) => void;
+  onSignRetrieveClick: (submission: SignSubmission) => void;
   hasAccess: boolean;
   signSubmissions: SignSubmission[];
   distributionPoints: DistributionPoint[];
@@ -34,6 +37,7 @@ interface MapViewProps {
   onFlyComplete: () => void;
 }
 
+const PURPLE = '#7c3aed';
 const GREEN = '#16a34a';
 const AMBER = '#f59e0b';
 const RED = '#dc2626';
@@ -44,12 +48,14 @@ function createClusterIcon(cluster: any): L.DivIcon {
   const children = cluster.getAllChildMarkers();
   const count = children.length;
 
+  let retrievedCount = 0;
   let dressedCount = 0;
   let claimedCount = 0;
   for (const child of children) {
     const html = (child.getIcon().options as L.DivIconOptions).html ?? '';
     if (typeof html === 'string') {
-      if (html.includes(GREEN)) dressedCount++;
+      if (html.includes(PURPLE)) retrievedCount++;
+      else if (html.includes(GREEN)) dressedCount++;
       else if (html.includes(AMBER)) claimedCount++;
     }
   }
@@ -57,18 +63,21 @@ function createClusterIcon(cluster: any): L.DivIcon {
   const size = count < 20 ? 36 : count < 100 ? 44 : 52;
   const half = size / 2;
 
-  const availableCount = count - dressedCount - claimedCount;
+  const availableCount = count - retrievedCount - dressedCount - claimedCount;
   let background: string;
-  if (dressedCount === count) {
+  if (retrievedCount === count) {
+    background = PURPLE;
+  } else if (dressedCount === count) {
     background = GREEN;
   } else if (claimedCount === count) {
     background = AMBER;
   } else if (availableCount === count) {
     background = RED;
   } else {
-    const pctDressed = Math.round((dressedCount / count) * 100);
-    const pctClaimed = Math.round(((dressedCount + claimedCount) / count) * 100);
-    background = `conic-gradient(${GREEN} 0% ${pctDressed}%, ${AMBER} ${pctDressed}% ${pctClaimed}%, ${RED} ${pctClaimed}% 100%)`;
+    const pctRetrieved = Math.round((retrievedCount / count) * 100);
+    const pctDressed = Math.round(((retrievedCount + dressedCount) / count) * 100);
+    const pctClaimed = Math.round(((retrievedCount + dressedCount + claimedCount) / count) * 100);
+    background = `conic-gradient(${PURPLE} 0% ${pctRetrieved}%, ${GREEN} ${pctRetrieved}% ${pctDressed}%, ${AMBER} ${pctDressed}% ${pctClaimed}%, ${RED} ${pctClaimed}% 100%)`;
   }
 
   return L.divIcon({
@@ -101,7 +110,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, retrievedIds, dressings, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, onSignRetrieveClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -109,17 +118,19 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
   }, [dressings]);
 
   const getStatus = useCallback((id: string): LocationStatus => {
+    if (retrievedIds.has(id)) return 'retrieved';
     if (dressedIds.has(id)) return 'dressed';
     if (claimedIds.has(id)) return 'claimed';
     return 'available';
-  }, [dressedIds, claimedIds]);
+  }, [retrievedIds, dressedIds, claimedIds]);
 
   // Force cluster re-render when dressing/claim data changes
   const clusterKey = useMemo(() => {
+    const r = Array.from(retrievedIds).sort().join(',');
     const d = Array.from(dressedIds).sort().join(',');
     const c = Array.from(claimedIds).sort().join(',');
-    return `${d}|${c}`;
-  }, [dressedIds, claimedIds]);
+    return `${r}|${d}|${c}`;
+  }, [retrievedIds, dressedIds, claimedIds]);
 
   return (
     <MapContainer
@@ -145,6 +156,7 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
             dressing={dressingMap.get(marker.id)}
             onClaimClick={onClaimClick}
             onConfirmClick={onConfirmClick}
+            onRetrieveClick={onRetrieveClick}
             onReportClick={onReportClick}
             onIncorrectReportClick={onIncorrectReportClick}
             hasAccess={hasAccess}
@@ -157,7 +169,7 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
       ))}
 
       {signSubmissions.map((sub) => (
-        <SignMarker key={sub.id} submission={sub} />
+        <SignMarker key={sub.id} submission={sub} onRetrieveClick={onSignRetrieveClick} hasAccess={hasAccess} />
       ))}
 
       {plannedSigns.map((sign) => (

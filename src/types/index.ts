@@ -3,8 +3,8 @@ import { Timestamp } from 'firebase/firestore';
 // Marker type system — categorized types used in the app
 export type MarkerType = 'dualSite' | 'earlyVotingOnly' | 'electionDayOnly';
 
-// Location status for the claim → dressed flow
-export type LocationStatus = 'available' | 'claimed' | 'dressed';
+// Location status for the claim → dressed → retrieved flow
+export type LocationStatus = 'available' | 'claimed' | 'dressed' | 'retrieved';
 
 // Raw types from source data files (before categorization)
 export type RawMarkerType = 'earlyVoting' | 'electionDay';
@@ -16,6 +16,7 @@ export interface MarkerTypeConfig {
   color: string;
   claimedColor: string;
   dressedColor: string;
+  retrievedColor: string;
   defaultVisible: boolean;
 }
 
@@ -57,6 +58,9 @@ export interface DressingRecord {
   dressedBy: 'volunteer' | 'admin';
   revertedAt: Timestamp | null;
   revertedBy: string | null;
+  isRetrieved: boolean;
+  retrievedAt: Timestamp | null;
+  retrievedSignCount: number;
   reportCount: number;
   lastReportedAt: Timestamp | null;
   lastReportReason: string | null;
@@ -174,6 +178,8 @@ export interface SignSubmission {
   address: string;
   postingMethod: PostingMethod;
   signCount: number;
+  isRetrieved: boolean;
+  retrievedAt: Timestamp | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

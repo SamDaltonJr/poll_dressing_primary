@@ -24,6 +24,9 @@ export async function claimLocation(
     dressedBy: 'volunteer',
     revertedAt: null,
     revertedBy: null,
+    isRetrieved: false,
+    retrievedAt: null,
+    retrievedSignCount: 0,
     reportCount: 0,
     lastReportedAt: null,
     lastReportReason: null,
@@ -66,6 +69,9 @@ export async function markDressed(
     dressedBy: 'volunteer',
     revertedAt: null,
     revertedBy: null,
+    isRetrieved: false,
+    retrievedAt: null,
+    retrievedSignCount: 0,
     reportCount: 0,
     lastReportedAt: null,
     lastReportReason: null,
@@ -91,9 +97,24 @@ export async function adminMarkDressed(
     dressedBy: 'admin',
     revertedAt: null,
     revertedBy: null,
+    isRetrieved: false,
+    retrievedAt: null,
+    retrievedSignCount: 0,
     reportCount: 0,
     lastReportedAt: null,
     lastReportReason: null,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function markRetrieved(
+  locationId: string,
+  retrievedSignCount: number,
+): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, locationId), {
+    isRetrieved: true,
+    retrievedAt: serverTimestamp(),
+    retrievedSignCount,
     updatedAt: serverTimestamp(),
   });
 }
