@@ -7,6 +7,7 @@ import { activeLocations } from '../config/categorizeLocations';
 import { MARKER_TYPES } from '../config/constants';
 import { buildDirectionsUrls } from '../utils/directions';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import ConfirmRetrievedModal from '../components/map/ConfirmRetrievedModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { MapMarker, DressingRecord, SignSubmission } from '../types';
 
@@ -20,6 +21,7 @@ export default function MyLocationsPage() {
   const { submissions, loading: subsLoading } = useSubmissions();
 
   const [unclaimTarget, setUnclaimTarget] = useState<VolunteerLocation | null>(null);
+  const [retrieveTarget, setRetrieveTarget] = useState<VolunteerLocation | null>(null);
   const [signRetrieveTarget, setSignRetrieveTarget] = useState<SignSubmission | null>(null);
 
   const [lookupValue, setLookupValue] = useState(
@@ -262,6 +264,12 @@ export default function MyLocationsPage() {
                           {item.dressing.signCount !== 1 ? 's' : ''}
                         </span>
                       )}
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => setRetrieveTarget(item)}
+                      >
+                        Mark Retrieved
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -365,6 +373,15 @@ export default function MyLocationsPage() {
           confirmLabel="Unclaim"
           onConfirm={handleUnclaim}
           onCancel={() => setUnclaimTarget(null)}
+        />
+      )}
+
+      {retrieveTarget && (
+        <ConfirmRetrievedModal
+          marker={retrieveTarget.location}
+          dressing={retrieveTarget.dressing}
+          onClose={() => setRetrieveTarget(null)}
+          onConfirmed={() => setRetrieveTarget(null)}
         />
       )}
 
