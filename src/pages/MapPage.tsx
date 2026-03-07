@@ -57,6 +57,7 @@ function getDefaultActiveTypes(): Set<MarkerType> {
 }
 
 export default function MapPage() {
+  const isAdmin = sessionStorage.getItem('adminValid') === 'true';
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
@@ -75,6 +76,7 @@ export default function MapPage() {
   const [pinPosition, setPinPosition] = useState<[number, number] | null>(null);
   const [showMissingModal, setShowMissingModal] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const allMarkers = useMemo<MapMarker[]>(() => {
     return spreadOverlappingMarkers(allLocations);
@@ -114,6 +116,12 @@ export default function MapPage() {
       else if (claimedIds.has(m.id)) s[m.type].claimed++;
     }
     return s;
+  }, [allMarkers, dressedIds, claimedIds]);
+
+  const heatmapPoints = useMemo<Array<[number, number]>>(() => {
+    return allMarkers
+      .filter((m) => !dressedIds.has(m.id) && !claimedIds.has(m.id))
+      .map((m) => [m.latitude, m.longitude]);
   }, [allMarkers, dressedIds, claimedIds]);
 
   const filteredMarkers = useMemo(
@@ -221,6 +229,8 @@ export default function MapPage() {
         onPinPlaced={handlePinPlaced}
         flyToTarget={flyToTarget}
         onFlyComplete={handleFlyComplete}
+        heatmapPoints={heatmapPoints}
+        showHeatmap={showHeatmap}
       />
       <SearchBar markers={allMarkers} onSelect={handleSearchSelect} />
       <MapFilter
@@ -233,6 +243,10 @@ export default function MapPage() {
         showSignPlacements={showSignPlacements}
         onToggleSignPlacements={() => setShowSignPlacements((prev) => !prev)}
         signPlacementCount={signSubmissions.length}
+        showHeatmap={showHeatmap}
+        onToggleHeatmap={() => setShowHeatmap((prev) => !prev)}
+        undressedCount={heatmapPoints.length}
+        showHeatmapToggle={isAdmin}
       />
       {!pinDropMode && (
         <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>

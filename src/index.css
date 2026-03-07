@@ -141,6 +141,54 @@ body {
   transform: translateY(-7px) rotate(-45deg);
 }
 
+/* === Header Actions (share + hamburger wrapper) === */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* === Share Button === */
+.header-share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.header-share-btn:hover {
+  background: var(--color-bg);
+  color: var(--color-primary);
+}
+
+.share-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--color-text);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* === Map Page === */
 .map-page {
   flex: 1;
@@ -1399,6 +1447,17 @@ input.search-bar-input {
   content: 'T';
   font-size: 7px;
   font-weight: 900;
+}
+
+/* === Heatmap Filter Dot === */
+.filter-dot-heatmap {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: radial-gradient(circle, #f03b20 0%, #feb24c 60%, #ffffb2 100%);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }
 
 /* === Sign Admin Stats === */

@@ -11,9 +11,13 @@ interface MapFilterProps {
   showSignPlacements: boolean;
   onToggleSignPlacements: () => void;
   signPlacementCount: number;
+  showHeatmap: boolean;
+  onToggleHeatmap: () => void;
+  undressedCount: number;
+  showHeatmapToggle?: boolean;
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showHeatmap, onToggleHeatmap, undressedCount, showHeatmapToggle }: MapFilterProps) {
   return (
     <div className="map-filter">
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
@@ -54,6 +58,18 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
         <span className="filter-label">Sign Placements</span>
         <span className="filter-progress">{signPlacementCount}</span>
       </label>
+      {showHeatmapToggle && (
+        <label className="map-filter-item">
+          <input
+            type="checkbox"
+            checked={showHeatmap}
+            onChange={onToggleHeatmap}
+          />
+          <span className="filter-dot filter-dot-heatmap" />
+          <span className="filter-label">Coverage Gaps</span>
+          <span className="filter-progress">{undressedCount}</span>
+        </label>
+      )}
       <div className="filter-legend">
         <span className="filter-dot" style={{ backgroundColor: '#16a34a' }} />
         <span className="filter-legend-label">Dressed</span>

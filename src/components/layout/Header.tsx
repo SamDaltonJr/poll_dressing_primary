@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import ShareButton from './ShareButton';
 
 export default function Header() {
   const location = useLocation();
@@ -35,17 +36,20 @@ export default function Header() {
     <header className="header">
       <div className="header-inner">
         <Link to="/" className="header-logo">Campaign Sign Tracker</Link>
-        <button
-          ref={hamburgerRef}
-          className={`header-hamburger ${menuOpen ? 'open' : ''}`}
-          onClick={() => setMenuOpen((prev) => !prev)}
-          aria-label="Toggle navigation menu"
-          aria-expanded={menuOpen}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
+        <div className="header-actions">
+          <ShareButton />
+          <button
+            ref={hamburgerRef}
+            className={`header-hamburger ${menuOpen ? 'open' : ''}`}
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={menuOpen}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
         <nav ref={navRef} className={`header-nav ${menuOpen ? 'open' : ''}`}>
           <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={handleLinkClick}>Map</Link>
           <Link to="/submit" className={location.pathname === '/submit' ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link>

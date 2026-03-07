@@ -5,6 +5,7 @@ import L from 'leaflet';
 import PollingMarker from './PollingMarker';
 import SignMarker from './SignMarker';
 import DistributionPointMarker from './DistributionPointMarker';
+import HeatmapLayer from './HeatmapLayer';
 import PinDropHandler from './PinDropHandler';
 import FlyToLocation from './FlyToLocation';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
@@ -27,6 +28,8 @@ interface MapViewProps {
   onPinPlaced: (lat: number, lng: number) => void;
   flyToTarget: { lat: number; lng: number } | null;
   onFlyComplete: () => void;
+  heatmapPoints: Array<[number, number]>;
+  showHeatmap: boolean;
 }
 
 const GREEN = '#16a34a';
@@ -96,7 +99,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, signSubmissions, distributionPoints, pinDropMode, pinPosition, onPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, dressings, onClaimClick, onConfirmClick, onReportClick, onIncorrectReportClick, hasAccess, signSubmissions, distributionPoints, pinDropMode, pinPosition, onPinPlaced, flyToTarget, onFlyComplete, heatmapPoints, showHeatmap }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -154,6 +157,10 @@ export default function MapView({ markers, dressedIds, claimedIds, dressings, on
       {signSubmissions.map((sub) => (
         <SignMarker key={sub.id} submission={sub} />
       ))}
+
+      {showHeatmap && heatmapPoints.length > 0 && (
+        <HeatmapLayer points={heatmapPoints} />
+      )}
 
       <PinDropHandler active={pinDropMode} pinPosition={pinPosition} onPinPlaced={onPinPlaced} />
       <FlyToLocation target={flyToTarget} onComplete={onFlyComplete} />
