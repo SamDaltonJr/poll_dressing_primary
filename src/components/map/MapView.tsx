@@ -8,6 +8,7 @@ import DistributionPointMarker from './DistributionPointMarker';
 import PlannedSignMarker from './PlannedSignMarker';
 import PinDropHandler from './PinDropHandler';
 import FlyToLocation from './FlyToLocation';
+import UserLocationMarker from './UserLocationMarker';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
 import type { MapMarker, DressingRecord, DistributionPoint, SignSubmission, PlannedSignLocation, LocationStatus } from '../../types';
 
@@ -176,6 +177,7 @@ export default function MapView({ markers, dressedIds, claimedIds, retrievedIds,
         <PlannedSignMarker key={sign.id} sign={sign} />
       ))}
 
+      <UserLocationMarker />
       <PinDropHandler active={pinDropMode} pinPosition={pinPosition} onPinPlaced={onPinPlaced} />
       <PinDropHandler active={adminPinDropMode} pinPosition={adminPinPosition} onPinPlaced={onAdminPinPlaced} />
       <FlyToLocation target={flyToTarget} onComplete={onFlyComplete} />
