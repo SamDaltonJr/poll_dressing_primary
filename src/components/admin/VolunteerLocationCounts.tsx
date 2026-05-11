@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { activeLocations } from '../../config/categorizeLocations';
 import { buildMassEmailMailtos } from '../../utils/mailto';
 import { setSignPickup, removeSignPickup, updateSignPickupCount } from '../../services/signPickupService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { DressingRecord, SignPickup } from '../../types';
 
 interface VolunteerLocationCountsProps {
@@ -19,6 +20,7 @@ interface VolunteerSummary {
 }
 
 export default function VolunteerLocationCounts({ dressings, pickups }: VolunteerLocationCountsProps) {
+  const campaign = useCampaign();
   const locationMap = useMemo(() => {
     const m = new Map<string, string>();
     for (const loc of activeLocations) m.set(loc.id, loc.label);
@@ -101,9 +103,9 @@ export default function VolunteerLocationCounts({ dressings, pickups }: Voluntee
     if (!email) return;
     try {
       if (pickupMap.has(email)) {
-        await removeSignPickup(email);
+        await removeSignPickup(email, campaign.slug);
       } else {
-        await setSignPickup(email, 0);
+        await setSignPickup(email, 0, campaign.slug);
       }
     } catch {
       alert('Failed to update pickup status.');
@@ -114,7 +116,7 @@ export default function VolunteerLocationCounts({ dressings, pickups }: Voluntee
     if (!email || !pickupMap.has(email)) return;
     const count = Math.max(0, parseInt(value, 10) || 0);
     try {
-      await updateSignPickupCount(email, count);
+      await updateSignPickupCount(email, count, campaign.slug);
     } catch {
       alert('Failed to update sign count.');
     }

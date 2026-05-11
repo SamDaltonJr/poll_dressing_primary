@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { addDistributionPoint, updateDistributionPoint } from '../../services/distributionPointService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { DistributionPoint } from '../../types';
 
 interface DistributionPointModalProps {
@@ -9,6 +10,7 @@ interface DistributionPointModalProps {
 }
 
 export default function DistributionPointModal({ point, onClose, onSaved }: DistributionPointModalProps) {
+  const campaign = useCampaign();
   const [name, setName] = useState(point?.name ?? '');
   const [address, setAddress] = useState(point?.address ?? '');
   const [latitude, setLatitude] = useState(point?.latitude?.toString() ?? '');
@@ -32,7 +34,7 @@ export default function DistributionPointModal({ point, onClose, onSaved }: Dist
       if (point) {
         await updateDistributionPoint(point.id, input);
       } else {
-        await addDistributionPoint(input);
+        await addDistributionPoint(input, campaign.slug);
       }
       onSaved();
     } catch {

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { confirmDressed } from '../../services/dressingService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { MapMarker, DressingRecord } from '../../types';
 
 interface ConfirmDressedModalProps {
@@ -10,6 +11,7 @@ interface ConfirmDressedModalProps {
 }
 
 export default function ConfirmDressedModal({ marker, dressing, onClose, onConfirmed }: ConfirmDressedModalProps) {
+  const campaign = useCampaign();
   const [signCount, setSignCount] = useState('1');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export default function ConfirmDressedModal({ marker, dressing, onClose, onConfi
     setSubmitting(true);
     setError('');
     try {
-      await confirmDressed(marker.id, parseInt(signCount, 10) || 1);
+      await confirmDressed(marker.id, parseInt(signCount, 10) || 1, campaign.slug);
       onConfirmed();
     } catch {
       setError('Failed to confirm. Please try again.');

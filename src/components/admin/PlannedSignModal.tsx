@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { addPlannedSign, updatePlannedSign } from '../../services/plannedSignService';
 import { reverseGeocode } from '../../services/geocodeService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { PlannedSignLocation, PlannedSignStatus } from '../../types';
 
 interface PlannedSignModalProps {
@@ -12,6 +13,7 @@ interface PlannedSignModalProps {
 }
 
 export default function PlannedSignModal({ sign, latitude, longitude, onClose, onSaved }: PlannedSignModalProps) {
+  const campaign = useCampaign();
   const [name, setName] = useState(sign?.name ?? '');
   const [address, setAddress] = useState(sign?.address ?? '');
   const [lat, setLat] = useState(sign?.latitude?.toString() ?? latitude?.toString() ?? '');
@@ -46,7 +48,7 @@ export default function PlannedSignModal({ sign, latitude, longitude, onClose, o
       if (sign) {
         await updatePlannedSign(sign.id, input);
       } else {
-        await addPlannedSign(input);
+        await addPlannedSign(input, campaign.slug);
       }
       onSaved();
     } catch {

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { addLocationReport } from '../../services/locationReportService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { MapMarker } from '../../types';
 
 const ISSUES = [
@@ -16,6 +17,7 @@ interface IncorrectLocationModalProps {
 }
 
 export default function IncorrectLocationModal({ marker, onClose, onSubmitted }: IncorrectLocationModalProps) {
+  const campaign = useCampaign();
   const [issue, setIssue] = useState<typeof ISSUES[number]>(ISSUES[0]);
   const [details, setDetails] = useState('');
   const [reporterName, setReporterName] = useState(
@@ -43,7 +45,7 @@ export default function IncorrectLocationModal({ marker, onClose, onSubmitted }:
         reporterName,
         reporterContact,
         notes: `${issue}: ${details}`,
-      });
+      }, campaign.slug);
       onSubmitted();
     } catch {
       setError('Failed to submit report. Please try again.');

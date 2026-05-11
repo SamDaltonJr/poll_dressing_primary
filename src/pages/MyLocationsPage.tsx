@@ -6,6 +6,7 @@ import { markSignRetrieved } from '../services/submissionService';
 import { activeLocations } from '../config/categorizeLocations';
 import { MARKER_TYPES } from '../config/constants';
 import { buildDirectionsUrls } from '../utils/directions';
+import { useCampaign } from '../contexts/CampaignContext';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import ConfirmRetrievedModal from '../components/map/ConfirmRetrievedModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -17,6 +18,7 @@ interface VolunteerLocation {
 }
 
 export default function MyLocationsPage() {
+  const campaign = useCampaign();
   const { dressings, loading } = useDressings();
   const { submissions, loading: subsLoading } = useSubmissions();
 
@@ -115,7 +117,7 @@ export default function MyLocationsPage() {
   async function handleUnclaim() {
     if (!unclaimTarget) return;
     try {
-      await unclaimLocation(unclaimTarget.location.id);
+      await unclaimLocation(unclaimTarget.location.id, campaign.slug);
     } catch {
       alert('Failed to unclaim location.');
     } finally {

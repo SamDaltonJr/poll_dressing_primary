@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { markRetrieved } from '../../services/dressingService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { MapMarker, DressingRecord } from '../../types';
 
 interface ConfirmRetrievedModalProps {
@@ -10,6 +11,7 @@ interface ConfirmRetrievedModalProps {
 }
 
 export default function ConfirmRetrievedModal({ marker, dressing, onClose, onConfirmed }: ConfirmRetrievedModalProps) {
+  const campaign = useCampaign();
   const [signCount, setSignCount] = useState(String(dressing.signCount || 1));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export default function ConfirmRetrievedModal({ marker, dressing, onClose, onCon
     setSubmitting(true);
     setError('');
     try {
-      await markRetrieved(marker.id, parseInt(signCount, 10) || 0);
+      await markRetrieved(marker.id, parseInt(signCount, 10) || 0, campaign.slug);
       onConfirmed();
     } catch {
       setError('Failed to confirm. Please try again.');

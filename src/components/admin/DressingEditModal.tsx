@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { updateDressingVolunteer } from '../../services/dressingService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { DressingRecord } from '../../types';
 
 interface DressingEditModalProps {
@@ -10,6 +11,7 @@ interface DressingEditModalProps {
 }
 
 export default function DressingEditModal({ locationLabel, dressing, onClose, onSaved }: DressingEditModalProps) {
+  const campaign = useCampaign();
   const [volunteerName, setVolunteerName] = useState(dressing.volunteerName);
   const [volunteerPhone, setVolunteerPhone] = useState(dressing.volunteerPhone || '');
   const [volunteerEmail, setVolunteerEmail] = useState(dressing.volunteerEmail || '');
@@ -23,7 +25,7 @@ export default function DressingEditModal({ locationLabel, dressing, onClose, on
         volunteerName,
         volunteerPhone,
         volunteerEmail,
-      });
+      }, campaign.slug);
       onSaved();
     } catch {
       alert('Failed to update volunteer info.');

@@ -1,5 +1,5 @@
 import {
-  doc, updateDoc, deleteDoc,
+  doc, updateDoc, deleteDoc, query, where,
   collection, serverTimestamp, onSnapshot,
   addDoc,
 } from 'firebase/firestore';
@@ -10,9 +10,11 @@ const COLLECTION = 'locationReports';
 
 export async function addLocationReport(
   input: LocationReportInput,
+  campaignId: string,
 ): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTION), {
     ...input,
+    campaignId,
     status: 'pending',
     createdAt: serverTimestamp(),
     resolvedAt: null,
@@ -37,11 +39,13 @@ export async function deleteLocationReport(id: string): Promise<void> {
 }
 
 export function subscribeToLocationReports(
+  campaignId: string,
   callback: (reports: LocationReport[]) => void,
   onError?: (err: Error) => void,
 ): () => void {
+  const q = query(collection(db, COLLECTION), where('campaignId', '==', campaignId));
   return onSnapshot(
-    collection(db, COLLECTION),
+    q,
     (snapshot) => {
       const reports = snapshot.docs.map((d) => ({
         id: d.id,
