@@ -15,6 +15,15 @@ L.Icon.Default.mergeOptions({
 export const MAP_CENTER: [number, number] = [32.78, -96.80];
 export const MAP_ZOOM = 10;
 
+/**
+ * Last day of in-person early voting for the 2026 TX primary runoff.
+ * Used by MapPage to pick the default polling-site filter: through this date
+ * the map opens on the early-voting view; the following day it flips to the
+ * election-day view. Local-time compare (Texas CT), so the rollover happens
+ * at the end of May 22 wherever the volunteer is.
+ */
+export const EARLY_VOTING_END_DATE = new Date(2026, 4, 22); // May 22, 2026
+
 // Nominatim viewbox for DFW area (lon_min, lat_max, lon_max, lat_min)
 export const DFW_VIEWBOX = '-97.8,33.4,-96.0,32.5';
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -29,7 +38,6 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
     retrievedColor: '#7c3aed',
-    defaultVisible: true,
   },
   earlyVotingOnly: {
     label: 'Early Voting Only',
@@ -37,7 +45,6 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
     retrievedColor: '#7c3aed',
-    defaultVisible: false,
   },
   electionDayOnly: {
     label: 'Election Day Only',
@@ -45,7 +52,6 @@ export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
     claimedColor: '#f59e0b',
     dressedColor: '#16a34a',
     retrievedColor: '#7c3aed',
-    defaultVisible: true,
   },
 };
 

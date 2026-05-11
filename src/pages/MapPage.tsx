@@ -19,7 +19,7 @@ import { useSubmissions } from '../hooks/useSubmissions';
 import { usePlannedSigns } from '../hooks/usePlannedSigns';
 import { useAccessCode } from '../hooks/useAccessCode';
 import { useAdminAuth } from '../hooks/useAdminAuth';
-import { MARKER_TYPES } from '../config/constants';
+import { EARLY_VOTING_END_DATE } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
 import { useCampaign } from '../contexts/CampaignContext';
 import type { MapMarker, MarkerType, SignSubmission } from '../types';
@@ -58,12 +58,23 @@ function spreadOverlappingMarkers(markers: MapMarker[]): MapMarker[] {
   return result;
 }
 
+/**
+ * Default polling-site filter, picked from today's date. Through the last day
+ * of early voting we open on the EV view (dual + EV-only); the next day we
+ * switch to the ED view (dual + ED-only). Volunteers can still toggle either
+ * group on after load — this only seeds the initial state.
+ */
 function getDefaultActiveTypes(): Set<MarkerType> {
-  const types = new Set<MarkerType>();
-  for (const [type, config] of Object.entries(MARKER_TYPES)) {
-    if (config.defaultVisible) types.add(type as MarkerType);
-  }
-  return types;
+  const earlyVotingOpen = new Date() <= endOfDay(EARLY_VOTING_END_DATE);
+  return new Set<MarkerType>(
+    earlyVotingOpen
+      ? ['dualSite', 'earlyVotingOnly']
+      : ['dualSite', 'electionDayOnly'],
+  );
+}
+
+function endOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 }
 
 export default function MapPage() {
