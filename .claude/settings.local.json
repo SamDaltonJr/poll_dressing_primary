@@ -54,7 +54,10 @@
       "Bash(node scripts/inject-archive-banner.mjs /tmp/banner-test/ --label \"Talarico 2026 Senate Primary\" --live-url \"https://samdaltonjr.github.io/poll_dressing_primary/\" --live-label \"View live site\")",
       "Read(//tmp/banner-test/**)",
       "Bash(rm -rf /tmp/banner-test)",
-      "Bash(grep -rE \"AIza[0-9A-Za-z_-]{20,}\" --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.json\" --include=\"*.js\" src/ scripts/)"
+      "Bash(grep -rE \"AIza[0-9A-Za-z_-]{20,}\" --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.json\" --include=\"*.js\" src/ scripts/)",
+      "WebFetch(domain:www.dallascounty.org)",
+      "Bash(node scripts/bake-geo.mjs)",
+      "Bash(ls \"C:\\\\Users\\\\spdal\\\\Documents\\\\poll_dressing\\\\data\" 2>/dev/null || echo \"no data folder in main\"; ls \"C:\\\\Users\\\\spdal\\\\Documents\\\\poll_dressing\\\\.claude\\\\worktrees\\\\elegant-elbakyan-5da2b6\\\\data\" 2>/dev/null || echo \"no data folder in worktree\")"
     ]
   }
 }
