@@ -1,6 +1,21 @@
 import type { MapMarker, RawMapMarker } from '../types';
 import pollingLocations from './pollingLocations';
 import electionDayLocations from './electionDayLocations';
+import locationGeo from './locationGeo.json';
+
+type GeoEntry = { county: string | null; congressionalDistrict: string | null };
+const geo: Record<string, GeoEntry> = locationGeo as Record<string, GeoEntry>;
+
+/** Attach baked county + congressionalDistrict to a raw marker. */
+function withGeo<M extends RawMapMarker>(loc: M, lookupId: string = loc.id): M {
+  const g = geo[lookupId];
+  if (!g) return loc;
+  return {
+    ...loc,
+    county: g.county ?? undefined,
+    congressionalDistrict: g.congressionalDistrict ?? undefined,
+  };
+}
 
 /**
  * Normalize a location label for fuzzy matching:
@@ -78,11 +93,13 @@ for (const evLoc of pollingLocations) {
   }
 
   if (edMatch) {
-    // Dual site — use the early voting entry (has size info), but retype
-    dualSites.push({ ...evLoc, type: 'dualSite', id: `dual-${evLoc.id}` });
+    // Dual site — use the early voting entry (has size info), but retype.
+    // Geo data is keyed by the raw early-voting id, so look up before re-prefixing.
+    const withGeoData = withGeo(evLoc);
+    dualSites.push({ ...withGeoData, type: 'dualSite', id: `dual-${evLoc.id}` });
     matchedEdKeys.add(normalize(edMatch.label));
   } else {
-    earlyVotingOnly.push({ ...evLoc, type: 'earlyVotingOnly' });
+    earlyVotingOnly.push({ ...withGeo(evLoc), type: 'earlyVotingOnly' });
   }
 }
 
@@ -90,7 +107,7 @@ for (const evLoc of pollingLocations) {
 for (const edLoc of electionDayLocations) {
   const key = normalize(edLoc.label);
   if (!matchedEdKeys.has(key)) {
-    electionDayOnly.push({ ...edLoc, type: 'electionDayOnly' });
+    electionDayOnly.push({ ...withGeo(edLoc), type: 'electionDayOnly' });
   }
 }
 
@@ -109,48 +126,15 @@ export const activeLocations: MapMarker[] = allLocations.filter(
 );
 
 /**
- * Derive county name from a location ID prefix.
- * Early voting IDs: ev-E (Dallas), ev-TC (Tarrant), ev-DN (Denton),
- *   ev-CC (Collin), ev-PK (Parker), ev-EL (Ellis), ev-RW (Rockwall),
- *   ev-KF (Kaufman)
- * Election day IDs: ed-V (Dallas), ed-T (Tarrant), ed-D (Denton),
- *   ed-C (Collin), ed-PK (Parker), ed-EL (Ellis), ed-RW (Rockwall),
- *   ed-KF (Kaufman), ed-JN (Johnson)
- * Dual site IDs: dual-ev-... (same as early voting after stripping prefix)
+ * Look up the baked county for a location id. Authoritative data comes from
+ * scripts/bake-geo.mjs (point-in-polygon vs. Census TIGER county boundaries),
+ * not from id-prefix heuristics.
+ *
+ * Prefer reading `marker.county` directly when you have the marker; this helper
+ * is only useful when all you have is an id (e.g. legacy code paths).
  */
 export function getCounty(id: string): string {
-  // Dual sites reuse the early-voting ID after "dual-"
-  const raw = id.startsWith('dual-') ? id.slice(5) : id;
-
-  if (raw.startsWith('ev-')) {
-    const suffix = raw.slice(3); // after "ev-"
-    if (suffix.startsWith('EL')) return 'Ellis';
-    if (suffix.startsWith('E')) return 'Dallas';
-    if (suffix.startsWith('TC')) return 'Tarrant';
-    if (suffix.startsWith('DN')) return 'Denton';
-    if (suffix.startsWith('CC')) return 'Collin';
-    if (suffix.startsWith('PK')) return 'Parker';
-    if (suffix.startsWith('PC')) return 'Parker';
-    if (suffix.startsWith('RW')) return 'Rockwall';
-    if (suffix.startsWith('KF')) return 'Kaufman';
-    if (suffix.startsWith('JN')) return 'Johnson';
-  }
-
-  if (raw.startsWith('ed-')) {
-    const suffix = raw.slice(3); // after "ed-"
-    if (suffix.startsWith('V')) return 'Dallas';
-    if (suffix.startsWith('T')) return 'Tarrant';
-    if (suffix.startsWith('DN')) return 'Denton';
-    if (suffix.startsWith('D')) return 'Denton';
-    if (suffix.startsWith('CC')) return 'Collin';
-    if (suffix.startsWith('C')) return 'Collin';
-    if (suffix.startsWith('PK')) return 'Parker';
-    if (suffix.startsWith('PC')) return 'Parker';
-    if (suffix.startsWith('EL')) return 'Ellis';
-    if (suffix.startsWith('RW')) return 'Rockwall';
-    if (suffix.startsWith('KF')) return 'Kaufman';
-    if (suffix.startsWith('JN')) return 'Johnson';
-  }
-
-  return 'Unknown';
+  // Dual sites reuse the original early-voting id under "dual-".
+  const lookupId = id.startsWith('dual-') ? id.slice(5) : id;
+  return geo[lookupId]?.county ?? 'Unknown';
 }

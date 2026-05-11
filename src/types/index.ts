@@ -30,6 +30,10 @@ export interface RawMapMarker {
   address: string;
   size?: LocationSize;
   evTotal?: number;
+  /** County name (e.g. "Dallas") — baked at build time by scripts/bake-geo.mjs. */
+  county?: string;
+  /** Congressional district label (e.g. "TX-33") — baked from PLANC2333. */
+  congressionalDistrict?: string;
 }
 
 /** Categorized location used throughout the app */
@@ -42,6 +46,8 @@ export interface MapMarker {
   address: string;
   size?: LocationSize;
   evTotal?: number;
+  county?: string;
+  congressionalDistrict?: string;
 }
 
 // Dressing records stored in Firestore (doc ID = location ID)

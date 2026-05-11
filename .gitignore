@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Geo source files for the bake script — fetched on demand (~40MB total).
+# Re-run with: node scripts/bake-geo.mjs
+data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

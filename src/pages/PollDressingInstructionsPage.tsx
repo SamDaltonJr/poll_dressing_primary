@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useCampaign } from '../contexts/CampaignContext';
 
 export default function PollDressingInstructionsPage() {
+  const campaign = useCampaign();
+  const root = `/c/${campaign.slug}`;
   return (
     <div className="instructions-page">
       <h1>Poll Dressing Instructions</h1>
@@ -134,7 +137,7 @@ export default function PollDressingInstructionsPage() {
       <section className="instructions-section">
         <h2>Track Your Assignments — My Locations</h2>
         <p>
-          The <Link to="/my-locations" className="instructions-link">My Locations</Link> page lets you
+          The <Link to={`${root}/my-locations`} className="instructions-link">My Locations</Link> page lets you
           quickly look up all the polling locations you've claimed.
         </p>
         <ol>
@@ -307,7 +310,7 @@ export default function PollDressingInstructionsPage() {
             <li>Enter access code (first time only) + your name/phone/email</li>
             <li>Drive to the location, place signs outside 100-ft boundary</li>
             <li>Return to the app → tap your amber pin → <strong>Confirm Dressed</strong></li>
-            <li>Check <Link to="/my-locations" className="instructions-link">My Locations</Link> for your full list + directions</li>
+            <li>Check <Link to={`${root}/my-locations`} className="instructions-link">My Locations</Link> for your full list + directions</li>
             <li>Repeat for each location!</li>
           </ol>
         </div>
@@ -317,7 +320,7 @@ export default function PollDressingInstructionsPage() {
         <p>
           Questions? Contact your campaign coordinator for the access code and any issues.
         </p>
-        <Link to="/" className="btn btn-primary">Open the Map</Link>
+        <Link to={root} className="btn btn-primary">Open the Map</Link>
       </div>
     </div>
   );

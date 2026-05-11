@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useCampaign } from '../contexts/CampaignContext';
 
 export default function BigSignInstructionsPage() {
+  const campaign = useCampaign();
+  const root = `/c/${campaign.slug}`;
   return (
     <div className="instructions-page">
       <h1>Big Sign Installation Instructions</h1>
@@ -69,7 +72,7 @@ export default function BigSignInstructionsPage() {
             <div className="instructions-step-content">
               <h3>Go to the Submit Page</h3>
               <p>
-                Tap <Link to="/submit" className="instructions-link">Submit</Link> in the top navigation
+                Tap <Link to={`${root}/submit`} className="instructions-link">Submit</Link> in the top navigation
                 bar. You'll be asked for the <strong>access code</strong> — enter it and tap
                 <strong> Enter</strong>. You only need to do this once per browser session.
               </p>
@@ -264,7 +267,7 @@ export default function BigSignInstructionsPage() {
       <section className="instructions-section">
         <h2>Viewing Signs on the Map</h2>
         <p>
-          Submitted signs appear on the <Link to="/" className="instructions-link">Map</Link> as
+          Submitted signs appear on the <Link to={root} className="instructions-link">Map</Link> as
           white box <strong>"T"</strong> markers. Tap any marker to see:
         </p>
         <ul>
@@ -324,7 +327,7 @@ export default function BigSignInstructionsPage() {
         <div className="instructions-quick-ref">
           <ol>
             <li>Pick up signs from Sam or Rob (contact info above)</li>
-            <li>Go to <Link to="/submit" className="instructions-link">Submit</Link> tab</li>
+            <li>Go to <Link to={`${root}/submit`} className="instructions-link">Submit</Link> tab</li>
             <li>Enter the <strong>access code</strong> (first time only)</li>
             <li>Fill in <strong>name</strong>, <strong>phone</strong>, <strong>email</strong></li>
             <li>Set <strong>location</strong> (GPS, address, or pin drop)</li>
@@ -341,8 +344,8 @@ export default function BigSignInstructionsPage() {
           Questions? Contact your campaign coordinator for the access code and any issues.
         </p>
         <div className="instructions-footer-actions">
-          <Link to="/submit" className="btn btn-primary">Go to Submit</Link>
-          <Link to="/" className="btn btn-secondary">Open the Map</Link>
+          <Link to={`${root}/submit`} className="btn btn-primary">Go to Submit</Link>
+          <Link to={root} className="btn btn-secondary">Open the Map</Link>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { useCampaign } from '../contexts/CampaignContext';
 
 async function sha256(message: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -11,21 +12,32 @@ async function sha256(message: string): Promise<string> {
     .join('');
 }
 
+/** Per-campaign sessionStorage key — see useAccessCode for the same pattern. */
+function storageKey(slug: string): string {
+  return `adminValid:${slug}`;
+}
+
 export function useAdminAuth() {
+  const campaign = useCampaign();
   const [isAdmin, setIsAdmin] = useState(
-    () => sessionStorage.getItem('adminValid') === 'true'
+    () => sessionStorage.getItem(storageKey(campaign.slug)) === 'true',
   );
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setIsAdmin(sessionStorage.getItem(storageKey(campaign.slug)) === 'true');
+    setError('');
+  }, [campaign.slug]);
 
   async function validate(password: string): Promise<boolean> {
     try {
       setError('');
       const hashHex = await sha256(password);
-      const configDoc = await getDoc(doc(db, 'config', 'app'));
-      const storedHash = configDoc.data()?.adminPasswordHash;
+      const settingsDoc = await getDoc(doc(db, 'campaignSettings', campaign.slug));
+      const storedHash = settingsDoc.data()?.adminPasswordHash;
 
-      if (hashHex === storedHash) {
-        sessionStorage.setItem('adminValid', 'true');
+      if (storedHash && hashHex === storedHash) {
+        sessionStorage.setItem(storageKey(campaign.slug), 'true');
         setIsAdmin(true);
         return true;
       }
@@ -38,7 +50,7 @@ export function useAdminAuth() {
   }
 
   function logout() {
-    sessionStorage.removeItem('adminValid');
+    sessionStorage.removeItem(storageKey(campaign.slug));
     setIsAdmin(false);
   }
 

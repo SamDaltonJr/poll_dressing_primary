@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import MapView from '../components/map/MapView';
 import MapFilter from '../components/map/MapFilter';
 import SearchBar from '../components/map/SearchBar';
@@ -21,7 +21,11 @@ import { useAccessCode } from '../hooks/useAccessCode';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { MARKER_TYPES } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
+import { useCampaign } from '../contexts/CampaignContext';
 import type { MapMarker, MarkerType, SignSubmission } from '../types';
+
+/** Volunteer-controlled CD scope toggle (default home, expand to neighbors or all). */
+type CdScope = 'home' | 'neighbors' | 'all';
 
 const OFFSET = 0.0003;
 
@@ -63,6 +67,7 @@ function getDefaultActiveTypes(): Set<MarkerType> {
 }
 
 export default function MapPage() {
+  const campaign = useCampaign();
   const { dressings, loading } = useDressings();
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
@@ -72,6 +77,7 @@ export default function MapPage() {
   const [localAccess, setLocalAccess] = useState(false);
   const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
+  const [cdScope, setCdScope] = useState<CdScope>('home');
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(false);
@@ -91,9 +97,52 @@ export default function MapPage() {
   const [showPlannedSignModal, setShowPlannedSignModal] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Reset CD scope to the campaign's home district when the active campaign
+  // changes — otherwise navigating from one campaign's "All" view into another
+  // would leak the previous selection into the new home district default.
+  useEffect(() => {
+    setCdScope('home');
+  }, [campaign.slug]);
+
+  // Campaign-wide hard limit: counties this campaign covers. Falls back to
+  // defaultCounties from campaign config until campaignSettings is wired to
+  // Firestore (see todo). Empty set = no limit.
+  // Active campaigns always set defaultCounties; archive entries don't, but we
+  // never render MapPage for archives (CampaignProvider redirects them out).
+  const enabledCounties = useMemo(
+    () => new Set(campaign.defaultCounties ?? []),
+    [campaign.defaultCounties],
+  );
+
+  // Volunteer-controlled CD scope. null = no CD filter (show all CDs).
+  const enabledCDs = useMemo<Set<string> | null>(() => {
+    if (cdScope === 'all') return null;
+    const s = new Set<string>();
+    if (campaign.homeDistrict) s.add(campaign.homeDistrict);
+    if (cdScope === 'neighbors') {
+      for (const d of campaign.neighboringDistricts ?? []) s.add(d);
+    }
+    return s;
+  }, [cdScope, campaign.homeDistrict, campaign.neighboringDistricts]);
+
+  const scopedLocations = useMemo<MapMarker[]>(() => {
+    return allLocations.filter((loc) => {
+      // County filter (campaign hard limit). Locations missing baked county
+      // data pass through — the bake covers all 948 known locations today.
+      if (enabledCounties.size > 0 && loc.county && !enabledCounties.has(loc.county)) {
+        return false;
+      }
+      // CD filter (volunteer toggle).
+      if (enabledCDs && loc.congressionalDistrict && !enabledCDs.has(loc.congressionalDistrict)) {
+        return false;
+      }
+      return true;
+    });
+  }, [enabledCounties, enabledCDs]);
+
   const allMarkers = useMemo<MapMarker[]>(() => {
-    return spreadOverlappingMarkers(allLocations);
-  }, []);
+    return spreadOverlappingMarkers(scopedLocations);
+  }, [scopedLocations]);
 
   const dressedIds = useMemo(() => {
     const set = new Set<string>();
@@ -319,6 +368,9 @@ export default function MapPage() {
         activeTypes={activeTypes}
         onToggle={handleToggle}
         stats={stats}
+        cdScope={cdScope}
+        onChangeCdScope={setCdScope}
+        homeDistrict={campaign.homeDistrict ?? ''}
         showDistributionPoints={showDistributionPoints}
         onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
         distributionPointCount={distributionPoints.length}
