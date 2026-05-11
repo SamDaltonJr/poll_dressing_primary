@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Talarico Archive — Placeholder</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background: #fef3c7;
+        color: #78350f;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .placeholder {
+        max-width: 560px;
+        background: #fff;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 32px 36px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        text-align: left;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.4rem;
+        color: #78350f;
+      }
+      .badge {
+        display: inline-block;
+        background: #f59e0b;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 3px;
+        margin-bottom: 12px;
+      }
+      p {
+        line-height: 1.5;
+        color: #57534e;
+        margin: 12px 0;
+      }
+      code {
+        background: #fef3c7;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+      a {
+        color: #b45309;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="placeholder">
+      <span class="badge">Dev placeholder</span>
+      <h1>Talarico archive will land here</h1>
+      <p>
+        This is a development-only placeholder. In a production build, the
+        dual-deploy workflow checks out the <code>talarico-archive</code> git
+        tag, builds against the Talarico Firebase project, and writes the
+        result into this directory — overwriting this placeholder.
+      </p>
+      <p>
+        See <code>scripts/inject-archive-banner.mjs</code> for the build-time
+        banner that gets stamped onto the real archive's <code>index.html</code>.
+      </p>
+      <p><a href="../">← Back to picker</a></p>
+    </div>
+  </body>
+</html>

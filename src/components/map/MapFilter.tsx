@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { MARKER_TYPES } from '../../config/constants';
 import type { MarkerType } from '../../types';
 
+type CdScope = 'home' | 'neighbors' | 'all';
+
 interface MapFilterProps {
   activeTypes: Set<MarkerType>;
   onToggle: (type: MarkerType) => void;
   stats: Record<MarkerType, { total: number; dressed: number; claimed: number; retrieved: number }>;
+  cdScope: CdScope;
+  onChangeCdScope: (scope: CdScope) => void;
+  homeDistrict: string;
   showDistributionPoints: boolean;
   onToggleDistributionPoints: () => void;
   distributionPointCount: number;
@@ -17,7 +22,11 @@ interface MapFilterProps {
   plannedSignCount: number;
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
+// showSignPlacements / onToggleSignPlacements / signPlacementCount intentionally
+// not destructured below — the Sign Placements filter row is hidden for May 26.
+// The props stay on MapFilterProps so MapPage keeps passing them; restoring is
+// a one-line destructure + the commented <label> block below.
+export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
 
   if (collapsed) {
@@ -47,6 +56,39 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
       >
         &times;
       </button>
+      <div className="map-filter-cd-scope" role="radiogroup" aria-label="Congressional district scope">
+        <button
+          type="button"
+          role="radio"
+          aria-checked={cdScope === 'home'}
+          className={`map-filter-cd-btn ${cdScope === 'home' ? 'active' : ''}`}
+          onClick={() => onChangeCdScope('home')}
+          title={`Show only ${homeDistrict} polling sites`}
+        >
+          {homeDistrict}
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={cdScope === 'neighbors'}
+          className={`map-filter-cd-btn ${cdScope === 'neighbors' ? 'active' : ''}`}
+          onClick={() => onChangeCdScope('neighbors')}
+          title="Include neighboring districts"
+        >
+          + Neighbors
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={cdScope === 'all'}
+          className={`map-filter-cd-btn ${cdScope === 'all' ? 'active' : ''}`}
+          onClick={() => onChangeCdScope('all')}
+          title="Show all districts in the campaign's covered counties"
+        >
+          All
+        </button>
+      </div>
+      <div className="map-filter-separator" />
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
         ([type, config]) => {
           const s = stats[type] || { total: 0, dressed: 0, claimed: 0 };
@@ -75,16 +117,9 @@ export default function MapFilter({ activeTypes, onToggle, stats, showDistributi
         <span className="filter-label">Sign Distribution</span>
         <span className="filter-progress">{distributionPointCount}</span>
       </label>
-      <label className="map-filter-item">
-        <input
-          type="checkbox"
-          checked={showSignPlacements}
-          onChange={onToggleSignPlacements}
-        />
-        <span className="filter-dot filter-dot-sign" />
-        <span className="filter-label">Sign Placements</span>
-        <span className="filter-progress">{signPlacementCount}</span>
-      </label>
+      {/* Sign Placements filter (volunteer big-sign photo submissions) hidden
+          for May 26 — the /submit route is disabled and no new T markers can
+          be created. Restore this <label> block alongside re-enabling /submit. */}
       <label className="map-filter-item">
         <input
           type="checkbox"

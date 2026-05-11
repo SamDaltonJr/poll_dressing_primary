@@ -76,15 +76,63 @@ body {
 }
 
 .header-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--color-primary);
   text-decoration: none;
+  min-width: 0;
+}
+
+.header-logo-img {
+  height: 36px;
+  width: auto;
+  max-width: 100px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.header-logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.header-logo-candidate {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-logo-district {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .header-nav {
   display: flex;
   gap: 4px;
+  align-items: center;
+}
+
+.header-switch-campaign {
+  margin-left: 8px;
+  padding: 4px 10px !important;
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem !important;
+  color: var(--color-text-muted) !important;
+}
+
+.header-switch-campaign:hover {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
 }
 
 .header-nav a {
@@ -969,6 +1017,52 @@ textarea:focus {
 .map-filter-separator {
   border-top: 1px solid var(--color-border);
   margin: 2px 0;
+}
+
+/* === Map Filter CD Scope Selector === */
+.map-filter-cd-scope {
+  display: flex;
+  gap: 0;
+  padding: 4px 0 2px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+  margin-right: 16px; /* leave room for the close X */
+}
+
+.map-filter-cd-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 6px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.map-filter-cd-btn:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.map-filter-cd-btn:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.map-filter-cd-btn:not(:first-child) {
+  border-left: none;
+}
+
+.map-filter-cd-btn:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.map-filter-cd-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
 }
 
 .filter-dot-diamond {
@@ -2523,5 +2617,164 @@ input.search-bar-input {
 
   .instructions-footer-actions .btn {
     width: 100%;
+  }
+}
+
+/* === Campaign Picker Landing === */
+.picker {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 32px;
+  background: linear-gradient(180deg, var(--color-bg) 0%, #fff 100%);
+}
+
+.picker-header {
+  text-align: center;
+  margin-bottom: 36px;
+  max-width: 640px;
+}
+
+.picker-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.picker-sub {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  width: 100%;
+  max-width: 880px;
+}
+
+.picker-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--card-primary);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.picker-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.picker-card-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.picker-card-logo img {
+  max-height: 64px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.picker-card-district {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--card-primary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.picker-card-name {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.picker-card-tagline {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.picker-card-cta {
+  margin-top: auto;
+  font-weight: 600;
+  color: var(--card-primary);
+  font-size: 0.92rem;
+}
+
+/* === Picker — Logo Initials Fallback (when campaign has no logoUrl) === */
+.picker-card-logo-fallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--card-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* === Picker — Archive Card Variant === */
+.picker-card-archive {
+  background: #fafafa;
+}
+
+.picker-card-archive .picker-card-tagline {
+  font-style: italic;
+}
+
+.picker-card-archive-badge {
+  background: #f59e0b;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-right: 8px;
+}
+
+.picker-card-district-text {
+  /* Used inside the district line on archive cards alongside the badge. */
+  color: var(--card-primary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.picker-footer {
+  margin-top: 48px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .header-logo-img {
+    height: 32px;
+    max-width: 60px;
+  }
+  .header-logo-candidate {
+    font-size: 0.92rem;
+  }
+  .header-logo-district {
+    font-size: 0.66rem;
   }
 }

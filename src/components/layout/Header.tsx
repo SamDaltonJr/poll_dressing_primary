@@ -1,18 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useCampaign } from '../../contexts/CampaignContext';
 
 export default function Header() {
   const location = useLocation();
+  const campaign = useCampaign();
   const [menuOpen, setMenuOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu on route change
+  const rootPath = `/c/${campaign.slug}`;
+  const path = (suffix: string) => (suffix ? `${rootPath}/${suffix}` : rootPath);
+
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
 
-  // Close menu when clicking outside
   useEffect(() => {
     if (!menuOpen) return;
     function handleClick(e: MouseEvent) {
@@ -31,10 +34,18 @@ export default function Header() {
     setMenuOpen(false);
   }
 
+  const isActive = (suffix: string) => location.pathname === path(suffix);
+
   return (
     <header className="header">
       <div className="header-inner">
-        <Link to="/" className="header-logo">Campaign Sign Tracker</Link>
+        <Link to={path('')} className="header-logo" aria-label={`${campaign.candidateName} home`}>
+          <img src={campaign.logoUrl} alt="" className="header-logo-img" />
+          <span className="header-logo-text">
+            <span className="header-logo-candidate">{campaign.candidateName}</span>
+            <span className="header-logo-district">{campaign.homeDistrict}</span>
+          </span>
+        </Link>
         <button
           ref={hamburgerRef}
           className={`header-hamburger ${menuOpen ? 'open' : ''}`}
@@ -47,10 +58,14 @@ export default function Header() {
           <span />
         </button>
         <nav ref={navRef} className={`header-nav ${menuOpen ? 'open' : ''}`}>
-          <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={handleLinkClick}>Map</Link>
-          <Link to="/submit" className={location.pathname === '/submit' ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link>
-          <Link to="/my-locations" className={location.pathname === '/my-locations' ? 'active' : ''} onClick={handleLinkClick}>My Locations</Link>
-          <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''} onClick={handleLinkClick}>Admin</Link>
+          <Link to={path('')} className={isActive('') ? 'active' : ''} onClick={handleLinkClick}>Map</Link>
+          {/* Big-sign volunteer submissions deferred for May 26 — distribution
+              points and planned signs (admin-managed) remain visible on the map.
+              Restore this link to re-enable photo uploads via /submit. */}
+          {/* <Link to={path('submit')} className={isActive('submit') ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link> */}
+          <Link to={path('my-locations')} className={isActive('my-locations') ? 'active' : ''} onClick={handleLinkClick}>My Locations</Link>
+          <Link to={path('admin')} className={isActive('admin') ? 'active' : ''} onClick={handleLinkClick}>Admin</Link>
+          <Link to="/" className="header-switch-campaign" onClick={handleLinkClick}>Switch</Link>
         </nav>
       </div>
     </header>
