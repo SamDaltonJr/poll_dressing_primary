@@ -17,7 +17,6 @@ export interface MarkerTypeConfig {
   claimedColor: string;
   dressedColor: string;
   retrievedColor: string;
-  defaultVisible: boolean;
 }
 
 /** Raw location entry from source data files (before categorization) */
