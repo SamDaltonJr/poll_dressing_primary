@@ -2,7 +2,8 @@ import type { RawMapMarker } from '../types';
 
 // Early Voting locations across Dallas, Tarrant, Denton, Collin, Parker, Ellis, Rockwall, and Kaufman counties
 // Geocoded via US Census Bureau API with manual fallback for unresolvable addresses
-// Tier 1 (300+ Dem ballots) = Large, Tier 2 (150-299) = Medium, Tier 3/4 = Small
+// Dallas & Tarrant County sizes reflect cumulative DEM ballots from the 2026 primary EV period (Feb 17–27):
+//   L = 4,000+, M = 1,500–3,999, S = <1,500. Other counties retain prior estimated tiers.
 
 const pollingLocations: RawMapMarker[] = [
   {
@@ -44,7 +45,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E0012',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Glenn Heights Family Center',
     address: '1932 S Hampton Rd, GLENN HEIGHTS, TX 75154',
     latitude: 32.55428,
@@ -62,7 +63,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2220',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'University Park UMC',
     address: '4024 Caruth Blvd, DALLAS, TX 75225',
     latitude: 32.85887,
@@ -98,7 +99,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1116',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Harry Stone Recreation Center',
     address: '2403 Millmar Dr, DALLAS, TX 75228',
     latitude: 32.82609,
@@ -116,7 +117,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1074',
     type: 'earlyVoting',
-    size: 'M',
+    size: 'L',
     label: 'Samuell Grand Recreation Center',
     address: '6200 E Grand Ave, DALLAS, TX 75223',
     latitude: 32.79787,
@@ -188,7 +189,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E0021',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Islamic Assoc of North Texas',
     address: '840 Abrams Rd, RICHARDSON, TX 75081',
     latitude: 32.93779,
@@ -206,7 +207,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1029',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Dallas College-R Jan LeCroy Ctr',
     address: '9596 Walnut St, DALLAS, TX 75243',
     latitude: 32.9253,
@@ -215,7 +216,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2060',
     type: 'earlyVoting',
-    size: 'M',
+    size: 'L',
     label: 'Audelia Road Branch Library',
     address: '10045 Audelia Rd, DALLAS, TX 75238',
     latitude: 32.88528,
@@ -224,7 +225,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1723',
     type: 'earlyVoting',
-    size: 'M',
+    size: 'L',
     label: 'South Garland Branch Library',
     address: '4845 Broadway Blvd, GARLAND, TX 75043',
     latitude: 32.85622,
@@ -251,7 +252,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2941',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Sachse City Hall',
     address: '3815-B Sachse Rd, SACHSE, TX 75048',
     latitude: 32.97333,
@@ -260,7 +261,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2927',
     type: 'earlyVoting',
-    size: 'M',
+    size: 'L',
     label: 'Rowlett Community Centre',
     address: '5300 Main St, ROWLETT, TX 75088',
     latitude: 32.9035,
@@ -278,7 +279,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2305',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Farmers Branch Manske Library',
     address: '13613 Webb Chapel Rd, FARMERS BRANCH, TX 75234',
     latitude: 32.93158,
@@ -296,7 +297,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E0036',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Addison Town Hall',
     address: '15650 Addison Rd, ADDISON, TX 75001',
     latitude: 32.96197,
@@ -323,7 +324,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1303',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Dallas College-Eastfield Campus',
     address: '3737 Motley Dr, MESQUITE, TX 75150',
     latitude: 32.81358,
@@ -332,7 +333,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1301',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Florence Recreation Center',
     address: '2501 Whitson Way, MESQUITE, TX 75150',
     latitude: 32.8282,
@@ -350,7 +351,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E3408',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Balch Springs Recreation Center',
     address: '4372 Shepherd Ln, BALCH SPRINGS, TX 75180',
     latitude: 32.70993,
@@ -431,7 +432,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E4086',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Grauwyler Park Recreation Center',
     address: '7780 Harry Hines Blvd, DALLAS, TX 75235',
     latitude: 32.83193,
@@ -449,7 +450,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E4516',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Crosswinds High School',
     address: '1100 N Carrier Pkwy, GRAND PRAIRIE, TX 75050',
     latitude: 32.75622,
@@ -521,7 +522,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-TC-75',
     type: 'earlyVoting',
-    size: 'M',
+    size: 'L',
     evTotal: 4043,
     label: 'ACTIV',
     address: '2061 W Green Oaks Boulevard, ARLINGTON, TX 76013',
@@ -561,7 +562,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-TC-79',
     type: 'earlyVoting',
-    size: 'M',
+    size: 'L',
     evTotal: 4224,
     label: 'Elzie Odom Athletic Center',
     address: '1601 NE Green Oaks Boulevard, ARLINGTON, TX 76006',
@@ -579,19 +580,9 @@ const pollingLocations: RawMapMarker[] = [
     longitude: -97.14335,
   },
   {
-    id: 'ev-TC-82',
-    type: 'earlyVoting',
-    size: 'S',
-    evTotal: 1555,
-    label: 'Brookside Center',
-    address: '1244 Brookside Drive, HURST, TX 76053',
-    latitude: 32.83208,
-    longitude: -97.17885,
-  },
-  {
     id: 'ev-TC-84',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     evTotal: 2140,
     label: 'Southlake Town Hall',
     address: '1400 Main Street, SOUTHLAKE, TX 76092',
@@ -731,22 +722,12 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-TC-98',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     evTotal: 1566,
     label: 'Sheriff\'s Office North Patrol Division',
     address: '6651 Lake Worth Boulevard, LAKE WORTH, TX 76135',
     latitude: 32.81178,
     longitude: -97.43339,
-  },
-  {
-    id: 'ev-TC-99',
-    type: 'earlyVoting',
-    size: 'S',
-    evTotal: 1749,
-    label: 'Tarrant County College Northwest Campus WFSC 1403A',
-    address: '4801 Marine Creek Parkway, FORT WORTH, TX 76179',
-    latitude: 32.82994,
-    longitude: -97.38582,
   },
   {
     id: 'ev-TC-100',
@@ -761,7 +742,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-TC-102',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     evTotal: 1512,
     label: 'Legacy Learning Center Northwest ISD',
     address: '501 School House Road, HASLET, TX 76052',
@@ -791,7 +772,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-TC-105',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     evTotal: 1995,
     label: 'Tarrant County Plaza Building',
     address: '201 Burnett Street, FORT WORTH, TX 76102',
@@ -839,16 +820,6 @@ const pollingLocations: RawMapMarker[] = [
     longitude: -97.2206,
   },
   {
-    id: 'ev-TC-110',
-    type: 'earlyVoting',
-    size: 'S',
-    evTotal: 1057,
-    label: 'Haltom City Senior Center',
-    address: '3201 Friendly Lane, HALTOM CITY, TX 76117',
-    latitude: 32.80776,
-    longitude: -97.27428,
-  },
-  {
     id: 'ev-TC-111',
     type: 'earlyVoting',
     size: 'M',
@@ -891,7 +862,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-TC-115',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     evTotal: 1598,
     label: 'Colleyville Recreation Center Annex A',
     address: '5008 Roberts Road, COLLEYVILLE, TX 76034',
@@ -1963,7 +1934,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E0025',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Kiest Recreation Center',
     address: '3081 S Hampton Rd, DALLAS, TX 75224',
     latitude: 32.71036,
@@ -1972,7 +1943,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E0030',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Northway Christian Church',
     address: '7202 W Northwest Hwy, DALLAS, TX 75225',
     latitude: 32.86453,
@@ -2026,7 +1997,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E1088',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Skyline Branch Library',
     address: '6006 Everglade Rd, DALLAS, TX 75227',
     latitude: 32.78551,
@@ -2035,7 +2006,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2005',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'L',
     label: 'Marsh Lane Baptist Church',
     address: '10716 Marsh Ln, DALLAS, TX 75229',
     latitude: 32.89417,
@@ -2044,7 +2015,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E2407',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Josey Ranch Lake Library',
     address: '1700 Keller Springs Rd, CARROLLTON, TX 75006',
     latitude: 32.97045,
@@ -2053,7 +2024,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E3043',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Paul L Dunbar Library',
     address: '2008 E Kiest Blvd, DALLAS, TX 75216',
     latitude: 32.71502,
@@ -2080,7 +2051,7 @@ const pollingLocations: RawMapMarker[] = [
   {
     id: 'ev-E4050',
     type: 'earlyVoting',
-    size: 'S',
+    size: 'M',
     label: 'Mountain Creek Library',
     address: '6102 Mountain Creek Pkwy, DALLAS, TX 75249',
     latitude: 32.6506,
