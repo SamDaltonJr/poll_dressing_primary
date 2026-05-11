@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { adminMarkDressed } from '../../services/dressingService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { MapMarker, DressingRecord } from '../../types';
 
 interface AdminDressModalProps {
@@ -10,6 +11,7 @@ interface AdminDressModalProps {
 }
 
 export default function AdminDressModal({ marker, dressing, onClose, onDressed }: AdminDressModalProps) {
+  const campaign = useCampaign();
   const [volunteerName, setVolunteerName] = useState(dressing?.volunteerName ?? '');
   const [volunteerPhone, setVolunteerPhone] = useState(dressing?.volunteerPhone ?? '');
   const [volunteerEmail, setVolunteerEmail] = useState(dressing?.volunteerEmail ?? '');
@@ -24,6 +26,7 @@ export default function AdminDressModal({ marker, dressing, onClose, onDressed }
         marker.id,
         { volunteerName, volunteerPhone, volunteerEmail },
         parseInt(signCount, 10) || 1,
+        campaign.slug,
       );
       onDressed();
     } catch {

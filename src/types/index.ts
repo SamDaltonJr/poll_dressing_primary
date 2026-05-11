@@ -50,8 +50,12 @@ export interface MapMarker {
   congressionalDistrict?: string;
 }
 
-// Dressing records stored in Firestore (doc ID = location ID)
+// Dressing records stored in Firestore.
+// Doc ID is a composite: `${campaignId}__${locationId}` so each campaign has
+// its own dressing record per polling location and the two campaigns never
+// collide on a shared site.
 export interface DressingRecord {
+  campaignId: string;
   locationId: string;
   isClaimed: boolean;
   claimedAt: Timestamp | null;
@@ -82,6 +86,7 @@ export interface DressingInput {
 /** A sign distribution point, fully managed in Firestore */
 export interface DistributionPoint {
   id: string;
+  campaignId: string;
   name: string;
   address: string;
   latitude: number;
@@ -108,6 +113,7 @@ export type LocationReportStatus = 'pending' | 'resolved';
 
 export interface LocationReport {
   id: string;
+  campaignId: string;
   category: LocationReportCategory;
   locationName: string;
   address: string;
@@ -140,6 +146,7 @@ export type PlannedSignStatus = 'planned' | 'placed';
 
 export interface PlannedSignLocation {
   id: string;
+  campaignId: string;
   name: string;
   address: string;
   latitude: number;
@@ -159,9 +166,12 @@ export interface PlannedSignLocationInput {
   status?: PlannedSignStatus;
 }
 
-// Sign pickup tracking (admin checks off volunteers who collected signs)
+// Sign pickup tracking (admin checks off volunteers who collected signs).
+// Doc ID is composite: `${campaignId}__${normalizedEmail}` so the same
+// volunteer can have separate pickup records per campaign.
 export interface SignPickup {
   id: string;
+  campaignId: string;
   volunteerEmail: string;
   signCount: number;
   pickedUpAt: Timestamp;

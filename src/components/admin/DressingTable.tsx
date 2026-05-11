@@ -6,6 +6,7 @@ import AdminDressModal from './AdminDressModal';
 import { activeLocations, getCounty } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
 import { findNearbyUnclaimed } from '../../utils/geo';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { DressingRecord, MapMarker, LocationStatus } from '../../types';
 
 type FilterMode = 'all' | 'available' | 'claimed' | 'dressed' | 'reported';
@@ -50,6 +51,7 @@ function NearbyPanel({ location, claimedOrDressedIds }: { location: MapMarker; c
 }
 
 export default function DressingTable({ dressings }: DressingTableProps) {
+  const campaign = useCampaign();
   const [filter, setFilter] = useState<FilterMode>('all');
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('location');
@@ -159,7 +161,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   async function handleRevert() {
     if (!revertTarget) return;
     try {
-      await revertDressing(revertTarget.location.id);
+      await revertDressing(revertTarget.location.id, campaign.slug);
     } catch {
       alert('Failed to revert dressing status.');
     } finally {
@@ -170,7 +172,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   async function handleUnclaim() {
     if (!unclaimTarget) return;
     try {
-      await unclaimLocation(unclaimTarget.location.id);
+      await unclaimLocation(unclaimTarget.location.id, campaign.slug);
     } catch {
       alert('Failed to unclaim location.');
     } finally {
@@ -181,7 +183,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
   async function handleDismissReports() {
     if (!dismissTarget) return;
     try {
-      await dismissReports(dismissTarget.location.id);
+      await dismissReports(dismissTarget.location.id, campaign.slug);
     } catch {
       alert('Failed to dismiss reports.');
     } finally {

@@ -1,5 +1,5 @@
 import {
-  doc, updateDoc, deleteDoc,
+  doc, updateDoc, deleteDoc, query, where,
   collection, serverTimestamp, onSnapshot,
   addDoc,
 } from 'firebase/firestore';
@@ -10,9 +10,11 @@ const COLLECTION = 'plannedSignLocations';
 
 export async function addPlannedSign(
   input: PlannedSignLocationInput,
+  campaignId: string,
 ): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTION), {
     ...input,
+    campaignId,
     status: input.status ?? 'planned',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -45,11 +47,13 @@ export async function deletePlannedSign(id: string): Promise<void> {
 }
 
 export function subscribeToPlannedSigns(
+  campaignId: string,
   callback: (signs: PlannedSignLocation[]) => void,
   onError?: (err: Error) => void,
 ): () => void {
+  const q = query(collection(db, COLLECTION), where('campaignId', '==', campaignId));
   return onSnapshot(
-    collection(db, COLLECTION),
+    q,
     (snapshot) => {
       const signs = snapshot.docs.map((d) => ({
         id: d.id,

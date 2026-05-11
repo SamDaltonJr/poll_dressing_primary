@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { claimLocation } from '../../services/dressingService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import NearbySuggestions from './NearbySuggestions';
 import type { MapMarker, DressingRecord } from '../../types';
 
@@ -11,6 +12,7 @@ interface ClaimModalProps {
 }
 
 export default function ClaimModal({ marker, dressings, onClose, onClaimed }: ClaimModalProps) {
+  const campaign = useCampaign();
   const [volunteerName, setVolunteerName] = useState(
     () => sessionStorage.getItem('volunteerName') || '',
   );
@@ -29,7 +31,7 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
     setSubmitting(true);
     setError('');
     try {
-      await claimLocation(marker.id, { volunteerName, volunteerPhone, volunteerEmail });
+      await claimLocation(marker.id, { volunteerName, volunteerPhone, volunteerEmail }, campaign.slug);
       sessionStorage.setItem('volunteerName', volunteerName);
       sessionStorage.setItem('volunteerPhone', volunteerPhone);
       sessionStorage.setItem('volunteerEmail', volunteerEmail);

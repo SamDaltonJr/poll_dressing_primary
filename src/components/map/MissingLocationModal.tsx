@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { addLocationReport } from '../../services/locationReportService';
+import { useCampaign } from '../../contexts/CampaignContext';
 
 interface MissingLocationModalProps {
   latitude: number;
@@ -11,6 +12,7 @@ interface MissingLocationModalProps {
 export default function MissingLocationModal({
   latitude, longitude, onClose, onSubmitted,
 }: MissingLocationModalProps) {
+  const campaign = useCampaign();
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
   const [reporterName, setReporterName] = useState(
@@ -38,7 +40,7 @@ export default function MissingLocationModal({
         reporterName,
         reporterContact,
         notes,
-      });
+      }, campaign.slug);
       onSubmitted();
     } catch {
       setError('Failed to submit report. Please try again.');
