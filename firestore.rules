@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /dressings/{doc} { allow read, write; }
+    match /distributionPoints/{doc} { allow read, write; }
+    match /plannedSignLocations/{doc} { allow read, write; }
+    match /signPickups/{doc} { allow read, write; }
+    match /locationReports/{doc} { allow read, write; }
+
+    // Big-sign submissions for the May 26 runoff. Re-opened in commit ad04f17
+    // (Re-enable big sign submissions for May 26 runoff). Originally locked
+    // when /submit was hidden; reopen required here and was missed.
+    match /submissions/{doc} { allow read, write; }
+
+    // Per-campaign auth + admin-managed coverage. Hash fields are write-locked
+    // so client code can never overwrite the access codes.
+    match /campaignSettings/{slug} {
+      allow read;
+      allow create: if !('accessCodeHash' in request.resource.data)
+                    && !('adminPasswordHash' in request.resource.data);
+      allow update: if !request.resource.data.diff(resource.data).affectedKeys()
+                      .hasAny(['accessCodeHash', 'adminPasswordHash']);
+      allow delete: if false;
+    }
+
+    match /config/{doc} { allow read; allow write: if false; }
+  }
+}
