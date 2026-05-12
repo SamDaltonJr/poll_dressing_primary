@@ -27,6 +27,15 @@ export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onCha
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
   const campaign = useCampaign();
   const signLetter = campaign.candidateLastName.charAt(0).toUpperCase();
+  // When the campaign opts into distance-based neighbors, surface the radius
+  // on the toggle so volunteers can see what "+ Neighbors" means. Otherwise
+  // fall back to the legacy district-union wording.
+  const neighborsLabel = campaign.neighborRadiusMiles
+    ? `+ ${campaign.neighborRadiusMiles} mi`
+    : '+ Neighbors';
+  const neighborsTitle = campaign.neighborRadiusMiles
+    ? `Include polling sites within ${campaign.neighborRadiusMiles} miles of ${homeDistrict}`
+    : 'Include neighboring districts';
 
   if (collapsed) {
     return (
@@ -72,9 +81,9 @@ export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onCha
           aria-checked={cdScope === 'neighbors'}
           className={`map-filter-cd-btn ${cdScope === 'neighbors' ? 'active' : ''}`}
           onClick={() => onChangeCdScope('neighbors')}
-          title="Include neighboring districts"
+          title={neighborsTitle}
         >
-          + Neighbors
+          {neighborsLabel}
         </button>
         <button
           type="button"
