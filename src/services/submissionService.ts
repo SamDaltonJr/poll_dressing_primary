@@ -1,6 +1,6 @@
 import {
   collection, addDoc, deleteDoc, updateDoc, doc,
-  serverTimestamp, onSnapshot, query, orderBy,
+  serverTimestamp, onSnapshot, query, orderBy, where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { uploadPhoto, deletePhoto } from './storageService';
@@ -8,8 +8,12 @@ import type { SignSubmission, SignSubmissionInput } from '../types';
 
 const COLLECTION = 'submissions';
 
-export async function createSubmission(input: SignSubmissionInput): Promise<string> {
+export async function createSubmission(
+  input: SignSubmissionInput,
+  campaignId: string,
+): Promise<string> {
   const docRef = await addDoc(collection(db, COLLECTION), {
+    campaignId,
     volunteerName: input.volunteerName,
     volunteerPhone: input.volunteerPhone,
     volunteerEmail: input.volunteerEmail,
@@ -19,6 +23,8 @@ export async function createSubmission(input: SignSubmissionInput): Promise<stri
     address: input.address,
     postingMethod: input.postingMethod,
     signCount: input.signCount,
+    isRetrieved: false,
+    retrievedAt: null,
     photoUrl: '',
     photoPath: '',
     createdAt: serverTimestamp(),
@@ -55,14 +61,30 @@ export async function deleteSubmission(id: string, photoPath: string): Promise<v
 }
 
 export function subscribeToSubmissions(
-  callback: (subs: SignSubmission[]) => void
+  campaignId: string,
+  callback: (subs: SignSubmission[]) => void,
+  onError?: (err: Error) => void,
 ): () => void {
-  const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snapshot) => {
-    const subs = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    } as SignSubmission));
-    callback(subs);
-  });
+  // Composite query (campaignId equality + createdAt order) — Firestore requires
+  // a composite index; falls back gracefully without ordering if the index is
+  // missing, which can happen on the first deploy after re-enabling submissions.
+  const q = query(
+    collection(db, COLLECTION),
+    where('campaignId', '==', campaignId),
+    orderBy('createdAt', 'desc'),
+  );
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const subs = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      } as SignSubmission));
+      callback(subs);
+    },
+    (err) => {
+      console.error('Submissions subscription error:', err);
+      if (onError) onError(err);
+    },
+  );
 }

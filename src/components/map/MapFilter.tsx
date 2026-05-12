@@ -22,11 +22,7 @@ interface MapFilterProps {
   plannedSignCount: number;
 }
 
-// showSignPlacements / onToggleSignPlacements / signPlacementCount intentionally
-// not destructured below — the Sign Placements filter row is hidden for May 26.
-// The props stay on MapFilterProps so MapPage keeps passing them; restoring is
-// a one-line destructure + the commented <label> block below.
-export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
 
   if (collapsed) {
@@ -117,9 +113,16 @@ export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onCha
         <span className="filter-label">Sign Distribution</span>
         <span className="filter-progress">{distributionPointCount}</span>
       </label>
-      {/* Sign Placements filter (volunteer big-sign photo submissions) hidden
-          for May 26 — the /submit route is disabled and no new T markers can
-          be created. Restore this <label> block alongside re-enabling /submit. */}
+      <label className="map-filter-item">
+        <input
+          type="checkbox"
+          checked={showSignPlacements}
+          onChange={onToggleSignPlacements}
+        />
+        <span className="filter-dot-sign" />
+        <span className="filter-label">Sign Placements</span>
+        <span className="filter-progress">{signPlacementCount}</span>
+      </label>
       <label className="map-filter-item">
         <input
           type="checkbox"

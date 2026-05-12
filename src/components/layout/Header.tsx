@@ -59,10 +59,7 @@ export default function Header() {
         </button>
         <nav ref={navRef} className={`header-nav ${menuOpen ? 'open' : ''}`}>
           <Link to={path('')} className={isActive('') ? 'active' : ''} onClick={handleLinkClick}>Map</Link>
-          {/* Big-sign volunteer submissions deferred for May 26 — distribution
-              points and planned signs (admin-managed) remain visible on the map.
-              Restore this link to re-enable photo uploads via /submit. */}
-          {/* <Link to={path('submit')} className={isActive('submit') ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link> */}
+          <Link to={path('submit')} className={isActive('submit') ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link>
           <Link to={path('my-locations')} className={isActive('my-locations') ? 'active' : ''} onClick={handleLinkClick}>My Locations</Link>
           <Link to={path('admin')} className={isActive('admin') ? 'active' : ''} onClick={handleLinkClick}>Admin</Link>
           <Link to="/" className="header-switch-campaign" onClick={handleLinkClick}>Switch</Link>

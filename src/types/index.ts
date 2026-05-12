@@ -182,6 +182,7 @@ export type PostingMethod = 'fence' | 'tPost' | 'other';
 
 export interface SignSubmission {
   id: string;
+  campaignId: string;
   volunteerName: string;
   volunteerPhone: string;
   volunteerEmail: string;
