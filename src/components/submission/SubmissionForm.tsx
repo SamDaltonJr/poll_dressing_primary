@@ -2,9 +2,11 @@ import { useState, type FormEvent } from 'react';
 import LocationPicker from './LocationPicker';
 import PhotoUploader from './PhotoUploader';
 import { createSubmission } from '../../services/submissionService';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { PostingMethod } from '../../types';
 
 export default function SubmissionForm() {
+  const campaign = useCampaign();
   const [volunteerName, setVolunteerName] = useState('');
   const [volunteerPhone, setVolunteerPhone] = useState('');
   const [volunteerEmail, setVolunteerEmail] = useState('');
@@ -40,18 +42,21 @@ export default function SubmissionForm() {
 
     setSubmitting(true);
     try {
-      await createSubmission({
-        volunteerName,
-        volunteerPhone,
-        volunteerEmail,
-        photo,
-        notes,
-        latitude,
-        longitude,
-        address,
-        postingMethod,
-        signCount,
-      });
+      await createSubmission(
+        {
+          volunteerName,
+          volunteerPhone,
+          volunteerEmail,
+          photo,
+          notes,
+          latitude,
+          longitude,
+          address,
+          postingMethod,
+          signCount,
+        },
+        campaign.slug,
+      );
       setSuccess(true);
       setVolunteerName('');
       setVolunteerPhone('');
