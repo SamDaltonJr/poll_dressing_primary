@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import { createSignMarkerIcon } from '../../config/constants';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { SignSubmission } from '../../types';
 
 const METHOD_LABELS: Record<string, string> = {
@@ -16,7 +17,12 @@ interface SignMarkerProps {
 }
 
 export default function SignMarker({ submission, onRetrieveClick, hasAccess }: SignMarkerProps) {
-  const icon = useMemo(() => createSignMarkerIcon(!!submission.isRetrieved), [submission.isRetrieved]);
+  const campaign = useCampaign();
+  const signLetter = campaign.candidateLastName.charAt(0);
+  const icon = useMemo(
+    () => createSignMarkerIcon(signLetter, !!submission.isRetrieved),
+    [signLetter, submission.isRetrieved],
+  );
 
   return (
     <Marker position={[submission.latitude, submission.longitude]} icon={icon}>
