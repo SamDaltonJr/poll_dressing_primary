@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MARKER_TYPES } from '../../config/constants';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { MarkerType } from '../../types';
 
 type CdScope = 'home' | 'neighbors' | 'all';
@@ -24,6 +25,8 @@ interface MapFilterProps {
 
 export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
+  const campaign = useCampaign();
+  const signLetter = campaign.candidateLastName.charAt(0).toUpperCase();
 
   if (collapsed) {
     return (
@@ -119,7 +122,7 @@ export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onCha
           checked={showSignPlacements}
           onChange={onToggleSignPlacements}
         />
-        <span className="filter-dot-sign" />
+        <span className="filter-dot-sign">{signLetter}</span>
         <span className="filter-label">Sign Placements</span>
         <span className="filter-progress">{signPlacementCount}</span>
       </label>

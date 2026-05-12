@@ -115,12 +115,13 @@ export function createPinDropIcon(): L.DivIcon {
   });
 }
 
-/** Sign placement marker icon: white box with black border and bold "T", or purple if retrieved */
-export function createSignMarkerIcon(retrieved = false): L.DivIcon {
+/** Sign placement marker icon: white box with black border and the active campaign letter, or purple if retrieved */
+export function createSignMarkerIcon(letter: string, retrieved = false): L.DivIcon {
   const px = 20;
   const half = px / 2;
   const borderColor = retrieved ? '#7c3aed' : 'black';
   const textColor = retrieved ? '#7c3aed' : 'black';
+  const safeLetter = (letter || '?').charAt(0).toUpperCase();
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="
@@ -137,7 +138,7 @@ export function createSignMarkerIcon(retrieved = false): L.DivIcon {
       font-size: 13px;
       font-weight: 700;
       line-height: 1;
-    ">T</div>`,
+    ">${safeLetter}</div>`,
     iconSize: [px, px],
     iconAnchor: [half, half],
     popupAnchor: [0, -(half + 2)],
