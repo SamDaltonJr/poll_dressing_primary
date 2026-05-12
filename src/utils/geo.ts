@@ -22,6 +22,32 @@ export function haversineDistanceMiles(
   return EARTH_RADIUS_MILES * c;
 }
 
+/**
+ * True when (lat, lon) is within `miles` of at least one anchor.
+ * Cheap bbox prefilter + early exit make this O(anchors) worst case but usually
+ * much less. Used by the map's distance-based "+ Neighbors" filter.
+ */
+export function isWithinAnyMiles(
+  lat: number,
+  lon: number,
+  anchors: ReadonlyArray<readonly [number, number]>,
+  miles: number,
+): boolean {
+  if (miles <= 0 || anchors.length === 0) return false;
+  // 1° latitude ≈ 69 mi anywhere; 1° longitude shrinks by cos(lat).
+  const latDelta = miles / 69;
+  const cosLat = Math.cos(toRad(lat));
+  const lonDelta = cosLat > 0 ? miles / (69 * cosLat) : Infinity;
+  for (let i = 0; i < anchors.length; i++) {
+    const aLat = anchors[i][0];
+    const aLon = anchors[i][1];
+    if (Math.abs(aLat - lat) > latDelta) continue;
+    if (Math.abs(aLon - lon) > lonDelta) continue;
+    if (haversineDistanceMiles(lat, lon, aLat, aLon) <= miles) return true;
+  }
+  return false;
+}
+
 export interface NearbyLocation {
   location: MapMarker;
   distanceMiles: number;

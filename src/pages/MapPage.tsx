@@ -22,6 +22,7 @@ import { useAdminAuth } from '../hooks/useAdminAuth';
 import { EARLY_VOTING_END_DATE } from '../config/constants';
 import { allLocations } from '../config/categorizeLocations';
 import { useCampaign } from '../contexts/CampaignContext';
+import { isWithinAnyMiles } from '../utils/geo';
 import type { MapMarker, MarkerType, SignSubmission } from '../types';
 
 /** Volunteer-controlled CD scope toggle (default home, expand to neighbors or all). */
@@ -125,16 +126,32 @@ export default function MapPage() {
     [campaign.defaultCounties],
   );
 
-  // Volunteer-controlled CD scope. null = no CD filter (show all CDs).
+  // Home-district polling locations, used as anchor points for distance-based
+  // "+ Neighbors" scope. Empty when scope isn't 'neighbors', the campaign has
+  // no radius configured, or no home district is set — those cases bypass the
+  // distance scan entirely.
+  const home = campaign.homeDistrict;
+  const radiusMiles = campaign.neighborRadiusMiles;
+  const useRadiusForNeighbors = cdScope === 'neighbors' && !!radiusMiles && !!home;
+
+  const homeAnchors = useMemo<Array<readonly [number, number]>>(() => {
+    if (!useRadiusForNeighbors) return [];
+    return allLocations
+      .filter((l) => l.congressionalDistrict === home)
+      .map((l) => [l.latitude, l.longitude] as const);
+  }, [useRadiusForNeighbors, home]);
+
+  // Legacy district-set fallback — used for 'neighbors' when no radius is set,
+  // and also drives the strict 'home' view (single-entry set).
   const enabledCDs = useMemo<Set<string> | null>(() => {
     if (cdScope === 'all') return null;
     const s = new Set<string>();
-    if (campaign.homeDistrict) s.add(campaign.homeDistrict);
-    if (cdScope === 'neighbors') {
+    if (home) s.add(home);
+    if (cdScope === 'neighbors' && !radiusMiles) {
       for (const d of campaign.neighboringDistricts ?? []) s.add(d);
     }
     return s;
-  }, [cdScope, campaign.homeDistrict, campaign.neighboringDistricts]);
+  }, [cdScope, home, radiusMiles, campaign.neighboringDistricts]);
 
   const scopedLocations = useMemo<MapMarker[]>(() => {
     return allLocations.filter((loc) => {
@@ -143,13 +160,20 @@ export default function MapPage() {
       if (enabledCounties.size > 0 && loc.county && !enabledCounties.has(loc.county)) {
         return false;
       }
-      // CD filter (volunteer toggle).
-      if (enabledCDs && loc.congressionalDistrict && !enabledCDs.has(loc.congressionalDistrict)) {
-        return false;
+      // CD filter (volunteer toggle). Locations missing baked CD data pass
+      // through so they never silently disappear.
+      if (cdScope === 'all') return true;
+      if (!loc.congressionalDistrict) return true;
+      if (home && loc.congressionalDistrict === home) return true;
+      if (cdScope === 'home') return false;
+      // 'neighbors' — prefer distance scan if the campaign opted in, else fall
+      // back to the curated district list.
+      if (useRadiusForNeighbors) {
+        return isWithinAnyMiles(loc.latitude, loc.longitude, homeAnchors, radiusMiles!);
       }
-      return true;
+      return !!enabledCDs && enabledCDs.has(loc.congressionalDistrict);
     });
-  }, [enabledCounties, enabledCDs]);
+  }, [enabledCounties, cdScope, home, useRadiusForNeighbors, homeAnchors, radiusMiles, enabledCDs]);
 
   const allMarkers = useMemo<MapMarker[]>(() => {
     return spreadOverlappingMarkers(scopedLocations);
