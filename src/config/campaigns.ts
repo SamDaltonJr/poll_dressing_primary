@@ -75,7 +75,7 @@ export const CAMPAIGNS: Record<string, CampaignConfig> = {
     raceLabel: 'TX-33 Congressional Democratic Primary',
     homeDistrict: 'TX-33',
     neighboringDistricts: ['TX-32', 'TX-30', 'TX-12', 'TX-24', 'TX-6'],
-    neighborRadiusMiles: 5,
+    neighborRadiusMiles: 2,
     defaultCounties: ['Dallas'],
     tagline: 'When Texans are on the line, Julie never backs down.',
     // Hex codes pulled directly from JulieJohnson_Logo-1.svg fill attributes.
@@ -92,7 +92,7 @@ export const CAMPAIGNS: Record<string, CampaignConfig> = {
     raceLabel: 'TX-24 Congressional Democratic Primary',
     homeDistrict: 'TX-24',
     neighboringDistricts: ['TX-26', 'TX-12', 'TX-32', 'TX-33', 'TX-30'],
-    neighborRadiusMiles: 5,
+    neighborRadiusMiles: 2,
     defaultCounties: ['Dallas', 'Tarrant'],
     tagline: 'Fighting for a better future in the 24th District of Texas.',
     // Hex codes pulled by scripts/extract-logo-colors.mjs from the BURGE FOR CONGRESS PNG.

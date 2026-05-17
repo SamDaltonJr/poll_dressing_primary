@@ -5,6 +5,9 @@ import type { MarkerType } from '../../types';
 
 type CdScope = 'home' | 'neighbors' | 'all';
 
+const RADIUS_MIN_MILES = 1;
+const RADIUS_MAX_MILES = 5;
+
 interface MapFilterProps {
   activeTypes: Set<MarkerType>;
   onToggle: (type: MarkerType) => void;
@@ -12,6 +15,9 @@ interface MapFilterProps {
   cdScope: CdScope;
   onChangeCdScope: (scope: CdScope) => void;
   homeDistrict: string;
+  neighborRadius: number;
+  onChangeNeighborRadius: (miles: number) => void;
+  radiusSliderEnabled: boolean;
   showDistributionPoints: boolean;
   onToggleDistributionPoints: () => void;
   distributionPointCount: number;
@@ -23,19 +29,20 @@ interface MapFilterProps {
   plannedSignCount: number;
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, neighborRadius, onChangeNeighborRadius, radiusSliderEnabled, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
   const campaign = useCampaign();
   const signLetter = campaign.candidateLastName.charAt(0).toUpperCase();
   // When the campaign opts into distance-based neighbors, surface the radius
   // on the toggle so volunteers can see what "+ Neighbors" means. Otherwise
   // fall back to the legacy district-union wording.
-  const neighborsLabel = campaign.neighborRadiusMiles
-    ? `+ ${campaign.neighborRadiusMiles} mi`
+  const neighborsLabel = radiusSliderEnabled
+    ? `+ ${neighborRadius} mi`
     : '+ Neighbors';
-  const neighborsTitle = campaign.neighborRadiusMiles
-    ? `Include polling sites within ${campaign.neighborRadiusMiles} miles of ${homeDistrict}`
+  const neighborsTitle = radiusSliderEnabled
+    ? `Include polling sites within ${neighborRadius} miles of ${homeDistrict}`
     : 'Include neighboring districts';
+  const showRadiusSlider = radiusSliderEnabled && cdScope === 'neighbors';
 
   if (collapsed) {
     return (
@@ -96,6 +103,24 @@ export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onCha
           All
         </button>
       </div>
+      {showRadiusSlider && (
+        <div className="map-filter-radius">
+          <label className="map-filter-radius-label" htmlFor="map-filter-radius-input">
+            Radius: <strong>{neighborRadius} mi</strong>
+          </label>
+          <input
+            id="map-filter-radius-input"
+            className="map-filter-radius-slider"
+            type="range"
+            min={RADIUS_MIN_MILES}
+            max={RADIUS_MAX_MILES}
+            step={1}
+            value={neighborRadius}
+            onChange={(e) => onChangeNeighborRadius(Number(e.target.value))}
+            aria-label={`Neighbor radius in miles, currently ${neighborRadius}`}
+          />
+        </div>
+      )}
       <div className="map-filter-separator" />
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
         ([type, config]) => {
