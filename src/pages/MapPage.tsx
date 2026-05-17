@@ -90,6 +90,9 @@ export default function MapPage() {
   const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
   const [cdScope, setCdScope] = useState<CdScope>('home');
+  const [neighborRadius, setNeighborRadius] = useState<number>(
+    () => campaign.neighborRadiusMiles ?? 2,
+  );
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(false);
@@ -114,7 +117,8 @@ export default function MapPage() {
   // would leak the previous selection into the new home district default.
   useEffect(() => {
     setCdScope('home');
-  }, [campaign.slug]);
+    setNeighborRadius(campaign.neighborRadiusMiles ?? 2);
+  }, [campaign.slug, campaign.neighborRadiusMiles]);
 
   // Campaign-wide hard limit: counties this campaign covers. Falls back to
   // defaultCounties from campaign config until campaignSettings is wired to
@@ -131,7 +135,10 @@ export default function MapPage() {
   // no radius configured, or no home district is set — those cases bypass the
   // distance scan entirely.
   const home = campaign.homeDistrict;
-  const radiusMiles = campaign.neighborRadiusMiles;
+  // Volunteer-adjustable via the slider in MapFilter; campaign config supplies
+  // the initial value. Falsy when the campaign hasn't opted into distance-based
+  // neighbors — in that case we fall back to the curated district list.
+  const radiusMiles = campaign.neighborRadiusMiles ? neighborRadius : undefined;
   const useRadiusForNeighbors = cdScope === 'neighbors' && !!radiusMiles && !!home;
 
   const homeAnchors = useMemo<Array<readonly [number, number]>>(() => {
@@ -406,6 +413,9 @@ export default function MapPage() {
         cdScope={cdScope}
         onChangeCdScope={setCdScope}
         homeDistrict={campaign.homeDistrict ?? ''}
+        neighborRadius={neighborRadius}
+        onChangeNeighborRadius={setNeighborRadius}
+        radiusSliderEnabled={!!campaign.neighborRadiusMiles}
         showDistributionPoints={showDistributionPoints}
         onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
         distributionPointCount={distributionPoints.length}

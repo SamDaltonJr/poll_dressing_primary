@@ -1065,6 +1065,33 @@ textarea:focus {
   border-color: var(--color-primary);
 }
 
+/* === Map Filter Neighbor Radius Slider === */
+.map-filter-radius {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 6px;
+  margin-right: 16px;
+}
+
+.map-filter-radius-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.map-filter-radius-label strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.map-filter-radius-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
 .filter-dot-diamond {
   border-radius: 3px;
   transform: rotate(45deg);
