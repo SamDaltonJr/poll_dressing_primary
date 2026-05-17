@@ -31,7 +31,6 @@ export default function PhotoUploader({ onPhotoSelect }: PhotoUploaderProps) {
           ref={inputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handleChange}
         />
         {preview ? 'Change Photo' : 'Take or Choose Photo'}
