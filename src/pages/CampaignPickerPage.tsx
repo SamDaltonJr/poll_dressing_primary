@@ -1,14 +1,6 @@
 import { Link } from 'react-router-dom';
-import { listCampaigns } from '../config/campaigns';
+import { listCampaigns, candidateInitials } from '../config/campaigns';
 import type { CampaignConfig } from '../config/campaigns';
-
-/** Two-letter initials from a candidate's full name, for the no-logo fallback. */
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 function PickerCardBody({ c }: { c: CampaignConfig }) {
   return (
@@ -18,7 +10,7 @@ function PickerCardBody({ c }: { c: CampaignConfig }) {
           <img src={c.logoUrl} alt={`${c.candidateName} logo`} />
         ) : (
           <div className="picker-card-logo-fallback" aria-hidden="true">
-            {initials(c.candidateName)}
+            {candidateInitials(c.candidateName)}
           </div>
         )}
       </div>
@@ -27,10 +19,13 @@ function PickerCardBody({ c }: { c: CampaignConfig }) {
           {c.isArchive ? (
             <>
               <span className="picker-card-archive-badge">Archive</span>
-              {c.homeDistrict && <span className="picker-card-district-text">{c.homeDistrict}</span>}
+              <span className="picker-card-district-text">{c.electionLabel}</span>
             </>
           ) : (
-            c.homeDistrict
+            <>
+              <span className="picker-card-live-badge">Live</span>
+              <span className="picker-card-district-text">{c.raceLabel} · {c.electionLabel}</span>
+            </>
           )}
         </div>
         <h2 className="picker-card-name">{c.candidateName}</h2>
@@ -88,7 +83,7 @@ export default function CampaignPickerPage() {
       </div>
 
       <footer className="picker-footer">
-        Built by volunteers. May 26 Texas Primary.
+        Built by volunteers. November 3, 2026 Texas General Election.
       </footer>
     </div>
   );

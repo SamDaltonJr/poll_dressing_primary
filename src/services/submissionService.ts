@@ -4,6 +4,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { uploadPhoto, deletePhoto } from './storageService';
+import { lookupCounty } from '../utils/countyLookup';
 import type { SignSubmission, SignSubmissionInput } from '../types';
 
 const COLLECTION = 'submissions';
@@ -20,6 +21,7 @@ export async function createSubmission(
     notes: input.notes,
     latitude: input.latitude,
     longitude: input.longitude,
+    county: await lookupCounty(input.latitude, input.longitude),
     address: input.address,
     postingMethod: input.postingMethod,
     signCount: input.signCount,

@@ -11,21 +11,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Map defaults — centered on Dallas-Fort Worth area
-export const MAP_CENTER: [number, number] = [32.78, -96.80];
-export const MAP_ZOOM = 10;
+// Map defaults — whole-state view of Texas. The map flies to the volunteer's
+// location once the browser grants geolocation.
+export const MAP_CENTER: [number, number] = [31.2, -99.3];
+export const MAP_ZOOM = 6;
+/** Zoom for pickers that need street-level detail (sign submission form). */
+export const DETAIL_ZOOM = 12;
 
-/**
- * Last day of in-person early voting for the 2026 TX primary runoff.
- * Used by MapPage to pick the default polling-site filter: through this date
- * the map opens on the early-voting view; the following day it flips to the
- * election-day view. Local-time compare (Texas CT), so the rollover happens
- * at the end of May 22 wherever the volunteer is.
- */
-export const EARLY_VOTING_END_DATE = new Date(2026, 4, 22); // May 22, 2026
-
-// Nominatim viewbox for DFW area (lon_min, lat_max, lon_max, lat_min)
-export const DFW_VIEWBOX = '-97.8,33.4,-96.0,32.5';
+// Nominatim viewbox biasing search results to Texas (lon_min, lat_max, lon_max, lat_min)
+export const TEXAS_VIEWBOX = '-106.65,36.5,-93.51,25.84';
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 

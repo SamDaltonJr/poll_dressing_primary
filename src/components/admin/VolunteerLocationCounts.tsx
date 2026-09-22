@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
-import { activeLocations } from '../../config/categorizeLocations';
 import { buildMassEmailMailtos } from '../../utils/mailto';
 import { setSignPickup, removeSignPickup, updateSignPickupCount } from '../../services/signPickupService';
 import { useCampaign } from '../../contexts/CampaignContext';
-import type { DressingRecord, SignPickup } from '../../types';
+import type { DressingRecord, MapMarker, SignPickup } from '../../types';
 
 interface VolunteerLocationCountsProps {
   dressings: DressingRecord[];
   pickups: SignPickup[];
+  locations: MapMarker[];
 }
 
 interface VolunteerSummary {
@@ -19,13 +19,13 @@ interface VolunteerSummary {
   pending: number;
 }
 
-export default function VolunteerLocationCounts({ dressings, pickups }: VolunteerLocationCountsProps) {
+export default function VolunteerLocationCounts({ dressings, pickups, locations }: VolunteerLocationCountsProps) {
   const campaign = useCampaign();
   const locationMap = useMemo(() => {
     const m = new Map<string, string>();
-    for (const loc of activeLocations) m.set(loc.id, loc.label);
+    for (const loc of locations) m.set(loc.id, loc.label);
     return m;
-  }, []);
+  }, [locations]);
 
   // Build a lookup map from pickups: email → SignPickup
   const pickupMap = useMemo(() => {
@@ -84,7 +84,6 @@ export default function VolunteerLocationCounts({ dressings, pickups }: Voluntee
     [volunteers],
   );
 
-  const appUrl = window.location.origin + window.location.pathname;
 
   async function handleCopyEmails() {
     await navigator.clipboard.writeText(volunteerEmails.join(', '));
@@ -93,7 +92,7 @@ export default function VolunteerLocationCounts({ dressings, pickups }: Voluntee
   }
 
   function handleEmailAll() {
-    const urls = buildMassEmailMailtos(volunteerEmails, appUrl);
+    const urls = buildMassEmailMailtos(volunteerEmails, campaign);
     for (const url of urls) {
       window.open(url);
     }

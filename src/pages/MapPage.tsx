@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import MapView from '../components/map/MapView';
 import MapFilter from '../components/map/MapFilter';
 import SearchBar from '../components/map/SearchBar';
@@ -18,15 +18,12 @@ import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useSubmissions } from '../hooks/useSubmissions';
 import { usePlannedSigns } from '../hooks/usePlannedSigns';
 import { useAccessCode } from '../hooks/useAccessCode';
-import { useAdminAuth } from '../hooks/useAdminAuth';
-import { EARLY_VOTING_END_DATE } from '../config/constants';
-import { allLocations } from '../config/categorizeLocations';
+import { useAdminAuth } from '../contexts/AdminContext';
 import { useCampaign } from '../contexts/CampaignContext';
-import { isWithinAnyMiles } from '../utils/geo';
+import { useLocations } from '../contexts/LocationsContext';
+import { isEarlyVotingOpen, type CampaignConfig } from '../config/campaigns';
+import { findCounty } from '../config/texasCounties';
 import type { MapMarker, MarkerType, SignSubmission } from '../types';
-
-/** Volunteer-controlled CD scope toggle (default home, expand to neighbors or all). */
-type CdScope = 'home' | 'neighbors' | 'all';
 
 const OFFSET = 0.0003;
 
@@ -65,17 +62,25 @@ function spreadOverlappingMarkers(markers: MapMarker[]): MapMarker[] {
  * switch to the ED view (dual + ED-only). Volunteers can still toggle either
  * group on after load — this only seeds the initial state.
  */
-function getDefaultActiveTypes(): Set<MarkerType> {
-  const earlyVotingOpen = new Date() <= endOfDay(EARLY_VOTING_END_DATE);
+function getDefaultActiveTypes(campaign: CampaignConfig): Set<MarkerType> {
   return new Set<MarkerType>(
-    earlyVotingOpen
+    isEarlyVotingOpen(campaign)
       ? ['dualSite', 'earlyVotingOnly']
       : ['dualSite', 'electionDayOnly'],
   );
 }
 
-function endOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+/** Remembered county filter, per campaign. Storage can throw in private mode. */
+function countyStorageKey(slug: string): string {
+  return `mapCounty:${slug}`;
+}
+
+function readSavedCounty(slug: string): string {
+  try {
+    return localStorage.getItem(countyStorageKey(slug)) ?? '';
+  } catch {
+    return '';
+  }
 }
 
 export default function MapPage() {
@@ -84,15 +89,14 @@ export default function MapPage() {
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const { signs: plannedSigns, loading: psLoading } = usePlannedSigns();
+  const { allLocations, loading: locationsLoading } = useLocations();
   const { isValid: hasAccessFromHook } = useAccessCode();
   const { isAdmin } = useAdminAuth();
   const [localAccess, setLocalAccess] = useState(false);
   const hasAccess = hasAccessFromHook || localAccess;
-  const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(getDefaultActiveTypes);
-  const [cdScope, setCdScope] = useState<CdScope>('home');
-  const [neighborRadius, setNeighborRadius] = useState<number>(
-    () => campaign.neighborRadiusMiles ?? 2,
-  );
+  const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(() => getDefaultActiveTypes(campaign));
+  const [county, setCounty] = useState<string>(() => readSavedCounty(campaign.slug));
+  const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(null);
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(false);
@@ -112,75 +116,35 @@ export default function MapPage() {
   const [showPlannedSignModal, setShowPlannedSignModal] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Reset CD scope to the campaign's home district when the active campaign
-  // changes — otherwise navigating from one campaign's "All" view into another
-  // would leak the previous selection into the new home district default.
-  useEffect(() => {
-    setCdScope('home');
-    setNeighborRadius(campaign.neighborRadiusMiles ?? 2);
-  }, [campaign.slug, campaign.neighborRadiusMiles]);
+  // Counties that have polling locations imported, for the filter dropdown.
+  const countyOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const l of allLocations) counts.set(l.county, (counts.get(l.county) ?? 0) + 1);
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [allLocations]);
 
-  // Campaign-wide hard limit: counties this campaign covers. Falls back to
-  // defaultCounties from campaign config until campaignSettings is wired to
-  // Firestore (see todo). Empty set = no limit.
-  // Active campaigns always set defaultCounties; archive entries don't, but we
-  // never render MapPage for archives (CampaignProvider redirects them out).
-  const enabledCounties = useMemo(
-    () => new Set(campaign.defaultCounties ?? []),
-    [campaign.defaultCounties],
+  // A remembered county that no longer has data (or a stale value) falls back
+  // to all of Texas rather than showing an empty map.
+  const effectiveCounty = county && countyOptions.some((c) => c.name === county) ? county : '';
+
+  const scopedLocations = useMemo<MapMarker[]>(
+    () => (effectiveCounty ? allLocations.filter((l) => l.county === effectiveCounty) : allLocations),
+    [allLocations, effectiveCounty],
   );
 
-  // Home-district polling locations, used as anchor points for distance-based
-  // "+ Neighbors" scope. Empty when scope isn't 'neighbors', the campaign has
-  // no radius configured, or no home district is set — those cases bypass the
-  // distance scan entirely.
-  const home = campaign.homeDistrict;
-  // Volunteer-adjustable via the slider in MapFilter; campaign config supplies
-  // the initial value. Falsy when the campaign hasn't opted into distance-based
-  // neighbors — in that case we fall back to the curated district list.
-  const radiusMiles = campaign.neighborRadiusMiles ? neighborRadius : undefined;
-  const useRadiusForNeighbors = cdScope === 'neighbors' && !!radiusMiles && !!home;
-
-  const homeAnchors = useMemo<Array<readonly [number, number]>>(() => {
-    if (!useRadiusForNeighbors) return [];
-    return allLocations
-      .filter((l) => l.congressionalDistrict === home)
-      .map((l) => [l.latitude, l.longitude] as const);
-  }, [useRadiusForNeighbors, home]);
-
-  // Legacy district-set fallback — used for 'neighbors' when no radius is set,
-  // and also drives the strict 'home' view (single-entry set).
-  const enabledCDs = useMemo<Set<string> | null>(() => {
-    if (cdScope === 'all') return null;
-    const s = new Set<string>();
-    if (home) s.add(home);
-    if (cdScope === 'neighbors' && !radiusMiles) {
-      for (const d of campaign.neighboringDistricts ?? []) s.add(d);
+  function handleChangeCounty(next: string) {
+    setCounty(next);
+    try {
+      if (next) localStorage.setItem(countyStorageKey(campaign.slug), next);
+      else localStorage.removeItem(countyStorageKey(campaign.slug));
+    } catch {
+      // Private mode — the filter just won't be remembered.
     }
-    return s;
-  }, [cdScope, home, radiusMiles, campaign.neighboringDistricts]);
-
-  const scopedLocations = useMemo<MapMarker[]>(() => {
-    return allLocations.filter((loc) => {
-      // County filter (campaign hard limit). Locations missing baked county
-      // data pass through — the bake covers all 948 known locations today.
-      if (enabledCounties.size > 0 && loc.county && !enabledCounties.has(loc.county)) {
-        return false;
-      }
-      // CD filter (volunteer toggle). Locations missing baked CD data pass
-      // through so they never silently disappear.
-      if (cdScope === 'all') return true;
-      if (!loc.congressionalDistrict) return true;
-      if (home && loc.congressionalDistrict === home) return true;
-      if (cdScope === 'home') return false;
-      // 'neighbors' — prefer distance scan if the campaign opted in, else fall
-      // back to the curated district list.
-      if (useRadiusForNeighbors) {
-        return isWithinAnyMiles(loc.latitude, loc.longitude, homeAnchors, radiusMiles!);
-      }
-      return !!enabledCDs && enabledCDs.has(loc.congressionalDistrict);
-    });
-  }, [enabledCounties, cdScope, home, useRadiusForNeighbors, homeAnchors, radiusMiles, enabledCDs]);
+    const info = findCounty(next);
+    if (info) setFitBoundsTarget(info.bbox);
+  }
 
   const allMarkers = useMemo<MapMarker[]>(() => {
     return spreadOverlappingMarkers(scopedLocations);
@@ -361,7 +325,7 @@ export default function MapPage() {
     setShowAccessModal(false);
   }
 
-  if (loading || dpLoading || subsLoading || psLoading) return <LoadingSpinner message="Loading map data..." />;
+  if (loading || dpLoading || subsLoading || psLoading || locationsLoading) return <LoadingSpinner message="Loading map data..." />;
 
   const totalDressed = stats.dualSite.dressed + stats.earlyVotingOnly.dressed + stats.electionDayOnly.dressed;
   const totalClaimed = stats.dualSite.claimed + stats.earlyVotingOnly.claimed + stats.electionDayOnly.claimed;
@@ -394,7 +358,14 @@ export default function MapPage() {
         onAdminPinPlaced={handleAdminPinPlaced}
         flyToTarget={flyToTarget}
         onFlyComplete={handleFlyComplete}
+        fitBoundsTarget={fitBoundsTarget}
       />
+      {allLocations.length === 0 && (
+        <div className="map-notice" role="status">
+          Polling locations are being added county by county as each county publishes its list.
+          Big sign placements can be logged anywhere in Texas now.
+        </div>
+      )}
       <button
         className="search-toggle"
         onClick={() => setSearchOpen((prev) => !prev)}
@@ -410,12 +381,9 @@ export default function MapPage() {
         activeTypes={activeTypes}
         onToggle={handleToggle}
         stats={stats}
-        cdScope={cdScope}
-        onChangeCdScope={setCdScope}
-        homeDistrict={campaign.homeDistrict ?? ''}
-        neighborRadius={neighborRadius}
-        onChangeNeighborRadius={setNeighborRadius}
-        radiusSliderEnabled={!!campaign.neighborRadiusMiles}
+        county={effectiveCounty}
+        onChangeCounty={handleChangeCounty}
+        countyOptions={countyOptions}
         showDistributionPoints={showDistributionPoints}
         onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
         distributionPointCount={distributionPoints.length}

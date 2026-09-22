@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { findNearbyUnclaimed, type NearbyLocation } from '../utils/geo';
-import { allLocations } from '../config/categorizeLocations';
+import { useLocations } from '../contexts/LocationsContext';
 import type { MapMarker, DressingRecord } from '../types';
 
 export function useNearbyUnclaimed(
@@ -9,6 +9,7 @@ export function useNearbyUnclaimed(
   maxResults = 5,
   maxDistanceMiles = 5,
 ): NearbyLocation[] {
+  const { activeLocations } = useLocations();
   const claimedOrDressedIds = useMemo(() => {
     const set = new Set<string>();
     for (const d of dressings) {
@@ -22,11 +23,11 @@ export function useNearbyUnclaimed(
     return findNearbyUnclaimed(
       referenceLocation.latitude,
       referenceLocation.longitude,
-      allLocations,
+      activeLocations,
       claimedOrDressedIds,
       referenceLocation.id,
       maxResults,
       maxDistanceMiles,
     );
-  }, [referenceLocation, claimedOrDressedIds, maxResults, maxDistanceMiles]);
+  }, [referenceLocation, activeLocations, claimedOrDressedIds, maxResults, maxDistanceMiles]);
 }

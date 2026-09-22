@@ -1,17 +1,19 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuth } from '../../contexts/AdminContext';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 interface AdminLoginProps {
   children: ReactNode;
 }
 
 export default function AdminLogin({ children }: AdminLoginProps) {
-  const { isAdmin, error, validate } = useAdminAuth();
+  const { isAdmin, sessionLoading, error, validate } = useAdminAuth();
   const [password, setPassword] = useState('');
   const [checking, setChecking] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   if (isAdmin) return <>{children}</>;
+  if (sessionLoading) return <LoadingSpinner message="Signing in..." />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,14 +26,14 @@ export default function AdminLogin({ children }: AdminLoginProps) {
     <div className="access-gate">
       <div className="access-gate-card">
         <h2>Admin Access</h2>
-        <p>Enter the admin password to continue.</p>
+        <p>Enter the statewide admin password or your regional coordinator code.</p>
         <form onSubmit={handleSubmit}>
           <div className="password-input-wrapper">
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Admin password"
+              placeholder="Password or coordinator code"
               required
               autoFocus
             />

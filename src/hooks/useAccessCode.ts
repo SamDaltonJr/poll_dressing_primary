@@ -2,20 +2,12 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useCampaign } from '../contexts/CampaignContext';
-
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
+import { sha256 } from '../utils/hash';
 
 /**
  * Hash + sessionStorage keys are namespaced by campaign slug so a volunteer
- * who entered the Johnson code in this browser cannot navigate to Burge and
- * inherit access — they have to enter Burge's code separately.
+ * who entered one campaign's code in this browser doesn't inherit access to
+ * another campaign — they have to enter that campaign's code separately.
  */
 function storageKey(slug: string): string {
   return `accessCodeValid:${slug}`;

@@ -1019,77 +1019,28 @@ textarea:focus {
   margin: 2px 0;
 }
 
-/* === Map Filter CD Scope Selector === */
-.map-filter-cd-scope {
-  display: flex;
-  gap: 0;
-  padding: 4px 0 2px;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 4px;
-  margin-right: 16px; /* leave room for the close X */
-}
-
-.map-filter-cd-btn {
-  flex: 1;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 4px 6px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  white-space: nowrap;
-}
-
-.map-filter-cd-btn:first-child {
-  border-radius: 6px 0 0 6px;
-}
-
-.map-filter-cd-btn:last-child {
-  border-radius: 0 6px 6px 0;
-}
-
-.map-filter-cd-btn:not(:first-child) {
-  border-left: none;
-}
-
-.map-filter-cd-btn:hover {
-  background: var(--color-bg);
-  color: var(--color-text);
-}
-
-.map-filter-cd-btn.active {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
-}
-
-/* === Map Filter Neighbor Radius Slider === */
-.map-filter-radius {
+/* === Map Filter County Selector === */
+.map-filter-county {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 0 6px;
-  margin-right: 16px;
+  margin-bottom: 6px;
 }
 
-.map-filter-radius-label {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.map-filter-radius-label strong {
-  color: var(--color-text);
+.map-filter-county-label {
+  font-size: 0.8rem;
   font-weight: 600;
+  color: var(--color-text-muted);
 }
 
-.map-filter-radius-slider {
+.map-filter-county select {
   flex: 1;
   min-width: 0;
-  accent-color: var(--color-primary);
-  cursor: pointer;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: white;
 }
 
 .filter-dot-diamond {
@@ -1100,13 +1051,15 @@ textarea:focus {
 /* === Admin Tabs === */
 .admin-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-bottom: 24px;
   border-bottom: 2px solid var(--color-border);
 }
 
 .admin-tab {
-  padding: 10px 20px;
+  padding: 10px 14px;
+  white-space: nowrap;
   border: none;
   background: none;
   font-size: 0.95rem;
@@ -2798,4 +2751,369 @@ input.search-bar-input {
   .header-logo-district {
     font-size: 0.66rem;
   }
+}
+
+/* === Header — initials fallback when a campaign has no logo === */
+.header-logo-initials {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.header-logo-district {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === Picker — live badge === */
+.picker-card-live-badge {
+  background: var(--color-success);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-right: 8px;
+}
+
+/* === Map — empty-state notice === */
+/* Sits under the search bar on the left so it never collides with the
+   legend panel (top-right) or the pin-drop buttons (bottom). */
+.map-notice {
+  position: absolute;
+  top: 132px;
+  left: 12px;
+  z-index: 900;
+  width: 280px;
+  max-width: calc(100% - 24px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* === Admin — session line, header actions, empty state === */
+.admin-session {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-county-focus {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: var(--color-surface);
+}
+
+.admin-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* === Admin — location import === */
+.import-panel,
+.coordinators-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.import-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-section h3,
+.coordinator-form h3 {
+  font-size: 1.05rem;
+}
+
+.import-muted {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.import-warning {
+  color: #b45309;
+  font-size: 0.88rem;
+}
+
+.import-warning-text {
+  color: #b45309;
+}
+
+.import-success {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.import-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.import-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 200px;
+}
+
+.import-field input[type='text'],
+.import-field input[type='email'],
+.import-field select {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  background: var(--color-surface);
+}
+
+.import-radio-group {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.import-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.import-textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.import-column-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.import-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.import-details summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #b45309;
+}
+
+.import-details ul {
+  margin: 8px 0 0 20px;
+  font-size: 0.85rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.import-preview-table {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.import-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-manual {
+  display: flex;
+  gap: 6px;
+}
+
+.import-manual input {
+  width: 170px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+/* === Admin — coordinators === */
+.coordinator-code-box {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  overflow-wrap: anywhere;
+}
+
+.coordinator-code {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  background: var(--color-surface);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.coordinator-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.county-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 400;
+}
+
+.county-picker-regions,
+.county-picker-selected {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.county-chip {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.county-picker-filter {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  max-width: 300px;
+}
+
+.county-picker-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 2px 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.county-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .map-notice {
+    top: 10px;
+    left: 54px;
+    right: 56px;
+    width: auto;
+    max-width: none;
+    font-size: 0.8rem;
+  }
+  .import-field {
+    min-width: 0;
+    width: 100%;
+  }
+  .import-section,
+  .coordinator-form {
+    padding: 14px;
+  }
+}
+
+/* === Admin — PDF/text extraction review grid === */
+.import-extract-table input {
+  width: 100%;
+  min-width: 180px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.import-extract-table td:nth-child(3) input {
+  min-width: 300px;
+}
+
+.import-extract-table input.import-input-missing {
+  border-color: #f59e0b;
+  background: #fffbeb;
 }

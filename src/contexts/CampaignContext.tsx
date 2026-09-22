@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useMemo } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import type { CampaignConfig } from '../config/campaigns';
 import { getCampaign } from '../config/campaigns';
+import { LocationsProvider } from './LocationsContext';
+import { AdminProvider } from './AdminContext';
 
 const CampaignCtx = createContext<CampaignConfig | null>(null);
 
@@ -49,9 +51,13 @@ export function CampaignProvider() {
 
   return (
     <CampaignCtx.Provider value={campaign}>
-      <div className="campaign-root" style={styleOverrides}>
-        <Outlet />
-      </div>
+      <AdminProvider>
+        <LocationsProvider>
+          <div className="campaign-root" style={styleOverrides}>
+            <Outlet />
+          </div>
+        </LocationsProvider>
+      </AdminProvider>
     </CampaignCtx.Provider>
   );
 }

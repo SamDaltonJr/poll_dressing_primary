@@ -4,6 +4,7 @@ import {
   addDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { lookupCounty } from '../utils/countyLookup';
 import type { LocationReport, LocationReportInput } from '../types';
 
 const COLLECTION = 'locationReports';
@@ -14,6 +15,7 @@ export async function addLocationReport(
 ): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTION), {
     ...input,
+    county: await lookupCounty(input.latitude, input.longitude),
     campaignId,
     status: 'pending',
     createdAt: serverTimestamp(),

@@ -1,11 +1,11 @@
-import { dualSites, electionDayOnly } from '../../config/categorizeLocations';
-import type { DressingRecord } from '../../types';
+import type { DressingRecord, MapMarker } from '../../types';
 
 interface StatsPanelProps {
   dressings: DressingRecord[];
+  locations: MapMarker[];
 }
 
-export default function StatsPanel({ dressings }: StatsPanelProps) {
+export default function StatsPanel({ dressings, locations }: StatsPanelProps) {
   const dressedSet = new Set(
     dressings.filter((d) => d.isDressed).map((d) => d.locationId),
   );
@@ -17,13 +17,16 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
     .reduce((sum, d) => sum + (d.signCount || 0), 0);
   const reportedCount = dressings.filter((d) => (d.reportCount ?? 0) > 0).length;
 
-  const dualTotal = dualSites.length;
-  const dualDressed = dualSites.filter((l) => dressedSet.has(l.id)).length;
-  const edOnlyTotal = electionDayOnly.length;
-  const edOnlyDressed = electionDayOnly.filter((l) => dressedSet.has(l.id)).length;
-  const totalLocations = dualTotal + edOnlyTotal;
-  const totalDressed = dualDressed + edOnlyDressed;
-  const totalClaimed = claimedSet.size;
+  const byType = (type: MapMarker['type']) => {
+    const locs = locations.filter((l) => l.type === type);
+    return { total: locs.length, dressed: locs.filter((l) => dressedSet.has(l.id)).length };
+  };
+  const dual = byType('dualSite');
+  const evOnly = byType('earlyVotingOnly');
+  const edOnly = byType('electionDayOnly');
+  const totalLocations = locations.length;
+  const totalDressed = locations.filter((l) => dressedSet.has(l.id)).length;
+  const totalClaimed = locations.filter((l) => claimedSet.has(l.id)).length;
   const pct = totalLocations > 0 ? Math.round((totalDressed / totalLocations) * 100) : 0;
 
   return (
@@ -44,11 +47,17 @@ export default function StatsPanel({ dressings }: StatsPanelProps) {
         <div className="stat-label">Signs Placed</div>
       </div>
       <div className="stat-card">
-        <div className="stat-number">{dualDressed}/{dualTotal}</div>
+        <div className="stat-number">{dual.dressed}/{dual.total}</div>
         <div className="stat-label">EV + Election Day</div>
       </div>
+      {evOnly.total > 0 && (
+        <div className="stat-card">
+          <div className="stat-number">{evOnly.dressed}/{evOnly.total}</div>
+          <div className="stat-label">Early Voting Only</div>
+        </div>
+      )}
       <div className="stat-card">
-        <div className="stat-number">{edOnlyDressed}/{edOnlyTotal}</div>
+        <div className="stat-number">{edOnly.dressed}/{edOnly.total}</div>
         <div className="stat-label">Election Day Only</div>
       </div>
       {reportedCount > 0 && (

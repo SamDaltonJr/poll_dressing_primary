@@ -3,21 +3,15 @@ import { MARKER_TYPES } from '../../config/constants';
 import { useCampaign } from '../../contexts/CampaignContext';
 import type { MarkerType } from '../../types';
 
-type CdScope = 'home' | 'neighbors' | 'all';
-
-const RADIUS_MIN_MILES = 1;
-const RADIUS_MAX_MILES = 5;
-
 interface MapFilterProps {
   activeTypes: Set<MarkerType>;
   onToggle: (type: MarkerType) => void;
   stats: Record<MarkerType, { total: number; dressed: number; claimed: number; retrieved: number }>;
-  cdScope: CdScope;
-  onChangeCdScope: (scope: CdScope) => void;
-  homeDistrict: string;
-  neighborRadius: number;
-  onChangeNeighborRadius: (miles: number) => void;
-  radiusSliderEnabled: boolean;
+  /** Selected county ('' = all of Texas). */
+  county: string;
+  onChangeCounty: (county: string) => void;
+  /** Counties with imported polling locations, with site counts. */
+  countyOptions: Array<{ name: string; count: number }>;
   showDistributionPoints: boolean;
   onToggleDistributionPoints: () => void;
   distributionPointCount: number;
@@ -29,20 +23,10 @@ interface MapFilterProps {
   plannedSignCount: number;
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onChangeCdScope, homeDistrict, neighborRadius, onChangeNeighborRadius, radiusSliderEnabled, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, county, onChangeCounty, countyOptions, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
   const campaign = useCampaign();
   const signLetter = campaign.candidateLastName.charAt(0).toUpperCase();
-  // When the campaign opts into distance-based neighbors, surface the radius
-  // on the toggle so volunteers can see what "+ Neighbors" means. Otherwise
-  // fall back to the legacy district-union wording.
-  const neighborsLabel = radiusSliderEnabled
-    ? `+ ${neighborRadius} mi`
-    : '+ Neighbors';
-  const neighborsTitle = radiusSliderEnabled
-    ? `Include polling sites within ${neighborRadius} miles of ${homeDistrict}`
-    : 'Include neighboring districts';
-  const showRadiusSlider = radiusSliderEnabled && cdScope === 'neighbors';
 
   if (collapsed) {
     return (
@@ -71,56 +55,19 @@ export default function MapFilter({ activeTypes, onToggle, stats, cdScope, onCha
       >
         &times;
       </button>
-      <div className="map-filter-cd-scope" role="radiogroup" aria-label="Congressional district scope">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={cdScope === 'home'}
-          className={`map-filter-cd-btn ${cdScope === 'home' ? 'active' : ''}`}
-          onClick={() => onChangeCdScope('home')}
-          title={`Show only ${homeDistrict} polling sites`}
+      <label className="map-filter-county">
+        <span className="map-filter-county-label">County</span>
+        <select
+          value={county}
+          onChange={(e) => onChangeCounty(e.target.value)}
+          aria-label="Show polling locations for county"
         >
-          {homeDistrict}
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={cdScope === 'neighbors'}
-          className={`map-filter-cd-btn ${cdScope === 'neighbors' ? 'active' : ''}`}
-          onClick={() => onChangeCdScope('neighbors')}
-          title={neighborsTitle}
-        >
-          {neighborsLabel}
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={cdScope === 'all'}
-          className={`map-filter-cd-btn ${cdScope === 'all' ? 'active' : ''}`}
-          onClick={() => onChangeCdScope('all')}
-          title="Show all districts in the campaign's covered counties"
-        >
-          All
-        </button>
-      </div>
-      {showRadiusSlider && (
-        <div className="map-filter-radius">
-          <label className="map-filter-radius-label" htmlFor="map-filter-radius-input">
-            Radius: <strong>{neighborRadius} mi</strong>
-          </label>
-          <input
-            id="map-filter-radius-input"
-            className="map-filter-radius-slider"
-            type="range"
-            min={RADIUS_MIN_MILES}
-            max={RADIUS_MAX_MILES}
-            step={1}
-            value={neighborRadius}
-            onChange={(e) => onChangeNeighborRadius(Number(e.target.value))}
-            aria-label={`Neighbor radius in miles, currently ${neighborRadius}`}
-          />
-        </div>
-      )}
+          <option value="">All of Texas</option>
+          {countyOptions.map((c) => (
+            <option key={c.name} value={c.name}>{c.name} ({c.count})</option>
+          ))}
+        </select>
+      </label>
       <div className="map-filter-separator" />
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
         ([type, config]) => {

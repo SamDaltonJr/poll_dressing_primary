@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { activeLocations } from '../../config/categorizeLocations';
 import { buildReminderMailto, buildBulkReminderMailtos } from '../../utils/mailto';
+import { useCampaign } from '../../contexts/CampaignContext';
 import type { DressingRecord, MapMarker } from '../../types';
 
 interface PendingRemindersTableProps {
   dressings: DressingRecord[];
+  locations: MapMarker[];
 }
 
 interface VolunteerGroup {
@@ -30,15 +31,15 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function PendingRemindersTable({ dressings }: PendingRemindersTableProps) {
+export default function PendingRemindersTable({ dressings, locations }: PendingRemindersTableProps) {
   const [reminderTimestamps, setReminderTimestamps] = useState<Record<string, string>>({});
   const [copiedAll, setCopiedAll] = useState(false);
 
   const locationMap = useMemo(() => {
     const m = new Map<string, MapMarker>();
-    for (const loc of activeLocations) m.set(loc.id, loc);
+    for (const loc of locations) m.set(loc.id, loc);
     return m;
-  }, []);
+  }, [locations]);
 
   const volunteerGroups = useMemo<VolunteerGroup[]>(() => {
     const groups = new Map<string, VolunteerGroup>();
@@ -65,13 +66,13 @@ export default function PendingRemindersTable({ dressings }: PendingRemindersTab
     [volunteerGroups],
   );
 
-  const appUrl = window.location.origin + window.location.pathname;
+  const campaign = useCampaign();
 
   function handleSendReminder(group: VolunteerGroup) {
     const url = buildReminderMailto(
       group.email,
       group.locations.map((l) => ({ name: l.location.label, address: l.location.address })),
-      appUrl,
+      campaign,
     );
     setLastReminded(group.email);
     setReminderTimestamps((prev) => ({ ...prev, [group.email]: new Date().toISOString() }));
@@ -80,7 +81,7 @@ export default function PendingRemindersTable({ dressings }: PendingRemindersTab
 
   function handleRemindAll() {
     const emails = volunteerGroups.map((g) => g.email);
-    const urls = buildBulkReminderMailtos(emails, appUrl);
+    const urls = buildBulkReminderMailtos(emails, campaign);
     for (const group of volunteerGroups) {
       setLastReminded(group.email);
     }

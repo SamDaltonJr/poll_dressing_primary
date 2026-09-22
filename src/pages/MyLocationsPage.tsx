@@ -3,7 +3,7 @@ import { useDressings } from '../hooks/useDressings';
 import { useSubmissions } from '../hooks/useSubmissions';
 import { unclaimLocation } from '../services/dressingService';
 import { markSignRetrieved } from '../services/submissionService';
-import { activeLocations } from '../config/categorizeLocations';
+import { useLocations } from '../contexts/LocationsContext';
 import { MARKER_TYPES } from '../config/constants';
 import { buildDirectionsUrls } from '../utils/directions';
 import { useCampaign } from '../contexts/CampaignContext';
@@ -21,6 +21,7 @@ export default function MyLocationsPage() {
   const campaign = useCampaign();
   const { dressings, loading } = useDressings();
   const { submissions, loading: subsLoading } = useSubmissions();
+  const { activeLocations, loading: locationsLoading } = useLocations();
 
   const [unclaimTarget, setUnclaimTarget] = useState<VolunteerLocation | null>(null);
   const [retrieveTarget, setRetrieveTarget] = useState<VolunteerLocation | null>(null);
@@ -38,7 +39,7 @@ export default function MyLocationsPage() {
     const m = new Map<string, MapMarker>();
     for (const loc of activeLocations) m.set(loc.id, loc);
     return m;
-  }, []);
+  }, [activeLocations]);
 
   const myLocations = useMemo<VolunteerLocation[]>(() => {
     if (!searchTerm) return [];
@@ -136,7 +137,7 @@ export default function MyLocationsPage() {
     }
   }
 
-  if (loading || subsLoading) return <LoadingSpinner message="Loading data..." />;
+  if (loading || subsLoading || locationsLoading) return <LoadingSpinner message="Loading data..." />;
 
   return (
     <div className="my-locations-page">

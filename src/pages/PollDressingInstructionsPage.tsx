@@ -52,8 +52,9 @@ export default function PollDressingInstructionsPage() {
               <h3>Open the App & Browse the Map</h3>
               <p>
                 Visit the site or scan the QR code. You'll see an interactive map with colored
-                circle pins for every polling location across Dallas, Tarrant, Denton, and Collin
-                counties.
+                circle pins for polling locations across Texas. Counties are added as they publish
+                their early voting and election day lists — use the <strong>County</strong> dropdown in
+                the legend to jump to yours.
               </p>
               <p>
                 Use the <strong>search bar</strong> (top-left) to find a specific location by name.
@@ -207,25 +208,25 @@ export default function PollDressingInstructionsPage() {
 
         <h3>Pin Sizes (Early Voting Locations)</h3>
         <p>
-          Early voting location pins are sized by Democratic primary turnout to help you prioritize:
+          Where turnout data is available, early voting pins are sized by expected Democratic turnout to help you prioritize:
         </p>
         <div className="instructions-sizes">
           <div className="instructions-size-item">
             <span className="size-indicator size-large"></span>
             <div>
-              <strong>Large</strong> — 300+ Dem ballots (highest priority)
+              <strong>Large</strong> — highest-turnout sites (highest priority)
             </div>
           </div>
           <div className="instructions-size-item">
             <span className="size-indicator size-medium"></span>
             <div>
-              <strong>Medium</strong> — 150–299 Dem ballots
+              <strong>Medium</strong> — moderate turnout, or no turnout data yet
             </div>
           </div>
           <div className="instructions-size-item">
             <span className="size-indicator size-small"></span>
             <div>
-              <strong>Small</strong> — Under 150 Dem ballots
+              <strong>Small</strong> — lower turnout
             </div>
           </div>
         </div>

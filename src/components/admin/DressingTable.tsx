@@ -3,7 +3,6 @@ import { revertDressing, unclaimLocation, dismissReports } from '../../services/
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
-import { activeLocations, getCounty } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
 import { findNearbyUnclaimed } from '../../utils/geo';
 import { useCampaign } from '../../contexts/CampaignContext';
@@ -15,6 +14,7 @@ type SortDir = 'asc' | 'desc';
 
 interface DressingTableProps {
   dressings: DressingRecord[];
+  locations: MapMarker[];
 }
 
 interface Row {
@@ -24,10 +24,10 @@ interface Row {
   county: string;
 }
 
-function NearbyPanel({ location, claimedOrDressedIds }: { location: MapMarker; claimedOrDressedIds: Set<string> }) {
+function NearbyPanel({ location, locations, claimedOrDressedIds }: { location: MapMarker; locations: MapMarker[]; claimedOrDressedIds: Set<string> }) {
   const nearby = useMemo(
-    () => findNearbyUnclaimed(location.latitude, location.longitude, activeLocations, claimedOrDressedIds, location.id),
-    [location, claimedOrDressedIds],
+    () => findNearbyUnclaimed(location.latitude, location.longitude, locations, claimedOrDressedIds, location.id),
+    [location, locations, claimedOrDressedIds],
   );
 
   if (nearby.length === 0) {
@@ -50,7 +50,7 @@ function NearbyPanel({ location, claimedOrDressedIds }: { location: MapMarker; c
   );
 }
 
-export default function DressingTable({ dressings }: DressingTableProps) {
+export default function DressingTable({ dressings, locations }: DressingTableProps) {
   const campaign = useCampaign();
   const [filter, setFilter] = useState<FilterMode>('all');
   const [search, setSearch] = useState('');
@@ -77,15 +77,13 @@ export default function DressingTable({ dressings }: DressingTableProps) {
     return set;
   }, [dressings]);
 
-  const locations = useMemo(() => activeLocations, []);
-
   const rows = useMemo<Row[]>(() =>
     locations.map((loc) => {
       const d = dressingMap.get(loc.id);
       let status: LocationStatus = 'available';
       if (d?.isDressed) status = 'dressed';
       else if (d?.isClaimed) status = 'claimed';
-      return { location: loc, dressing: d, status, county: getCounty(loc.id) };
+      return { location: loc, dressing: d, status, county: loc.county };
     }),
     [locations, dressingMap],
   );
@@ -375,6 +373,7 @@ export default function DressingTable({ dressings }: DressingTableProps) {
                       <td colSpan={9} className="expanded-row-detail">
                         <NearbyPanel
                           location={row.location}
+                          locations={locations}
                           claimedOrDressedIds={claimedOrDressedIds}
                         />
                       </td>
