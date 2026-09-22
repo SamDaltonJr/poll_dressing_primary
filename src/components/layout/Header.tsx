@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCampaign } from '../../contexts/CampaignContext';
+import { candidateInitials } from '../../config/campaigns';
 
 export default function Header() {
   const location = useLocation();
@@ -40,10 +41,14 @@ export default function Header() {
     <header className="header">
       <div className="header-inner">
         <Link to={path('')} className="header-logo" aria-label={`${campaign.candidateName} home`}>
-          <img src={campaign.logoUrl} alt="" className="header-logo-img" />
+          {campaign.logoUrl ? (
+            <img src={campaign.logoUrl} alt="" className="header-logo-img" />
+          ) : (
+            <span className="header-logo-initials" aria-hidden="true">{candidateInitials(campaign.candidateName)}</span>
+          )}
           <span className="header-logo-text">
             <span className="header-logo-candidate">{campaign.candidateName}</span>
-            <span className="header-logo-district">{campaign.homeDistrict}</span>
+            <span className="header-logo-district">{campaign.raceLabel} · {campaign.electionLabel}</span>
           </span>
         </Link>
         <button

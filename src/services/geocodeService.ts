@@ -1,5 +1,5 @@
 import type { GeocodingResult } from '../types';
-import { DFW_VIEWBOX } from '../config/constants';
+import { TEXAS_VIEWBOX } from '../config/constants';
 
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
 
@@ -10,7 +10,7 @@ export async function forwardGeocode(query: string): Promise<GeocodingResult[]> 
     addressdetails: '1',
     limit: '5',
     countrycodes: 'us',
-    viewbox: DFW_VIEWBOX,
+    viewbox: TEXAS_VIEWBOX,
     bounded: '0',
   });
 

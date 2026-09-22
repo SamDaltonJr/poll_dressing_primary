@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Build 1: current campaigns (Johnson + Burge), points at the new Firebase.
+  # Build 1: current campaigns (Talarico general), points at the new Firebase.
   # Reads VITE_FIREBASE_* from the production-2026 environment.
   # ---------------------------------------------------------------------------
   build-current:

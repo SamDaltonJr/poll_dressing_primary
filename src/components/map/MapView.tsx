@@ -8,6 +8,7 @@ import DistributionPointMarker from './DistributionPointMarker';
 import PlannedSignMarker from './PlannedSignMarker';
 import PinDropHandler from './PinDropHandler';
 import FlyToLocation from './FlyToLocation';
+import FitBounds from './FitBounds';
 import UserLocationMarker from './UserLocationMarker';
 import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
 import type { MapMarker, DressingRecord, DistributionPoint, SignSubmission, PlannedSignLocation, LocationStatus } from '../../types';
@@ -36,6 +37,7 @@ interface MapViewProps {
   onAdminPinPlaced: (lat: number, lng: number) => void;
   flyToTarget: { lat: number; lng: number } | null;
   onFlyComplete: () => void;
+  fitBoundsTarget: [number, number, number, number] | null;
 }
 
 const PURPLE = '#7c3aed';
@@ -111,7 +113,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, retrievedIds, dressings, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, onSignRetrieveClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, retrievedIds, dressings, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, onSignRetrieveClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete, fitBoundsTarget }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -169,9 +171,13 @@ export default function MapView({ markers, dressedIds, claimedIds, retrievedIds,
         <DistributionPointMarker key={point.id} point={point} />
       ))}
 
-      {signSubmissions.map((sub) => (
-        <SignMarker key={sub.id} submission={sub} onRetrieveClick={onSignRetrieveClick} hasAccess={hasAccess} />
-      ))}
+      {/* Statewide sign placements can run into the thousands, so they get
+          their own (default-styled) cluster group separate from polling sites. */}
+      <MarkerClusterGroup chunkedLoading disableClusteringAtZoom={13} maxClusterRadius={50}>
+        {signSubmissions.map((sub) => (
+          <SignMarker key={sub.id} submission={sub} onRetrieveClick={onSignRetrieveClick} hasAccess={hasAccess} />
+        ))}
+      </MarkerClusterGroup>
 
       {plannedSigns.map((sign) => (
         <PlannedSignMarker key={sign.id} sign={sign} />
@@ -181,6 +187,7 @@ export default function MapView({ markers, dressedIds, claimedIds, retrievedIds,
       <PinDropHandler active={pinDropMode} pinPosition={pinPosition} onPinPlaced={onPinPlaced} />
       <PinDropHandler active={adminPinDropMode} pinPosition={adminPinPosition} onPinPlaced={onAdminPinPlaced} />
       <FlyToLocation target={flyToTarget} onComplete={onFlyComplete} />
+      <FitBounds bbox={fitBoundsTarget} />
     </MapContainer>
   );
 }

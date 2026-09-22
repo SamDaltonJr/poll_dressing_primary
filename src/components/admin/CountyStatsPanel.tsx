@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { activeLocations, getCounty } from '../../config/categorizeLocations';
-import type { DressingRecord } from '../../types';
+import type { DressingRecord, MapMarker } from '../../types';
 
 interface CountyStatsPanelProps {
   dressings: DressingRecord[];
+  locations: MapMarker[];
 }
 
 interface CountyRow {
@@ -15,7 +15,7 @@ interface CountyRow {
   pct: number;
 }
 
-export default function CountyStatsPanel({ dressings }: CountyStatsPanelProps) {
+export default function CountyStatsPanel({ dressings, locations }: CountyStatsPanelProps) {
   const rows = useMemo(() => {
     const dressedSet = new Set(
       dressings.filter((d) => d.isDressed).map((d) => d.locationId),
@@ -26,8 +26,8 @@ export default function CountyStatsPanel({ dressings }: CountyStatsPanelProps) {
 
     const countyMap = new Map<string, { total: number; dressed: number; claimed: number }>();
 
-    for (const loc of activeLocations) {
-      const county = getCounty(loc.id);
+    for (const loc of locations) {
+      const county = loc.county;
       const entry = countyMap.get(county) || { total: 0, dressed: 0, claimed: 0 };
       entry.total++;
       if (dressedSet.has(loc.id)) entry.dressed++;
@@ -48,7 +48,7 @@ export default function CountyStatsPanel({ dressings }: CountyStatsPanelProps) {
     }
 
     return result.sort((a, b) => b.total - a.total);
-  }, [dressings]);
+  }, [dressings, locations]);
 
   const totals = useMemo(() => {
     return rows.reduce(

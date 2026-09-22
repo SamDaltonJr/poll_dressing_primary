@@ -1,11 +1,36 @@
+import type { CampaignConfig } from '../config/campaigns';
+
 const MAX_MAILTO_EMAILS = 50;
+
+/** Group-chat link, coordinator contacts and sign-off, from campaign config. */
+function footerLines(campaign: CampaignConfig): string[] {
+  const lines: string[] = [];
+  if (campaign.groupChatUrl) {
+    lines.push('Join our group chat for updates and coordination:', campaign.groupChatUrl, '');
+  }
+  if (campaign.contacts?.length) {
+    lines.push('If you have any questions, reach out to us:');
+    for (const c of campaign.contacts) {
+      lines.push(`  ${[c.name, c.phone, c.email].filter(Boolean).join(' - ')}`);
+    }
+    lines.push('');
+  }
+  lines.push('Thank you for volunteering!');
+  return lines;
+}
+
+/** Deep link to the campaign's map (HashRouter), for email bodies. */
+export function campaignAppUrl(campaign: CampaignConfig): string {
+  return `${window.location.origin}${window.location.pathname}#/c/${campaign.slug}`;
+}
 
 /** Build a mailto: link for a volunteer reminder listing all their claimed locations. */
 export function buildReminderMailto(
   email: string,
   locations: { name: string; address: string }[],
-  appUrl: string,
+  campaign: CampaignConfig,
 ): string {
+  const appUrl = campaignAppUrl(campaign);
   const subject = locations.length === 1
     ? `Reminder: Poll Dressing for ${locations[0].name}`
     : `Reminder: Complete Your Poll Dressing Assignments`;
@@ -22,21 +47,15 @@ export function buildReminderMailto(
     `You can view the map and manage your claims here:`,
     appUrl,
     ``,
-    `Join our Signal group chat for updates and coordination:`,
-    `https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2`,
-    ``,
-    `If you have any questions, reach out to us:`,
-    `  Sam Dalton - (214) 686-8608 - spdaltonjr@gmail.com`,
-    `  Rob Strobel - (859) 489-8880 - rob@jamestalarico.com`,
-    ``,
-    `Thank you for volunteering!`,
+    ...footerLines(campaign),
   ].join('\n');
 
   return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 /** Build mailto: link(s) for bulk reminders. Returns multiple links if >50 emails. */
-export function buildBulkReminderMailtos(emails: string[], appUrl: string): string[] {
+export function buildBulkReminderMailtos(emails: string[], campaign: CampaignConfig): string[] {
+  const appUrl = campaignAppUrl(campaign);
   const subject = 'Reminder: Complete Your Poll Dressing Assignment';
   const body = [
     `Hi!`,
@@ -48,14 +67,7 @@ export function buildBulkReminderMailtos(emails: string[], appUrl: string): stri
     `You can view the map and manage your claim here:`,
     appUrl,
     ``,
-    `Join our Signal group chat for updates and coordination:`,
-    `https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2`,
-    ``,
-    `If you have any questions, reach out to us:`,
-    `  Sam Dalton - (214) 686-8608 - spdaltonjr@gmail.com`,
-    `  Rob Strobel - (859) 489-8880 - rob@jamestalarico.com`,
-    ``,
-    `Thank you for volunteering!`,
+    ...footerLines(campaign),
   ].join('\n');
 
   const batches: string[][] = [];
@@ -70,8 +82,9 @@ export function buildBulkReminderMailtos(emails: string[], appUrl: string): stri
 }
 
 /** Build mailto: link(s) for a mass email to all volunteers. Body is left mostly empty for the admin to fill in. */
-export function buildMassEmailMailtos(emails: string[], appUrl: string): string[] {
-  const subject = 'Campaign Sign Tracker — Volunteer Update';
+export function buildMassEmailMailtos(emails: string[], campaign: CampaignConfig): string[] {
+  const appUrl = campaignAppUrl(campaign);
+  const subject = `${campaign.candidateName} Sign Tracker — Volunteer Update`;
   const body = [
     `Hi volunteers!`,
     ``,
@@ -80,14 +93,7 @@ export function buildMassEmailMailtos(emails: string[], appUrl: string): string[
     `You can view the map and manage your claims here:`,
     appUrl,
     ``,
-    `Join our Signal group chat for updates and coordination:`,
-    `https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2`,
-    ``,
-    `If you have any questions, reach out to us:`,
-    `  Sam Dalton - (214) 686-8608 - spdaltonjr@gmail.com`,
-    `  Rob Strobel - (859) 489-8880 - rob@jamestalarico.com`,
-    ``,
-    `Thank you for volunteering!`,
+    ...footerLines(campaign),
   ].join('\n');
 
   const batches: string[][] = [];

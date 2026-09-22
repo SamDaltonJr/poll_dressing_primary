@@ -4,6 +4,7 @@ import {
   addDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { lookupCounty } from '../utils/countyLookup';
 import type { DistributionPoint, DistributionPointInput } from '../types';
 
 const COLLECTION = 'distributionPoints';
@@ -14,6 +15,7 @@ export async function addDistributionPoint(
 ): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTION), {
     ...input,
+    county: await lookupCounty(input.latitude, input.longitude),
     campaignId,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -30,6 +32,7 @@ export async function updateDistributionPoint(
   // every update. Same for the other update*/delete* functions below.
   await updateDoc(doc(db, COLLECTION, id), {
     ...input,
+    county: await lookupCounty(input.latitude, input.longitude),
     updatedAt: serverTimestamp(),
   });
 }

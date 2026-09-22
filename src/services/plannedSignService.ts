@@ -4,6 +4,7 @@ import {
   addDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { lookupCounty } from '../utils/countyLookup';
 import type { PlannedSignLocation, PlannedSignLocationInput, PlannedSignStatus } from '../types';
 
 const COLLECTION = 'plannedSignLocations';
@@ -14,6 +15,7 @@ export async function addPlannedSign(
 ): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTION), {
     ...input,
+    county: await lookupCounty(input.latitude, input.longitude),
     campaignId,
     status: input.status ?? 'planned',
     createdAt: serverTimestamp(),
@@ -28,6 +30,7 @@ export async function updatePlannedSign(
 ): Promise<void> {
   await updateDoc(doc(db, COLLECTION, id), {
     ...input,
+    county: await lookupCounty(input.latitude, input.longitude),
     updatedAt: serverTimestamp(),
   });
 }

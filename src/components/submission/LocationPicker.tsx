@@ -4,7 +4,7 @@ import MapClickHandler from '../map/MapClickHandler';
 import GpsButton from './GpsButton';
 import AddressSearch from './AddressSearch';
 import { reverseGeocode } from '../../services/geocodeService';
-import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
+import { MAP_CENTER, MAP_ZOOM, DETAIL_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
 import type { GeocodingResult } from '../../types';
 
 type LocationMode = 'gps' | 'address' | 'pin';
@@ -73,7 +73,7 @@ export default function LocationPicker({
             <p className="search-hint">Click on the map to set the sign location.</p>
             <MapContainer
               center={selectedLat && selectedLng ? [selectedLat, selectedLng] : MAP_CENTER}
-              zoom={MAP_ZOOM + 2}
+              zoom={selectedLat && selectedLng ? DETAIL_ZOOM : MAP_ZOOM}
               className="mini-map"
             >
               <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />

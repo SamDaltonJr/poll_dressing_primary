@@ -7,10 +7,29 @@ service cloud.firestore {
     match /signPickups/{doc} { allow read, write; }
     match /locationReports/{doc} { allow read, write; }
 
-    // Big-sign submissions for the May 26 runoff. Re-opened in commit ad04f17
-    // (Re-enable big sign submissions for May 26 runoff). Originally locked
-    // when /submit was hidden; reopen required here and was missed.
+    // Big-sign submissions.
     match /submissions/{doc} { allow read, write; }
+
+    // Statewide polling locations, one doc per county, written by the admin
+    // CSV importer. Same open-write posture as the rest of the app (the admin
+    // UI gate is client-side); shape checks just keep junk out.
+    match /pollingLocationSets/{doc} {
+      allow read;
+      allow create, update: if request.resource.data.campaignId is string
+                            && request.resource.data.county is string
+                            && request.resource.data.locations is list;
+      allow delete;
+    }
+
+    // Regional coordinators. Doc ID = sha256("<campaignId>:<login code>"), so
+    // the ID itself is the credential check; codes are random 12-char strings.
+    match /coordinators/{doc} {
+      allow read;
+      allow create, update: if request.resource.data.campaignId is string
+                            && request.resource.data.name is string
+                            && request.resource.data.counties is list;
+      allow delete;
+    }
 
     // Per-campaign auth + admin-managed coverage. Hash fields are write-locked
     // so client code can never overwrite the access codes.

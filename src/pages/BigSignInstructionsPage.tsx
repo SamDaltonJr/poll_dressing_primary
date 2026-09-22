@@ -22,7 +22,7 @@ export default function BigSignInstructionsPage() {
         </p>
         <p>
           When you place a big sign, you log it on this site via the <strong>Submit</strong> tab so
-          the team can track coverage across Dallas, Tarrant, Denton, and Collin counties.
+          the team can track coverage anywhere in Texas.
         </p>
       </section>
 
@@ -30,19 +30,16 @@ export default function BigSignInstructionsPage() {
       <section className="instructions-section">
         <h2>Where to Pick Up Signs</h2>
         <p>
-          Contact one of the coordinators below to arrange sign pickup:
+          Contact your regional coordinator, or one of the statewide coordinators below, to arrange sign pickup:
         </p>
         <div className="instructions-contacts">
-          <div className="instructions-contact-card">
-            <strong>Sam Dalton</strong>
-            <a href="mailto:spdaltonjr@gmail.com">spdaltonjr@gmail.com</a>
-            <a href="tel:+12146868608">(214) 686-8608</a>
-          </div>
-          <div className="instructions-contact-card">
-            <strong>Rob Strobel</strong>
-            <a href="mailto:rob@jamestalarico.com">rob@jamestalarico.com</a>
-            <a href="tel:+18594898880">(859) 489-8880</a>
-          </div>
+          {(campaign.contacts ?? []).map((c) => (
+            <div key={c.name} className="instructions-contact-card">
+              <strong>{c.name}</strong>
+              {c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}
+              {c.phone && <a href={`tel:+1${c.phone.replace(/\D/g, '')}`}>{c.phone}</a>}
+            </div>
+          ))}
         </div>
         <div className="instructions-tip">
           <strong>Tip:</strong> Sign distribution points are also shown on the map as

@@ -4,7 +4,7 @@
 
 Campaign Sign Tracker is a mobile-friendly web app for tracking campaign sign placement at polling locations across North Texas. The app helps coordinate volunteers so every site gets covered — you claim a location, place signs, and confirm in the app. The team also uses it to track big sign placements at high-visibility intersections.
 
-The map shows **Early Voting** and **Election Day** polling locations across Dallas, Tarrant, Denton, and Collin counties so you can prioritize high-visibility placements near where voters will be.
+The map shows **Early Voting** and **Election Day** polling locations across Texas (counties are added as they publish their lists) so you can prioritize high-visibility placements near where voters will be.
 
 ---
 

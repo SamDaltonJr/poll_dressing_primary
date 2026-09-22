@@ -1,24 +1,25 @@
 import Papa from 'papaparse';
-import { allLocations } from '../../config/categorizeLocations';
 import { MARKER_TYPES } from '../../config/constants';
-import type { DressingRecord } from '../../types';
+import type { DressingRecord, MapMarker } from '../../types';
 
 interface ExportButtonProps {
   dressings: DressingRecord[];
+  locations: MapMarker[];
 }
 
-export default function ExportButton({ dressings }: ExportButtonProps) {
+export default function ExportButton({ dressings, locations }: ExportButtonProps) {
   function handleExport() {
     const dressingMap = new Map(dressings.map((d) => [d.locationId, d]));
 
-    const data = allLocations.map((loc) => {
+    const data = locations.map((loc) => {
       const d = dressingMap.get(loc.id);
       return {
         'Location Name': loc.label,
         Type: MARKER_TYPES[loc.type]?.label ?? loc.type,
+        County: loc.county,
         Address: loc.address,
         Size: loc.size || '',
-        Status: d?.isDressed ? 'Dressed' : 'Not Dressed',
+        Status: d?.isRetrieved ? 'Retrieved' : d?.isDressed ? 'Dressed' : d?.isClaimed ? 'Claimed' : 'Available',
         'Volunteer Name': d?.volunteerName || '',
         Phone: d?.volunteerPhone || '',
         Email: d?.volunteerEmail || '',
