@@ -62,6 +62,10 @@ export function LocationsProvider({ children }: { children: ReactNode }) {
           size: l.size,
           evTotal: l.evTotal,
           county: set.county,
+          notes: l.notes,
+          tip: l.tip,
+          tipBy: l.tipBy,
+          tipAt: l.tipAt,
         });
       }
     }

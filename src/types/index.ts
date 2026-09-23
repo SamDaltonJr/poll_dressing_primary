@@ -32,7 +32,20 @@ export interface StoredLocation {
   ed: boolean;
   size?: LocationSize;
   evTotal?: number;
+  /**
+   * Where the voting actually happens at the site ("Fellowship Hall, Room 104,
+   * enter from the back lot"). From the county list or an admin edit.
+   */
+  notes?: string;
+  /** Advice left by a volunteer who dressed the site, for the next one. */
+  tip?: string;
+  tipBy?: string;
+  /** Epoch ms. Array entries can't hold serverTimestamp(). */
+  tipAt?: number;
 }
+
+/** The editable note fields on a StoredLocation. */
+export type LocationNotesPatch = Partial<Pick<StoredLocation, 'notes' | 'tip' | 'tipBy' | 'tipAt'>>;
 
 /**
  * All polling sites for one county. Doc ID: `${campaignId}__${countySlug}`.
@@ -60,6 +73,10 @@ export interface MapMarker {
   size?: LocationSize;
   evTotal?: number;
   county: string;
+  notes?: string;
+  tip?: string;
+  tipBy?: string;
+  tipAt?: number;
 }
 
 // Dressing records stored in Firestore.

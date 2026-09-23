@@ -1006,6 +1006,47 @@ textarea:focus {
   color: var(--color-text-muted);
 }
 
+/* === Location notes (room / building / entrance + volunteer tip) === */
+.location-notes {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-bg);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.location-notes p {
+  margin: 0;
+}
+
+.location-notes p + p {
+  margin-top: 4px;
+}
+
+.location-notes-label {
+  font-weight: 700;
+}
+
+.location-notes-by {
+  color: var(--color-text-muted);
+}
+
+.location-notes-cell {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
 .marker-popup-notes {
   font-size: 0.8rem;
   color: var(--color-text-muted);

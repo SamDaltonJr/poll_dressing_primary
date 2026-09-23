@@ -10,6 +10,7 @@ import { useCampaign } from '../contexts/CampaignContext';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import ConfirmRetrievedModal from '../components/map/ConfirmRetrievedModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import LocationNotes from '../components/common/LocationNotes';
 import type { MapMarker, DressingRecord, SignSubmission } from '../types';
 
 interface VolunteerLocation {
@@ -224,6 +225,7 @@ export default function MyLocationsPage() {
                       <span className="my-location-card-address">
                         {item.location.address}
                       </span>
+                      <LocationNotes location={item.location} />
                     </div>
                     <div className="my-location-card-meta">
                       <span className="dressing-status claimed">Pending</span>
@@ -258,6 +260,7 @@ export default function MyLocationsPage() {
                       <span className="my-location-card-address">
                         {item.location.address}
                       </span>
+                      <LocationNotes location={item.location} />
                     </div>
                     <div className="my-location-card-meta">
                       <span className="dressing-status dressed">Dressed</span>
@@ -295,6 +298,7 @@ export default function MyLocationsPage() {
                       <span className="my-location-card-address">
                         {item.location.address}
                       </span>
+                      <LocationNotes location={item.location} />
                     </div>
                     <div className="my-location-card-meta">
                       <span className="dressing-status retrieved">Retrieved</span>

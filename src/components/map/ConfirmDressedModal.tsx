@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { confirmDressed } from '../../services/dressingService';
+import { updateLocationNotes } from '../../services/pollingLocationService';
 import { useCampaign } from '../../contexts/CampaignContext';
+import LocationNotes from '../common/LocationNotes';
 import type { MapMarker, DressingRecord } from '../../types';
 
 interface ConfirmDressedModalProps {
@@ -13,6 +15,7 @@ interface ConfirmDressedModalProps {
 export default function ConfirmDressedModal({ marker, dressing, onClose, onConfirmed }: ConfirmDressedModalProps) {
   const campaign = useCampaign();
   const [signCount, setSignCount] = useState('1');
+  const [tip, setTip] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,6 +25,15 @@ export default function ConfirmDressedModal({ marker, dressing, onClose, onConfi
     setError('');
     try {
       await confirmDressed(marker.id, parseInt(signCount, 10) || 1, campaign.slug);
+      if (tip.trim()) {
+        // Best-effort: the site is already marked dressed, so a failed tip
+        // save shouldn't make the volunteer think the whole thing failed.
+        await updateLocationNotes(campaign.slug, marker.county, marker.id, {
+          tip: tip.trim(),
+          tipBy: dressing.volunteerName,
+          tipAt: Date.now(),
+        }).catch((err) => console.error('Failed to save tip:', err));
+      }
       onConfirmed();
     } catch {
       setError('Failed to confirm. Please try again.');
@@ -38,6 +50,7 @@ export default function ConfirmDressedModal({ marker, dressing, onClose, onConfi
           <strong>{marker.label}</strong><br />
           {marker.address}
         </p>
+        <LocationNotes location={marker} />
         <p className="dressing-modal-claimed-by">
           Claimed by {dressing.volunteerName}
         </p>
@@ -52,6 +65,17 @@ export default function ConfirmDressedModal({ marker, dressing, onClose, onConfi
               onChange={(e) => setSignCount(e.target.value)}
               required
               autoFocus
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="dress-tip">Tip for the next volunteer (optional)</label>
+            <textarea
+              id="dress-tip"
+              rows={2}
+              maxLength={500}
+              value={tip}
+              onChange={(e) => setTip(e.target.value)}
+              placeholder={marker.tip ? 'Leave blank to keep the current tip' : 'e.g. Voting is in the gym. Put signs along the walkway from the east lot.'}
             />
           </div>
           {error && <p className="error-text">{error}</p>}
