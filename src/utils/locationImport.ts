@@ -115,10 +115,31 @@ function parseNum(v: string | undefined): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+// A unit that ends the street or sits in its own comma part: "…Rd Suite 100",
+// "…Rd, Room 104", "…Rd #5". "Rm" is left out because "RM 620" is a road.
+const ADDRESS_UNIT_RE = /(?:,\s*|\s+)((?:suite|ste|room|bldg|building|unit)\b\.?\s*#?\s*([\w-]+)|#\s*([\w-]+))(?=\s*(?:,|$))/i;
+
+/**
+ * Pull a room/suite out of an address so it becomes a location note instead:
+ * volunteers need it, and geocoders do better without it.
+ */
+export function splitUnit(address: string): { address: string; unit: string } {
+  const m = ADDRESS_UNIT_RE.exec(address);
+  if (!m) return { address, unit: '' };
+  // Needs a street before it ("500 Building Way" is a street), and a unit
+  // value that looks like one: "5", "A-12", "B" — not "Rd".
+  const value = m[2] ?? m[3];
+  const hasStreet = /\d\w*\s+\S+/.test(address.slice(0, m.index));
+  if (!hasStreet || !/^(?:[A-Za-z]|[\w-]*\d[\w-]*)$/.test(value)) return { address, unit: '' };
+  const rest = (address.slice(0, m.index) + address.slice(m.index + m[0].length)).replace(/\s+,/g, ',').trim();
+  return { address: rest, unit: m[1].replace(/\s+/g, ' ') };
+}
+
 /**
  * Turn mapped CSV rows into import rows. Builds a full one-line address
  * ("street, city, TX zip") from whichever parts the county provided. Rows
- * without a name or address are dropped and reported by row number.
+ * without a name or address are dropped and reported by row number. A room
+ * or suite in the address moves to the row's notes.
  */
 export function toImportRows(
   parsed: ParsedCsv,
@@ -129,7 +150,8 @@ export function toImportRows(
   parsed.rows.forEach((r, i) => {
     const get = (k: ColumnKey) => (columns[k] ? (r[columns[k]!] ?? '').trim() : '');
     const label = get('name').replace(/\s+/g, ' ');
-    let street = get('address').replace(/\s+/g, ' ');
+    const split = splitUnit(get('address').replace(/\s+/g, ' '));
+    let street = split.address;
     const city = get('city');
     const zip = get('zip');
     if (!label || !street) {
@@ -137,6 +159,11 @@ export function toImportRows(
       skipped.push(i + 2);
       return;
     }
+    const noteCol = get('notes').replace(/\s+/g, ' ');
+    // Skip the unit if the notes column already mentions it.
+    const notes = split.unit && !noteCol.toLowerCase().includes(split.unit.toLowerCase())
+      ? [split.unit, noteCol].filter(Boolean).join(', ')
+      : noteCol;
     const lower = street.toLowerCase();
     if (city && !lower.includes(city.toLowerCase())) street += `, ${city}`;
     if (!/\btx\b|\btexas\b/i.test(street)) street += ', TX';
@@ -152,7 +179,7 @@ export function toImportRows(
       longitude: hasCoords ? lng : undefined,
       size: parseSize(get('size')),
       evTotal: parseNum(get('evTotal')),
-      notes: get('notes').replace(/\s+/g, ' ') || undefined,
+      notes: notes || undefined,
     });
   });
   return { rows, skipped };
