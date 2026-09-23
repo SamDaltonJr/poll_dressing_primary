@@ -11,6 +11,8 @@
  * Room details ("Room 104", "Fellowship Hall", "Bldg B") go into `notes`
  * rather than the name or address: a unit after the street, a room-like cell
  * in a table row, or a short room-like line right before or after the address.
+ * When sites are separated by blank lines (an empty string in `lines`),
+ * anything left in a site's block after its address is taken as notes.
  *
  * It's a first pass, not gospel: the admin reviews and edits every row before
  * anything is geocoded or saved.
@@ -42,14 +44,16 @@ const STREET_RE = new RegExp(
 const HIGHWAY_RE =
   /\b\d{1,6}[A-Z]?\s+(?:[NSEW]\.?\s+)?(?:FM|RM|RR|SH|US|IH|I|CR|Farm to Market(?: Road)?|Ranch Road|State Hwy|State Highway|Highway|Hwy|County Road|Interstate|Loop|Spur|Business)\s*-?\s*\d{1,4}[A-Z]?\b(?:\s+[NSEW]\b\.?)?/i;
 
-const UNIT_RE = /^[,\s]*(?:(?:Suite|Ste|Room|Rm|Bldg|Building|Unit|#)\.?\s*[\w-]+)/i;
+// \b after the keyword so "Ste" doesn't eat "Stephenville".
+const UNIT_RE = /^[,\s]*(?:(?:Suite|Ste|Room|Rm|Bldg|Building|Unit)\b\.?\s*[\w-]+|#\s*[\w-]+)/i;
 
-// "Oak Lawn Library, Room 104" → name + unit.
-const TRAILING_UNIT_RE = /[,\s]+((?:Suite|Ste|Room|Rm|Bldg|Building|Unit)\.?\s*[\w-]+|#\s*[\w-]+)$/i;
+// "Oak Lawn Library, Room 104" → name + unit. Only numbered/lettered units:
+// "Sleep Inn & Suites" and "Fire Station #6" are names.
+const TRAILING_UNIT_RE = /[,\s]+((?:Suite|Ste|Room|Rm|Bldg|Building|Unit)\b\.?\s*(?:[A-Za-z]|[\w-]*\d[\w-]*))$/i;
 
 // Words that mark text as "where inside the site" rather than the site itself...
 const ROOM_WORD_RE =
-  /\b(room|rm|suite|ste|bldg|building|hall|gym|gymnasium|auditorium|cafeteria|annex|lobby|foyer|entrance|entry|doors?|wing|floor|chapel|sanctuary|classroom|portable)\b/i;
+  /\b(\w*room|rm|suite|ste|bldg|building|hall|gym|gymnasium|auditorium|cafeteria|annex|lobby|foyer|entrance|entry|doors?|wing|floor|chapel|sanctuary|portable|chambers?|clubhouse|conference|pavilion|atrium|commons)\b/i;
 // ...unless it also names a kind of place ("Grace Church Fellowship Hall" is a site).
 const PLACE_WORD_RE =
   /\b(library|church|school|elementary|middle|high|center|centre|college|university|courthouse|city hall|park|isd|academy|baptist|methodist|catholic|lutheran|presbyterian|temple|mosque|synagogue|county|city of)\b/i;
@@ -176,6 +180,8 @@ function roomCells(rest: string): string[] {
 export function extractSites(lines: string[]): ExtractedSite[] {
   const sites: ExtractedSite[] = [];
   const seen = new Set<string>();
+  // Blank lines mean the source separates sites into blocks.
+  const hasBlocks = lines.some((l) => !l.trim());
   // Lines already used as part of a site, so they can't become a name.
   const consumed = new Set<number>();
 
@@ -220,12 +226,12 @@ export function extractSites(lines: string[]): ExtractedSite[] {
       notes.push(...inline.notes);
     } else {
       for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
-        if (consumed.has(j) || findStreet(lines[j])) break;
+        if (consumed.has(j) || findStreet(lines[j]) || !lines[j].trim()) break;
         if (isNoise(lines[j])) continue;
         // "Grace Church / Fellowship Hall / 123 Main St": the line right
         // above the address is the room and the one above that is the name.
         const k = j - 1;
-        if (isRoomText(lines[j]) && k >= 0 && !consumed.has(k) && !findStreet(lines[k]) && !isNoise(lines[k])) {
+        if (isRoomText(lines[j]) && k >= 0 && lines[k].trim() && !consumed.has(k) && !findStreet(lines[k]) && !isNoise(lines[k])) {
           notes.push(lines[j]);
           const above = splitName(lines[k].split(CELL_SEP)[0]);
           name = above.name;
@@ -242,16 +248,30 @@ export function extractSites(lines: string[]): ExtractedSite[] {
     }
     consumed.add(i);
 
-    // "Oak Lawn Library / 4100 Cedar Springs Rd / Dallas, TX / Community Room":
-    // take a room-ish line after the address, unless it heads the next site
-    // (an address follows it directly).
-    const next = last + 1;
-    if (
-      next < lines.length && !consumed.has(next) && isRoomText(lines[next]) &&
-      !(next + 1 < lines.length && findStreet(lines[next + 1]))
-    ) {
-      notes.push(lines[next]);
-      consumed.add(next);
+    // Lines after the address, up to the next blank line or address.
+    const extra: number[] = [];
+    let end = last + 1;
+    while (end < lines.length && lines[end].trim() && !findStreet(lines[end])) extra.push(end++);
+    const blockEnds = end >= lines.length || !lines[end].trim();
+    if (hasBlocks && blockEnds && extra.length <= 2) {
+      // "Florence City Hall / 851 FM 970, Florence, TX / Council Chambers": the
+      // rest of the block describes this site, whatever words it uses.
+      for (const k of extra) {
+        if (!isNoise(lines[k])) notes.push(lines[k]);
+        consumed.add(k);
+      }
+    } else {
+      // "Oak Lawn Library / 4100 Cedar Springs Rd / Dallas, TX / Community Room":
+      // take a room-ish line after the address, unless it heads the next site
+      // (an address follows it directly).
+      const next = last + 1;
+      if (
+        next < lines.length && !consumed.has(next) && isRoomText(lines[next]) &&
+        !(next + 1 < lines.length && findStreet(lines[next + 1]))
+      ) {
+        notes.push(lines[next]);
+        consumed.add(next);
+      }
     }
 
     const address = clean(`${street.match}${tail}`);
@@ -263,10 +283,21 @@ export function extractSites(lines: string[]): ExtractedSite[] {
   return sites;
 }
 
-/** Split pasted text into lines, treating tabs (from copied HTML tables) as cell breaks. */
+/**
+ * Split pasted text into lines, treating tabs (from copied HTML tables) as cell
+ * breaks. Blank lines are kept (one per run) as block separators.
+ */
 export function linesFromText(text: string): string[] {
-  return text
-    .split(/\r?\n/)
-    .map((l) => l.replace(/\t+/g, CELL_SEP).trim())
-    .filter(Boolean);
+  return collapseBlanks(text.split(/\r?\n/).map((l) => l.replace(/\t+/g, CELL_SEP).trim()));
+}
+
+/** Keep single '' separators between content lines; drop leading, trailing and repeated blanks. */
+export function collapseBlanks(lines: string[]): string[] {
+  const out: string[] = [];
+  for (const l of lines) {
+    if (l) out.push(l);
+    else if (out.length && out[out.length - 1]) out.push('');
+  }
+  if (out.length && !out[out.length - 1]) out.pop();
+  return out;
 }

@@ -1,4 +1,4 @@
-import { CELL_SEP } from './siteExtract';
+import { CELL_SEP, collapseBlanks } from './siteExtract';
 
 /**
  * Extract text lines from a PDF in the browser with pdf.js (lazy-loaded, so it
@@ -6,8 +6,10 @@ import { CELL_SEP } from './siteExtract';
  *
  * pdf.js returns positioned text fragments, not lines. We group fragments by
  * baseline (y) and sort by x; a horizontal gap wider than a few characters
- * becomes CELL_SEP so table columns stay distinguishable. Scanned PDFs have no
- * text layer and come back empty.
+ * becomes CELL_SEP so table columns stay distinguishable. A vertical gap of
+ * more than two line heights becomes a blank line, so sites laid out as
+ * spaced blocks stay grouped. Scanned PDFs have no text layer and come back
+ * empty.
  */
 export async function extractPdfLines(file: File): Promise<string[]> {
   const pdfjs = await import('pdfjs-dist');
@@ -31,8 +33,11 @@ export async function extractPdfLines(file: File): Promise<string[]> {
     frags.sort((a, b) => b.y - a.y || a.x - b.x);
 
     let row: Frag[] = [];
+    let prevY: number | null = null;
     const flush = () => {
       if (!row.length) return;
+      if (prevY != null && prevY - row[0].y > row[0].h * 2) lines.push('');
+      prevY = row[0].y;
       row.sort((a, b) => a.x - b.x);
       let text = '';
       let prevEnd = -Infinity;
@@ -52,8 +57,9 @@ export async function extractPdfLines(file: File): Promise<string[]> {
       row.push(f);
     }
     flush();
+    lines.push('');
     page.cleanup();
   }
   await doc.destroy();
-  return lines.filter(Boolean);
+  return collapseBlanks(lines);
 }
