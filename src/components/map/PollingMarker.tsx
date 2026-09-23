@@ -1,5 +1,6 @@
 import { Marker, Popup } from 'react-leaflet';
 import { createMarkerIcon, MARKER_TYPES } from '../../config/constants';
+import LocationNotes from '../common/LocationNotes';
 import type { MapMarker, DressingRecord, LocationStatus } from '../../types';
 
 interface PollingMarkerProps {
@@ -29,7 +30,8 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
 
   return (
     <Marker position={[marker.latitude, marker.longitude]} icon={icon}>
-      <Popup maxWidth={280}>
+      {/* Top padding keeps the popup clear of the floating search bar. */}
+      <Popup maxWidth={280} autoPanPaddingTopLeft={[12, 72]}>
         <div className="marker-popup">
           <div className="marker-popup-info">
             <strong>{marker.label}</strong>
@@ -38,6 +40,7 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
             {marker.size && (
               <span className="marker-popup-size"> &middot; {SIZE_LABELS[marker.size]}</span>
             )}
+            <LocationNotes location={marker} />
             <div className={`dressing-status ${status}`}>
               {STATUS_LABEL[status]}
             </div>

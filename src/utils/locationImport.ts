@@ -18,7 +18,7 @@ import type { LocationSize, StoredLocation } from '../types';
 
 export type ListKind = 'ev' | 'ed';
 
-export type ColumnKey = 'name' | 'address' | 'city' | 'zip' | 'latitude' | 'longitude' | 'size' | 'evTotal';
+export type ColumnKey = 'name' | 'address' | 'city' | 'zip' | 'latitude' | 'longitude' | 'size' | 'evTotal' | 'notes';
 
 export const COLUMN_LABELS: Record<ColumnKey, string> = {
   name: 'Site name',
@@ -29,6 +29,7 @@ export const COLUMN_LABELS: Record<ColumnKey, string> = {
   longitude: 'Longitude',
   size: 'Size (S/M/L)',
   evTotal: 'Turnout / EV total',
+  notes: 'Room / location notes',
 };
 
 export type ColumnMap = Partial<Record<ColumnKey, string>>;
@@ -42,6 +43,7 @@ const HEADER_ALIASES: Record<ColumnKey, string[]> = {
   longitude: ['longitude', 'lng', 'lon', 'long', 'x'],
   size: ['size', 'tier', 'priority'],
   evTotal: ['ev total', 'evtotal', 'turnout', 'total votes', 'ballots', 'votes', 'dem ballots'],
+  notes: ['room', 'room number', 'voting room', 'polling room', 'room name', 'building', 'bldg', 'entrance', 'location notes', 'location details', 'notes', 'directions', 'instructions'],
 };
 
 function normHeader(h: string): string {
@@ -96,6 +98,7 @@ export interface ImportRow {
   longitude?: number;
   size?: LocationSize;
   evTotal?: number;
+  notes?: string;
 }
 
 function parseSize(v: string | undefined): LocationSize | undefined {
@@ -149,6 +152,7 @@ export function toImportRows(
       longitude: hasCoords ? lng : undefined,
       size: parseSize(get('size')),
       evTotal: parseNum(get('evTotal')),
+      notes: get('notes').replace(/\s+/g, ' ') || undefined,
     });
   });
   return { rows, skipped };
@@ -283,6 +287,9 @@ export function applyImport(
         [kind]: true,
         size: row.size ?? prev.size,
         evTotal: row.evTotal ?? prev.evTotal,
+        // A blank cell keeps notes an admin typed in; volunteer tips ride
+        // along via ...prev.
+        notes: row.notes ?? prev.notes,
       });
       continue;
     }
@@ -298,6 +305,7 @@ export function applyImport(
       ed: kind === 'ed',
       size: row.size,
       evTotal: row.evTotal,
+      notes: row.notes,
     });
   }
   return [...next.values()].filter((l) => l.ev || l.ed);
@@ -316,7 +324,7 @@ export function withinCountyBBox(
 
 /** Downloadable template so county volunteers know the expected columns. */
 export const CSV_TEMPLATE = [
-  'Name,Address,City,Zip,Latitude,Longitude,Size',
-  'Oak Lawn Branch Library,4100 Cedar Springs Rd,Dallas,75219,,,L',
-  'Friendship West Baptist Church,2020 W Wheatland Rd,Dallas,75232,,,M',
+  'Name,Address,City,Zip,Latitude,Longitude,Size,Room',
+  'Oak Lawn Branch Library,4100 Cedar Springs Rd,Dallas,75219,,,L,Community Room',
+  'Friendship West Baptist Church,2020 W Wheatland Rd,Dallas,75232,,,M,"Fellowship Hall, enter from back lot"',
 ].join('\n');

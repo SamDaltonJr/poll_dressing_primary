@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { claimLocation } from '../../services/dressingService';
 import { useCampaign } from '../../contexts/CampaignContext';
 import NearbySuggestions from './NearbySuggestions';
+import LocationNotes from '../common/LocationNotes';
 import type { MapMarker, DressingRecord } from '../../types';
 
 interface ClaimModalProps {
@@ -52,6 +53,7 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
             <strong>{marker.label}</strong><br />
             {marker.address}
           </p>
+          <LocationNotes location={marker} />
           <NearbySuggestions referenceLocation={marker} dressings={dressings} />
           <div className="confirm-actions">
             <button className="btn btn-primary" onClick={onClaimed}>Done</button>
@@ -69,6 +71,7 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
           <strong>{marker.label}</strong><br />
           {marker.address}
         </p>
+        <LocationNotes location={marker} />
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="vol-name">Your Name</label>

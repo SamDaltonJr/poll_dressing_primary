@@ -3,6 +3,7 @@ import { revertDressing, unclaimLocation, dismissReports } from '../../services/
 import ConfirmDialog from '../common/ConfirmDialog';
 import DressingEditModal from './DressingEditModal';
 import AdminDressModal from './AdminDressModal';
+import LocationNotesModal from './LocationNotesModal';
 import { MARKER_TYPES } from '../../config/constants';
 import { findNearbyUnclaimed } from '../../utils/geo';
 import { useCampaign } from '../../contexts/CampaignContext';
@@ -61,6 +62,7 @@ export default function DressingTable({ dressings, locations }: DressingTablePro
   const [editTarget, setEditTarget] = useState<Row | null>(null);
   const [dressTarget, setDressTarget] = useState<Row | null>(null);
   const [dismissTarget, setDismissTarget] = useState<Row | null>(null);
+  const [notesTarget, setNotesTarget] = useState<Row | null>(null);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   const dressingMap = useMemo(() => {
@@ -103,7 +105,8 @@ export default function DressingTable({ dressings, locations }: DressingTablePro
       result = result.filter((r) =>
         r.location.label.toLowerCase().includes(q) ||
         r.location.address.toLowerCase().includes(q) ||
-        r.county.toLowerCase().includes(q)
+        r.county.toLowerCase().includes(q) ||
+        (r.location.notes ?? '').toLowerCase().includes(q)
       );
     }
 
@@ -286,7 +289,11 @@ export default function DressingTable({ dressings, locations }: DressingTablePro
                     <td>{row.location.label}</td>
                     <td>{typeLabel(row.location.type)}</td>
                     <td>{row.county}</td>
-                    <td className="address-cell">{row.location.address}</td>
+                    <td className="address-cell">
+                      {row.location.address}
+                      {row.location.notes && <div className="location-notes-cell">{row.location.notes}</div>}
+                      {row.location.tip && <div className="location-notes-cell">Tip: {row.location.tip}</div>}
+                    </td>
                     <td>
                       <span className={`status-badge status-${row.status}`}>
                         {row.status === 'dressed' ? 'Dressed' : row.status === 'claimed' ? 'Claimed' : 'Available'}
@@ -317,6 +324,13 @@ export default function DressingTable({ dressings, locations }: DressingTablePro
                         title="Show nearby unclaimed locations"
                       >
                         Nearby
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => setNotesTarget(row)}
+                        title="Room, building, or entrance notes for volunteers"
+                      >
+                        {row.location.notes || row.location.tip ? 'Edit Notes' : 'Add Notes'}
                       </button>
                       {row.status === 'dressed' && (
                         <>
@@ -410,6 +424,14 @@ export default function DressingTable({ dressings, locations }: DressingTablePro
           dressing={editTarget.dressing}
           onClose={() => setEditTarget(null)}
           onSaved={() => setEditTarget(null)}
+        />
+      )}
+
+      {notesTarget && (
+        <LocationNotesModal
+          location={notesTarget.location}
+          onClose={() => setNotesTarget(null)}
+          onSaved={() => setNotesTarget(null)}
         />
       )}
 
