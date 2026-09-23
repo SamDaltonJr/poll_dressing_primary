@@ -61,6 +61,10 @@ const PLACE_WORD_RE =
 // "Dallas, TX 75219", "DALLAS TX 75219-1234", "Dallas, Texas 75219", "Dallas 75219"
 const CITY_ZIP_RE = /^[,\s]*([A-Za-z][A-Za-z .'-]{1,40}?)[,\s]+(?:(?:TX|Texas)\.?\s*)?(\d{5})(?:-\d{4})?\b/i;
 const CITY_TX_RE = /^[,\s]*([A-Za-z][A-Za-z .'-]{1,40}?),?\s+(?:TX|Texas)\b\.?/i;
+// A bare Texas ZIP as its own field: "…Pkwy., 78750, Room A".
+const ZIP_ONLY_RE = /^[,\s]*(7[5-9]\d{3}|885\d{2})(?:-\d{4})?(?=\s*(?:[,|]|$))/;
+// "Round Rock: Allen R. Baca Center, 301 W Bagdad Ave…" (Williamson County style).
+const CITY_PREFIX_RE = /^\s*([A-Za-z][A-Za-z .'-]{1,30}?)\s*:\s+/;
 
 /** Lines that are never a site name: hours, dates, headers, page furniture. */
 const NOISE_RE = new RegExp(
@@ -142,8 +146,11 @@ interface Tail {
   rest: string;
 }
 
-/** Consume a trailing unit + city/zip after a street match. */
-function takeTail(text: string): Tail {
+/**
+ * Consume a trailing unit + city/zip after a street match. `prefixCity` is a
+ * city given elsewhere on the line, used when only a ZIP follows the street.
+ */
+function takeTail(text: string, prefixCity = ''): Tail {
   let unitText = '';
   let cellBreak = /^\s*\|/.test(text);
   let r = text.replace(/^\s*\|\s*/, ' ');
@@ -158,6 +165,11 @@ function takeTail(text: string): Tail {
   if (cz) {
     const zip = cz[2] ? ` ${cz[2]}` : '';
     return { tail: `, ${clean(cz[1])}, TX${zip}`, hasCity: true, unit: unitText, rest: r.slice(cz.index + cz[0].length) };
+  }
+  const zo = ZIP_ONLY_RE.exec(r);
+  if (zo) {
+    const city = prefixCity ? `, ${prefixCity}` : '';
+    return { tail: `${city}, TX ${zo[1]}`, hasCity: true, unit: unitText, rest: r.slice(zo[0].length) };
   }
   // Table layout: a bare city in its own column ("… | Dallas | 7:00 AM").
   if (cellBreak) {
@@ -190,9 +202,12 @@ export function extractSites(lines: string[]): ExtractedSite[] {
     const street = findStreet(line);
     if (!street) continue;
 
-    const before = line.slice(0, street.index);
+    let before = line.slice(0, street.index);
     const after = line.slice(street.index + street.match.length);
-    const first = takeTail(after);
+    const prefix = CITY_PREFIX_RE.exec(before);
+    const prefixCity = prefix && prefix[1].trim().split(/\s+/).length <= 3 ? clean(prefix[1]) : '';
+    if (prefixCity) before = before.slice(prefix![0].length);
+    const first = takeTail(after, prefixCity);
     let { tail, hasCity } = first;
     const notes: string[] = [first.unit];
     let rest = first.rest;
@@ -201,7 +216,7 @@ export function extractSites(lines: string[]): ExtractedSite[] {
     // City/ZIP on the next line (common in "name / address / city" blocks),
     // possibly after a line holding just a unit ("Suite 200").
     for (let j = i + 1; !hasCity && j <= i + 2 && j < lines.length && !findStreet(lines[j]); j++) {
-      const next = takeTail(lines[j]);
+      const next = takeTail(lines[j], prefixCity);
       if (next.hasCity) {
         tail += next.tail;
         hasCity = true;
@@ -215,7 +230,17 @@ export function extractSites(lines: string[]): ExtractedSite[] {
       consumed.add(j);
       last = j;
     }
-    notes.push(...roomCells(rest));
+    if (!hasCity && prefixCity) tail += `, ${prefixCity}, TX`;
+
+    // Comma fields after the ZIP in the same cell ("…, 78750, Room A") describe
+    // this site; separate table cells only count if they look like a room.
+    const [sameCell, ...otherCells] = rest.split('|');
+    if (/^\s*,/.test(sameCell)) {
+      notes.push(...sameCell.split(',').map(clean).filter((p) => p && !isNoise(p) && p.split(' ').length <= 8));
+      notes.push(...roomCells(otherCells.join('|')));
+    } else {
+      notes.push(...roomCells(rest));
+    }
 
     // Name: text left of the address on this line, else the nearest
     // meaningful line above (up to 3 back) that isn't itself an address.
