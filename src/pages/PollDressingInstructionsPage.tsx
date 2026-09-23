@@ -197,13 +197,15 @@ export default function PollDressingInstructionsPage() {
               <p>Sign pickup/distribution points with available sign count.</p>
             </div>
           </div>
-          <div className="instructions-legend-item">
-            <span className="pin-dot pin-dot-sign-box"></span>
-            <div>
-              <strong>White Box "T" — Big Sign Placement</strong>
-              <p>Big signs logged via the Submit tab.</p>
+          {campaign.bigSigns && (
+            <div className="instructions-legend-item">
+              <span className="pin-dot pin-dot-sign-box"></span>
+              <div>
+                <strong>White Box "T" — Big Sign Placement</strong>
+                <p>Big signs logged via the Submit tab.</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <h3>Pin Sizes (Early Voting Locations)</h3>
@@ -243,7 +245,7 @@ export default function PollDressingInstructionsPage() {
           <li>Early Voting Only</li>
           <li>Election Day Only</li>
           <li>Sign Distribution Points</li>
-          <li>Sign Placements</li>
+          {campaign.bigSigns && <li>Sign Placements</li>}
         </ul>
       </section>
 

@@ -44,6 +44,12 @@ export interface CampaignConfig {
   /** Signal/group-chat invite link included in reminder emails. */
   groupChatUrl?: string;
   /**
+   * Turns on big-sign tracking: the Big Sign tab and submit form, sign-placement
+   * and planned-sign map layers, their admin tabs, and the big-sign sections of
+   * My Locations. Off by default — the general election is poll dressing only.
+   */
+  bigSigns?: boolean;
+  /**
    * Marks this entry as a frozen archive — past campaign whose data lives in a
    * separate Firebase project. Picker renders an external link to archiveUrl
    * instead of a /c/:slug SPA route, and CampaignProvider redirects /c/:slug

@@ -97,26 +97,30 @@ export default function MapFilter({ activeTypes, onToggle, stats, county, onChan
         <span className="filter-label">Sign Distribution</span>
         <span className="filter-progress">{distributionPointCount}</span>
       </label>
-      <label className="map-filter-item">
-        <input
-          type="checkbox"
-          checked={showSignPlacements}
-          onChange={onToggleSignPlacements}
-        />
-        <span className="filter-dot-sign">{signLetter}</span>
-        <span className="filter-label">Sign Placements</span>
-        <span className="filter-progress">{signPlacementCount}</span>
-      </label>
-      <label className="map-filter-item">
-        <input
-          type="checkbox"
-          checked={showPlannedSigns}
-          onChange={onTogglePlannedSigns}
-        />
-        <span className="filter-dot filter-dot-planned" />
-        <span className="filter-label">Planned Signs</span>
-        <span className="filter-progress">{plannedSignCount}</span>
-      </label>
+      {campaign.bigSigns && (
+        <>
+          <label className="map-filter-item">
+            <input
+              type="checkbox"
+              checked={showSignPlacements}
+              onChange={onToggleSignPlacements}
+            />
+            <span className="filter-dot-sign">{signLetter}</span>
+            <span className="filter-label">Sign Placements</span>
+            <span className="filter-progress">{signPlacementCount}</span>
+          </label>
+          <label className="map-filter-item">
+            <input
+              type="checkbox"
+              checked={showPlannedSigns}
+              onChange={onTogglePlannedSigns}
+            />
+            <span className="filter-dot filter-dot-planned" />
+            <span className="filter-label">Planned Signs</span>
+            <span className="filter-progress">{plannedSignCount}</span>
+          </label>
+        </>
+      )}
       <div className="filter-legend">
         <span className="filter-dot" style={{ backgroundColor: '#7c3aed' }} />
         <span className="filter-legend-label">Retrieved</span>
@@ -128,8 +132,12 @@ export default function MapFilter({ activeTypes, onToggle, stats, county, onChan
         <span className="filter-legend-label">Available</span>
         <span className="filter-dot filter-dot-diamond" style={{ backgroundColor: '#2563eb', marginLeft: 8 }} />
         <span className="filter-legend-label">Signs</span>
-        <span className="filter-dot filter-dot-planned" style={{ marginLeft: 8 }} />
-        <span className="filter-legend-label">Planned</span>
+        {campaign.bigSigns && (
+          <>
+            <span className="filter-dot filter-dot-planned" style={{ marginLeft: 8 }} />
+            <span className="filter-legend-label">Planned</span>
+          </>
+        )}
       </div>
     </div>
   );

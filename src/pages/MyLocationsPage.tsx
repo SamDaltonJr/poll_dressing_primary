@@ -166,10 +166,10 @@ export default function MyLocationsPage() {
 
       {searchTerm && myLocations.length === 0 && mySigns.length === 0 && (
         <div className="my-locations-empty">
-          <p>No locations or signs found for "{searchTerm}".</p>
+          <p>No locations{campaign.bigSigns && ' or signs'} found for "{searchTerm}".</p>
           <p className="text-muted">
             Make sure you're using the same email or phone number you used when
-            claiming locations or submitting signs.
+            claiming locations{campaign.bigSigns && ' or submitting signs'}.
           </p>
         </div>
       )}

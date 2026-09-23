@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useCampaign } from '../contexts/CampaignContext';
 
 export default function BigSignInstructionsPage() {
   const campaign = useCampaign();
   const root = `/c/${campaign.slug}`;
+  if (!campaign.bigSigns) return <Navigate to={root} replace />;
   return (
     <div className="instructions-page">
       <h1>Big Sign Installation Instructions</h1>
