@@ -25,6 +25,7 @@ import { useSignPickups } from '../hooks/useSignPickups';
 import { useCountyResolver } from '../hooks/useCountyResolver';
 import { useLocations } from '../contexts/LocationsContext';
 import { useAdminAuth, inScope } from '../contexts/AdminContext';
+import { useCampaign } from '../contexts/CampaignContext';
 
 type AdminTab = 'polling' | 'import' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns' | 'stats' | 'coordinators';
 
@@ -37,6 +38,7 @@ export default function AdminPage() {
 }
 
 function AdminDashboard() {
+  const campaign = useCampaign();
   const { role, adminName, allowedCounties, logout } = useAdminAuth();
   const { activeLocations, loading: locationsLoading } = useLocations();
   const { dressings, loading } = useDressings();
@@ -94,11 +96,11 @@ function AdminDashboard() {
   const pendingReminderCount = scopedDressings.filter((d) => d.isClaimed && !d.isDressed && d.volunteerEmail).length;
   const volunteerCount = new Set(scopedDressings.filter((d) => d.isClaimed && d.volunteerName).map((d) => d.volunteerEmail || d.volunteerPhone || d.volunteerName)).size;
 
-  const tabs: Array<{ key: AdminTab; label: string; stateOnly?: boolean }> = [
+  const tabs: Array<{ key: AdminTab; label: string; stateOnly?: boolean; bigSignsOnly?: boolean }> = [
     { key: 'polling', label: `Polling Locations (${locations.length})` },
     { key: 'import', label: 'Import Locations' },
-    { key: 'signs', label: `Sign Placements (${scopedSubmissions.length})` },
-    { key: 'plannedSigns', label: `Planned Signs (${scopedPlanned.length})` },
+    { key: 'signs', label: `Sign Placements (${scopedSubmissions.length})`, bigSignsOnly: true },
+    { key: 'plannedSigns', label: `Planned Signs (${scopedPlanned.length})`, bigSignsOnly: true },
     { key: 'distribution', label: `Distribution Points (${scopedPoints.length})` },
     { key: 'locationReports', label: `Location Reports${pendingReportCount > 0 ? ` (${pendingReportCount})` : ''}` },
     { key: 'reminders', label: `Reminders${pendingReminderCount > 0 ? ` (${pendingReminderCount})` : ''}` },
@@ -143,7 +145,7 @@ function AdminDashboard() {
         </div>
       </div>
       <div className="admin-tabs">
-        {tabs.filter((t) => !t.stateOnly || role === 'state').map((t) => (
+        {tabs.filter((t) => (!t.stateOnly || role === 'state') && (!t.bigSignsOnly || campaign.bigSigns)).map((t) => (
           <button
             key={t.key}
             className={`admin-tab ${activeTab === t.key ? 'active' : ''}`}

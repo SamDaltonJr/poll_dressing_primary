@@ -363,7 +363,7 @@ export default function MapPage() {
       {allLocations.length === 0 && (
         <div className="map-notice" role="status">
           Polling locations are being added county by county as each county publishes its list.
-          Big sign placements can be logged anywhere in Texas now.
+          {campaign.bigSigns && ' Big sign placements can be logged anywhere in Texas now.'}
         </div>
       )}
       <button
@@ -395,7 +395,7 @@ export default function MapPage() {
         plannedSignCount={plannedSigns.length}
       />
 
-      {isAdmin && !pinDropMode && !adminPinDropMode && (
+      {isAdmin && campaign.bigSigns && !pinDropMode && !adminPinDropMode && (
         <button className="btn btn-secondary admin-pin-drop-btn" onClick={handleStartAdminPinDrop}>
           + Plan Sign Location
         </button>
