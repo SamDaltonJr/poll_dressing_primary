@@ -108,11 +108,11 @@ export default function LocationImportPanel() {
       const lines = await extractPdfLines(file);
       if (lines.length === 0) {
         // Scanned PDF: no text layer. Let the admin type the sites instead.
-        setExtracted([{ name: '', address: '' }]);
+        setExtracted([{ name: '', address: '', notes: '' }]);
         setSourceNote(`"${file.name}" has no selectable text (it's probably a scanned image). Type the sites in below, or paste them from the county's website.`);
       } else {
         const sites = extractSites(lines);
-        setExtracted(sites.length ? sites : [{ name: '', address: '' }]);
+        setExtracted(sites.length ? sites : [{ name: '', address: '', notes: '' }]);
         setSourceNote(sites.length
           ? `Found ${sites.length} addresses in "${file.name}". Check each row against the PDF before continuing.`
           : `Couldn't find street addresses in "${file.name}". Type the sites in below.`);
@@ -133,7 +133,7 @@ export default function LocationImportPanel() {
       return;
     }
     const sites = extractSites(linesFromText(csvText));
-    setExtracted(sites.length ? sites : [{ name: '', address: '' }]);
+    setExtracted(sites.length ? sites : [{ name: '', address: '', notes: '' }]);
     setSourceNote(sites.length
       ? `Found ${sites.length} addresses. Check each row before continuing.`
       : "Couldn't find street addresses in that text. Type the sites in below.");
@@ -146,7 +146,7 @@ export default function LocationImportPanel() {
 
   function handleExtractedContinue() {
     const sites = extracted
-      .map((x) => ({ name: x.name.trim(), address: x.address.trim() }))
+      .map((x) => ({ name: x.name.trim(), address: x.address.trim(), notes: x.notes.trim() }))
       .filter((x) => x.name || x.address);
     if (sites.length === 0) {
       setError('Add at least one site.');
@@ -158,11 +158,11 @@ export default function LocationImportPanel() {
     }
     setError('');
     const p: ParsedCsv = {
-      headers: ['Name', 'Address'],
-      rows: sites.map((x) => ({ Name: x.name, Address: x.address })),
+      headers: ['Name', 'Address', 'Notes'],
+      rows: sites.map((x) => ({ Name: x.name, Address: x.address, Notes: x.notes })),
     };
     setParsed(p);
-    const cols: ColumnMap = { name: 'Name', address: 'Address' };
+    const cols: ColumnMap = { name: 'Name', address: 'Address', notes: 'Notes' };
     setColumns(cols);
     runPreview(p, cols);
   }
@@ -439,7 +439,7 @@ export default function LocationImportPanel() {
             <div className="table-wrapper import-preview-table">
               <table className="submissions-table import-extract-table">
                 <thead>
-                  <tr><th>#</th><th>Site name</th><th>Address (street, city, ZIP)</th><th></th></tr>
+                  <tr><th>#</th><th>Site name</th><th>Address (street, city, ZIP)</th><th>Room / notes</th><th></th></tr>
                 </thead>
                 <tbody>
                   {extracted.map((row, i) => (
@@ -464,6 +464,15 @@ export default function LocationImportPanel() {
                         />
                       </td>
                       <td>
+                        <input
+                          type="text"
+                          value={row.notes}
+                          onChange={(e) => updateExtracted(i, { notes: e.target.value })}
+                          placeholder="Room, building, entrance"
+                          aria-label={`Room or location notes, row ${i + 1}`}
+                        />
+                      </td>
+                      <td>
                         <button
                           type="button"
                           className="btn btn-secondary btn-sm"
@@ -479,7 +488,7 @@ export default function LocationImportPanel() {
               </table>
             </div>
             <div className="import-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setExtracted((prev) => [...prev, { name: '', address: '' }])}>
+              <button type="button" className="btn btn-secondary" onClick={() => setExtracted((prev) => [...prev, { name: '', address: '', notes: '' }])}>
                 + Add row
               </button>
             </div>
@@ -547,7 +556,7 @@ export default function LocationImportPanel() {
             <div className="table-wrapper import-preview-table">
               <table className="submissions-table">
                 <thead>
-                  <tr><th>Row</th><th>Name</th><th>Address</th><th>Match</th></tr>
+                  <tr><th>Row</th><th>Name</th><th>Address</th><th>Room / notes</th><th>Match</th></tr>
                 </thead>
                 <tbody>
                   {rows.slice(0, 200).map((r) => (
@@ -555,6 +564,7 @@ export default function LocationImportPanel() {
                       <td>{r.rowNumber}</td>
                       <td>{r.label}</td>
                       <td>{r.address}</td>
+                      <td>{r.notes ?? ''}</td>
                       <td>{r.matchedBy ? `Existing (${r.matchedBy})` : 'New'}</td>
                     </tr>
                   ))}
