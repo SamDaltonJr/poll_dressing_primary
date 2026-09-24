@@ -7,9 +7,11 @@ interface MapFilterProps {
   activeTypes: Set<MarkerType>;
   onToggle: (type: MarkerType) => void;
   stats: Record<MarkerType, { total: number; dressed: number; claimed: number; retrieved: number }>;
-  /** Selected county ('' = all of Texas). */
+  /** Selected county ('' = every county in scope). */
   county: string;
   onChangeCounty: (county: string) => void;
+  /** Label for the unfiltered option, e.g. "All of Texas" or "All of DFW". */
+  allCountiesLabel: string;
   /** Counties with imported polling locations, with site counts. */
   countyOptions: Array<{ name: string; count: number }>;
   showDistributionPoints: boolean;
@@ -28,7 +30,7 @@ interface MapFilterProps {
   priorityStats: { total: number; dressed: number };
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, county, onChangeCounty, countyOptions, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount, priorityOnly, onTogglePriorityOnly, priorityStats }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, county, onChangeCounty, allCountiesLabel, countyOptions, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount, priorityOnly, onTogglePriorityOnly, priorityStats }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
   const campaign = useCampaign();
   const signLetter = campaign.candidateLastName.charAt(0).toUpperCase();
@@ -67,7 +69,7 @@ export default function MapFilter({ activeTypes, onToggle, stats, county, onChan
           onChange={(e) => onChangeCounty(e.target.value)}
           aria-label="Show polling locations for county"
         >
-          <option value="">All of Texas</option>
+          <option value="">{allCountiesLabel}</option>
           {countyOptions.map((c) => (
             <option key={c.name} value={c.name}>{c.name} ({c.count})</option>
           ))}

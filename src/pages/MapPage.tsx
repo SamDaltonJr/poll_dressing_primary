@@ -12,6 +12,7 @@ import AccessCodeModal from '../components/common/AccessCodeModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PlannedSignModal from '../components/admin/PlannedSignModal';
+import RegionPicker from '../components/map/RegionPicker';
 import { markSignRetrieved } from '../services/submissionService';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
@@ -23,6 +24,7 @@ import { useCampaign } from '../contexts/CampaignContext';
 import { useLocations } from '../contexts/LocationsContext';
 import { isEarlyVotingOpen, type CampaignConfig } from '../config/campaigns';
 import { findCounty } from '../config/texasCounties';
+import { TEXAS_REGIONS, TEXAS_BBOX, regionBbox } from '../config/texasRegions';
 import type { MapMarker, MarkerType, SignSubmission } from '../types';
 
 const OFFSET = 0.0003;
@@ -83,6 +85,22 @@ function readSavedCounty(slug: string): string {
   }
 }
 
+/**
+ * Remembered metro-area choice, per campaign. null = never chosen (volunteers
+ * get the picker); '' = "All of Texas" was chosen explicitly.
+ */
+function regionStorageKey(slug: string): string {
+  return `mapRegion:${slug}`;
+}
+
+function readSavedRegion(slug: string): string | null {
+  try {
+    return localStorage.getItem(regionStorageKey(slug));
+  } catch {
+    return null;
+  }
+}
+
 export default function MapPage() {
   const campaign = useCampaign();
   const { dressings, loading } = useDressings();
@@ -91,12 +109,21 @@ export default function MapPage() {
   const { signs: plannedSigns, loading: psLoading } = usePlannedSigns();
   const { allLocations, loading: locationsLoading } = useLocations();
   const { isValid: hasAccessFromHook } = useAccessCode();
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, sessionLoading } = useAdminAuth();
   const [localAccess, setLocalAccess] = useState(false);
   const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(() => getDefaultActiveTypes(campaign));
+  const [region, setRegion] = useState<string | null>(() => readSavedRegion(campaign.slug));
+  const [regionPickerOpen, setRegionPickerOpen] = useState(false);
   const [county, setCounty] = useState<string>(() => readSavedCounty(campaign.slug));
-  const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(null);
+  // Open on the remembered county, else the remembered metro area.
+  const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(() => {
+    const savedRegion = readSavedRegion(campaign.slug);
+    const regionList = savedRegion ? TEXAS_REGIONS[savedRegion] : undefined;
+    const savedCounty = findCounty(readSavedCounty(campaign.slug));
+    if (savedCounty && (!regionList || regionList.includes(savedCounty.name))) return savedCounty.bbox;
+    return savedRegion ? regionBbox(savedRegion) : null;
+  });
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(false);
@@ -117,23 +144,70 @@ export default function MapPage() {
   const [showPlannedSignModal, setShowPlannedSignModal] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Counties that have polling locations imported, for the filter dropdown.
+  // A remembered region name that no longer exists in config falls back to
+  // all of Texas. Volunteers who have never chosen get the picker; admins
+  // (once their session has resolved) default to the full map.
+  const effectiveRegion = region && TEXAS_REGIONS[region] ? region : '';
+  const regionCounties = useMemo(
+    () => (effectiveRegion ? new Set(TEXAS_REGIONS[effectiveRegion]) : null),
+    [effectiveRegion],
+  );
+  const showRegionPicker = regionPickerOpen || (region === null && !isAdmin && !sessionLoading);
+
+  // Polling-location counts per metro area, for the picker grid.
+  const regionCounts = useMemo(() => {
+    const byCounty = new Map<string, number>();
+    for (const l of allLocations) byCounty.set(l.county, (byCounty.get(l.county) ?? 0) + 1);
+    const counts: Record<string, number> = {};
+    for (const [name, counties] of Object.entries(TEXAS_REGIONS)) {
+      counts[name] = counties.reduce((sum, c) => sum + (byCounty.get(c) ?? 0), 0);
+    }
+    return counts;
+  }, [allLocations]);
+
+  const regionLocations = useMemo<MapMarker[]>(
+    () => (regionCounties ? allLocations.filter((l) => regionCounties.has(l.county)) : allLocations),
+    [allLocations, regionCounties],
+  );
+
+  // Counties that have polling locations imported (within the chosen region),
+  // for the filter dropdown.
   const countyOptions = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const l of allLocations) counts.set(l.county, (counts.get(l.county) ?? 0) + 1);
+    for (const l of regionLocations) counts.set(l.county, (counts.get(l.county) ?? 0) + 1);
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [allLocations]);
+  }, [regionLocations]);
 
-  // A remembered county that no longer has data (or a stale value) falls back
-  // to all of Texas rather than showing an empty map.
+  // A remembered county that no longer has data (or sits outside the chosen
+  // region) falls back to the whole region rather than showing an empty map.
   const effectiveCounty = county && countyOptions.some((c) => c.name === county) ? county : '';
 
   const scopedLocations = useMemo<MapMarker[]>(
-    () => (effectiveCounty ? allLocations.filter((l) => l.county === effectiveCounty) : allLocations),
-    [allLocations, effectiveCounty],
+    () => (effectiveCounty ? regionLocations.filter((l) => l.county === effectiveCounty) : regionLocations),
+    [regionLocations, effectiveCounty],
   );
+
+  function handleChangeRegion(next: string) {
+    setRegion(next);
+    setRegionPickerOpen(false);
+    try {
+      localStorage.setItem(regionStorageKey(campaign.slug), next);
+    } catch {
+      // Private mode — the choice just won't be remembered.
+    }
+    // A county filter from another region no longer applies.
+    if (county && next && !TEXAS_REGIONS[next].includes(county)) {
+      setCounty('');
+      try {
+        localStorage.removeItem(countyStorageKey(campaign.slug));
+      } catch {
+        // ignore
+      }
+    }
+    setFitBoundsTarget(next ? regionBbox(next) : TEXAS_BBOX);
+  }
 
   function handleChangeCounty(next: string) {
     setCounty(next);
@@ -395,6 +469,7 @@ export default function MapPage() {
         stats={stats}
         county={effectiveCounty}
         onChangeCounty={handleChangeCounty}
+        allCountiesLabel={effectiveRegion ? `All of ${effectiveRegion}` : 'All of Texas'}
         countyOptions={countyOptions}
         showDistributionPoints={showDistributionPoints}
         onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
@@ -455,6 +530,16 @@ export default function MapPage() {
       )}
 
       <div className="map-legend">
+        <button
+          type="button"
+          className="region-chip"
+          onClick={() => setRegionPickerOpen(true)}
+          title="Change region"
+        >
+          {effectiveRegion || 'All of Texas'}
+          <span className="region-chip-change">Change</span>
+        </button>
+        <span className="legend-sep">|</span>
         <span>{totalRetrieved} retrieved</span>
         <span className="legend-sep">&middot;</span>
         <span>{totalDressed} dressed</span>
@@ -477,6 +562,16 @@ export default function MapPage() {
           </>
         )}
       </div>
+
+      {showRegionPicker && (
+        <RegionPicker
+          current={region}
+          counts={regionCounts}
+          totalCount={allLocations.length}
+          onSelect={handleChangeRegion}
+          onClose={region !== null ? () => setRegionPickerOpen(false) : undefined}
+        />
+      )}
 
       {showAccessModal && (
         <AccessCodeModal
