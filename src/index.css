@@ -3261,3 +3261,9 @@ input.search-bar-input {
 .turnout-row-unmatched td:first-child {
   box-shadow: inset 3px 0 0 #f59e0b;
 }
+
+/* === Site edits import === */
+.edit-old {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}

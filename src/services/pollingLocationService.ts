@@ -123,15 +123,14 @@ export async function updateLocationNotes(
 }
 
 /**
- * Set or clear turnout numbers on a county's sites without touching the site
- * list itself. `patches` maps site id → numbers, or null to clear them. Sites
- * not in the map keep what they have; ids no longer on the list are skipped.
- * Returns how many sites were updated.
+ * Change fields on some of a county's sites without touching the site list
+ * itself. A key set to undefined in a patch clears that field. Ids no longer
+ * on the list are skipped. Returns how many sites were updated.
  */
-export async function saveCountyTurnout(
+export async function patchCountySites(
   campaignId: string,
   county: string,
-  patches: Map<string, TurnoutPatch | null>,
+  patches: Map<string, Partial<Omit<StoredLocation, 'id'>>>,
   updatedBy: string,
 ): Promise<number> {
   const ref = doc(db, COLLECTION, setDocId(campaignId, county));
@@ -141,15 +140,30 @@ export async function saveCountyTurnout(
     const locations = (snap.data().locations ?? []) as StoredLocation[];
     let changed = 0;
     const next = locations.map((l) => {
-      if (!patches.has(l.id)) return l;
-      changed++;
       const p = patches.get(l.id);
-      const base: StoredLocation = { ...l, evTotal: undefined, evDem: undefined, evRep: undefined, evEstimated: undefined };
-      return cleanLocation(p ? { ...base, ...p } : base);
+      if (!p) return l;
+      changed++;
+      return cleanLocation({ ...l, ...p });
     });
     tx.update(ref, { locations: next, updatedAt: serverTimestamp(), updatedBy });
     return changed;
   });
+}
+
+const NO_TURNOUT: TurnoutPatch = { evTotal: undefined, evDem: undefined, evRep: undefined, evEstimated: undefined };
+
+/**
+ * Set or clear turnout numbers on a county's sites. `patches` maps site id →
+ * numbers, or null to clear them; sites not in the map keep what they have.
+ */
+export async function saveCountyTurnout(
+  campaignId: string,
+  county: string,
+  patches: Map<string, TurnoutPatch | null>,
+  updatedBy: string,
+): Promise<number> {
+  const full = new Map([...patches].map(([id, p]) => [id, { ...NO_TURNOUT, ...(p ?? {}) }]));
+  return patchCountySites(campaignId, county, full, updatedBy);
 }
 
 export async function deleteCountyLocations(campaignId: string, county: string): Promise<void> {

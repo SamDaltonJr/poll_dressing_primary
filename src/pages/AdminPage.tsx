@@ -17,6 +17,7 @@ import LocationImportPanel from '../components/admin/LocationImportPanel';
 import CoordinatorsPanel from '../components/admin/CoordinatorsPanel';
 import PriorityTable from '../components/admin/PriorityTable';
 import TurnoutImportPanel from '../components/admin/TurnoutImportPanel';
+import SiteEditsPanel from '../components/admin/SiteEditsPanel';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
@@ -53,7 +54,7 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   // Optional narrowing within the admin's scope ('' = everything they can see).
   const [countyFocus, setCountyFocus] = useState('');
-  const [importMode, setImportMode] = useState<'sites' | 'turnout'>('sites');
+  const [importMode, setImportMode] = useState<'sites' | 'edits' | 'turnout'>('sites');
 
   // Effective county filter: the coordinator's assignment, further narrowed by
   // the focus dropdown. null = statewide, no filter.
@@ -184,17 +185,22 @@ function AdminDashboard() {
       {activeTab === 'import' && (
         locationsLoading ? <LoadingSpinner message="Loading locations..." /> : (
           <>
-            {campaign.priority && (
-              <div className="filter-tabs import-mode-tabs">
-                <button className={`filter-tab ${importMode === 'sites' ? 'active' : ''}`} onClick={() => setImportMode('sites')}>
-                  Site lists
-                </button>
+            <div className="filter-tabs import-mode-tabs">
+              <button className={`filter-tab ${importMode === 'sites' ? 'active' : ''}`} onClick={() => setImportMode('sites')}>
+                Site lists
+              </button>
+              <button className={`filter-tab ${importMode === 'edits' ? 'active' : ''}`} onClick={() => setImportMode('edits')}>
+                Edit sites
+              </button>
+              {campaign.priority && (
                 <button className={`filter-tab ${importMode === 'turnout' ? 'active' : ''}`} onClick={() => setImportMode('turnout')}>
                   Turnout numbers
                 </button>
-              </div>
-            )}
-            {importMode === 'turnout' && campaign.priority ? <TurnoutImportPanel /> : <LocationImportPanel />}
+              )}
+            </div>
+            {importMode === 'edits' ? <SiteEditsPanel />
+              : importMode === 'turnout' && campaign.priority ? <TurnoutImportPanel />
+              : <LocationImportPanel />}
           </>
         )
       )}
