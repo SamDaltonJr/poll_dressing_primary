@@ -23,15 +23,18 @@ export default function AccessCodeModal({ onSuccess, onClose }: AccessCodeModalP
   return (
     <div className="confirm-overlay" onClick={onClose}>
       <div className="access-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Volunteer Access</h3>
-        <p>Enter the access code to mark polling sites as dressed.</p>
+        <h3>Volunteer code</h3>
+        <p>
+          Enter the volunteer code to claim and update sites. Your coordinator or volunteer group
+          chat has it. You&rsquo;ll only need it once per visit.
+        </p>
         <form onSubmit={handleSubmit}>
           <div className="password-input-wrapper">
             <input
               type={showCode ? 'text' : 'password'}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Access code"
+              placeholder="Volunteer code"
               required
               autoFocus
             />

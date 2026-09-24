@@ -14,8 +14,10 @@ export default function App() {
   return (
     <HashRouter>
       <Routes>
-        {/* Landing — campaign picker. No campaign context. */}
+        {/* Landing — straight to the live campaign when there's only one;
+            the full picker (including archives) stays at /campaigns. */}
         <Route path="/" element={<CampaignPickerPage />} />
+        <Route path="/campaigns" element={<CampaignPickerPage showAll />} />
 
         {/* Per-campaign branded views. CampaignProvider sets theme + scope. */}
         <Route path="/c/:campaignSlug" element={<CampaignProvider />}>

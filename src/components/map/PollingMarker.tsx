@@ -2,6 +2,8 @@ import { Marker, Popup } from 'react-leaflet';
 import { createMarkerIcon, MARKER_TYPES } from '../../config/constants';
 import LocationNotes from '../common/LocationNotes';
 import TurnoutLine from '../common/TurnoutLine';
+import { directionsToSite } from '../../utils/directions';
+import { contactMatches, getVolunteerProfile } from '../../utils/volunteerProfile';
 import type { MapMarker, DressingRecord, LocationStatus } from '../../types';
 
 interface PollingMarkerProps {
@@ -18,10 +20,21 @@ interface PollingMarkerProps {
   hasAccess: boolean;
 }
 
+/**
+ * "you" when the site was claimed with the contact info saved on this device.
+ * Its own component so the lookup only runs for an open popup, not for every
+ * marker on the map.
+ */
+function VolunteerName({ dressing }: { dressing: DressingRecord }) {
+  const profile = getVolunteerProfile();
+  const isMine = [profile.email, profile.phone].some((t) => t && contactMatches(t, dressing));
+  return <>{isMine ? 'you' : dressing.volunteerName}</>;
+}
+
 const SIZE_LABELS = { S: 'Small', M: 'Medium', L: 'Large' } as const;
 
 const STATUS_LABEL: Record<LocationStatus, string> = {
-  available: 'NOT DRESSED',
+  available: 'AVAILABLE',
   claimed: 'CLAIMED',
   dressed: 'DRESSED',
   retrieved: 'RETRIEVED',
@@ -53,7 +66,7 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
 
             {status === 'claimed' && dressing && (
               <p className="marker-popup-volunteer">
-                Claimed by {dressing.volunteerName}
+                Claimed by <VolunteerName dressing={dressing} />
                 {dressing.claimedAt?.toDate && (
                   <> on {dressing.claimedAt.toDate().toLocaleDateString()}</>
                 )}
@@ -63,7 +76,7 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
             {status === 'dressed' && dressing && (
               <>
                 <p className="marker-popup-volunteer">
-                  Dressed by {dressing.volunteerName}
+                  Dressed by <VolunteerName dressing={dressing} />
                   {dressing.dressedAt?.toDate && (
                     <> on {dressing.dressedAt.toDate().toLocaleDateString()}</>
                   )}
@@ -87,22 +100,13 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
                 >
                   {hasAccess ? 'Signs Retrieved' : 'Enter Code to Mark Retrieved'}
                 </button>
-                <button
-                  className="btn btn-sm marker-popup-report-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onReportClick(marker);
-                  }}
-                >
-                  Report Issue
-                </button>
               </>
             )}
 
             {status === 'retrieved' && dressing && (
               <>
                 <p className="marker-popup-volunteer">
-                  Dressed by {dressing.volunteerName}
+                  Dressed by <VolunteerName dressing={dressing} />
                   {dressing.dressedAt?.toDate && (
                     <> on {dressing.dressedAt.toDate().toLocaleDateString()}</>
                   )}
@@ -144,15 +148,38 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
                 {hasAccess ? 'Mark as Dressed' : 'Enter Code to Mark Dressed'}
               </button>
             )}
-            <button
-              className="btn btn-sm marker-popup-report-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onIncorrectReportClick(marker);
-              }}
-            >
-              Report Incorrect Info
-            </button>
+            <div className="marker-popup-actions">
+              <a
+                className="btn btn-sm marker-popup-link-btn"
+                href={directionsToSite(marker)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Directions
+              </a>
+              {status === 'dressed' && (
+                <button
+                  className="btn btn-sm marker-popup-link-btn"
+                  title="Signs missing, damaged or misplaced"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReportClick(marker);
+                  }}
+                >
+                  Sign problem
+                </button>
+              )}
+              <button
+                className="btn btn-sm marker-popup-link-btn"
+                title="Wrong address, name or pin location"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onIncorrectReportClick(marker);
+                }}
+              >
+                Wrong info
+              </button>
+            </div>
             {onMovePinClick && (
               <button
                 className="btn btn-sm marker-popup-move-btn"

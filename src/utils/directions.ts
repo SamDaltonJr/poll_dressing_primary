@@ -9,6 +9,14 @@ export function buildDirectionsUrl(addresses: string[]): string {
 }
 
 /**
+ * Google Maps directions to one site. Uses the pin's coordinates rather than
+ * the address, since admins have corrected pins onto the actual building.
+ */
+export function directionsToSite(site: { latitude: number; longitude: number }): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${site.latitude},${site.longitude}`;
+}
+
+/**
  * Split addresses into batches and return one directions URL per batch.
  * Google Maps handles ~10 waypoints well in URL format.
  */

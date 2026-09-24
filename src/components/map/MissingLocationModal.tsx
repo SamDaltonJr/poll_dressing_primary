@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { addLocationReport } from '../../services/locationReportService';
 import { useCampaign } from '../../contexts/CampaignContext';
+import { getVolunteerProfile } from '../../utils/volunteerProfile';
 
 interface MissingLocationModalProps {
   latitude: number;
@@ -16,10 +17,10 @@ export default function MissingLocationModal({
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
   const [reporterName, setReporterName] = useState(
-    () => sessionStorage.getItem('volunteerName') || '',
+    () => getVolunteerProfile().name,
   );
   const [reporterContact, setReporterContact] = useState(
-    () => sessionStorage.getItem('volunteerEmail') || '',
+    () => getVolunteerProfile().email,
   );
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
