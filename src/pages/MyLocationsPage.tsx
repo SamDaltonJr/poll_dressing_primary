@@ -5,9 +5,13 @@ import { unclaimLocation } from '../services/dressingService';
 import { markSignRetrieved } from '../services/submissionService';
 import { useLocations } from '../contexts/LocationsContext';
 import { MARKER_TYPES } from '../config/constants';
-import { buildDirectionsUrls } from '../utils/directions';
+import { buildDirectionsUrls, directionsToSite } from '../utils/directions';
+import { contactMatches, getVolunteerProfile } from '../utils/volunteerProfile';
 import { useCampaign } from '../contexts/CampaignContext';
+import { useAccessCode } from '../hooks/useAccessCode';
+import AccessCodeModal from '../components/common/AccessCodeModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import ConfirmDressedModal from '../components/map/ConfirmDressedModal';
 import ConfirmRetrievedModal from '../components/map/ConfirmRetrievedModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import LocationNotes from '../components/common/LocationNotes';
@@ -23,18 +27,28 @@ export default function MyLocationsPage() {
   const { dressings, loading } = useDressings();
   const { submissions, loading: subsLoading } = useSubmissions();
   const { activeLocations, loading: locationsLoading } = useLocations();
+  const { isValid: hasAccessFromHook } = useAccessCode();
+  const [localAccess, setLocalAccess] = useState(false);
+  const hasAccess = hasAccessFromHook || localAccess;
 
   const [unclaimTarget, setUnclaimTarget] = useState<VolunteerLocation | null>(null);
+  const [dressTarget, setDressTarget] = useState<VolunteerLocation | null>(null);
   const [retrieveTarget, setRetrieveTarget] = useState<VolunteerLocation | null>(null);
   const [signRetrieveTarget, setSignRetrieveTarget] = useState<SignSubmission | null>(null);
+  // Dressing and retrieving ask for the volunteer code first, as on the map.
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
-  const [lookupValue, setLookupValue] = useState(
-    () =>
-      sessionStorage.getItem('volunteerEmail') ||
-      sessionStorage.getItem('volunteerPhone') ||
-      '',
-  );
-  const [searchTerm, setSearchTerm] = useState('');
+  // Open straight onto the volunteer's list when this device remembers them.
+  const [lookupValue, setLookupValue] = useState(() => {
+    const saved = getVolunteerProfile();
+    return saved.email || saved.phone;
+  });
+  const [searchTerm, setSearchTerm] = useState(lookupValue);
+
+  function withAccess(action: () => void) {
+    if (hasAccess) action();
+    else setPendingAction(() => action);
+  }
 
   const locationMap = useMemo(() => {
     const m = new Map<string, MapMarker>();
@@ -44,22 +58,8 @@ export default function MyLocationsPage() {
 
   const myLocations = useMemo<VolunteerLocation[]>(() => {
     if (!searchTerm) return [];
-    const term = searchTerm.toLowerCase().trim();
-    const termDigits = term.replace(/\D/g, '');
-
     return dressings
-      .filter((d) => {
-        if (!d.isClaimed) return false;
-        if (d.volunteerEmail && d.volunteerEmail.toLowerCase() === term) return true;
-        if (termDigits.length >= 10 && d.volunteerPhone) {
-          const phoneDigits = d.volunteerPhone.replace(/\D/g, '');
-          // Strip leading '1' country code for comparison
-          const normTerm = termDigits.length === 11 && termDigits.startsWith('1') ? termDigits.slice(1) : termDigits;
-          const normPhone = phoneDigits.length === 11 && phoneDigits.startsWith('1') ? phoneDigits.slice(1) : phoneDigits;
-          return normTerm === normPhone;
-        }
-        return false;
-      })
+      .filter((d) => d.isClaimed && contactMatches(searchTerm, d))
       .map((d) => {
         const location = locationMap.get(d.locationId);
         return location ? { location, dressing: d } : null;
@@ -82,19 +82,7 @@ export default function MyLocationsPage() {
 
   const mySigns = useMemo<SignSubmission[]>(() => {
     if (!searchTerm) return [];
-    const term = searchTerm.toLowerCase().trim();
-    const termDigits = term.replace(/\D/g, '');
-
-    return submissions.filter((s) => {
-      if (s.volunteerEmail && s.volunteerEmail.toLowerCase() === term) return true;
-      if (termDigits.length >= 10 && s.volunteerPhone) {
-        const phoneDigits = s.volunteerPhone.replace(/\D/g, '');
-        const normTerm = termDigits.length === 11 && termDigits.startsWith('1') ? termDigits.slice(1) : termDigits;
-        const normPhone = phoneDigits.length === 11 && phoneDigits.startsWith('1') ? phoneDigits.slice(1) : phoneDigits;
-        return normTerm === normPhone;
-      }
-      return false;
-    });
+    return submissions.filter((s) => contactMatches(searchTerm, s));
   }, [submissions, searchTerm]);
 
   const mySignsActive = useMemo(() => mySigns.filter((s) => !s.isRetrieved), [mySigns]);
@@ -144,7 +132,7 @@ export default function MyLocationsPage() {
     <div className="my-locations-page">
       <h2>My Locations</h2>
       <p className="my-locations-subtitle">
-        Look up the polling locations you've claimed.
+        The polling locations you&rsquo;ve claimed, with directions. Mark each one dressed once your signs are up.
       </p>
 
       <form className="my-locations-form" onSubmit={handleSubmit}>
@@ -155,7 +143,8 @@ export default function MyLocationsPage() {
             type="text"
             value={lookupValue}
             onChange={(e) => setLookupValue(e.target.value)}
-            placeholder="Enter your email or phone..."
+            placeholder="The email or phone you claimed with"
+            autoComplete="email"
             required
           />
         </div>
@@ -213,7 +202,7 @@ export default function MyLocationsPage() {
           {pending.length > 0 && (
             <div className="my-locations-group">
               <h3 className="my-locations-group-heading">
-                Pending ({pending.length})
+                To dress ({pending.length})
               </h3>
               <div className="my-locations-list">
                 {pending.map((item) => (
@@ -228,10 +217,26 @@ export default function MyLocationsPage() {
                       <LocationNotes location={item.location} />
                     </div>
                     <div className="my-location-card-meta">
-                      <span className="dressing-status claimed">Pending</span>
+                      <span className="dressing-status claimed">To dress</span>
                       <span className="my-location-card-type">
                         {MARKER_TYPES[item.location.type]?.label}
                       </span>
+                    </div>
+                    <div className="my-location-card-actions">
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => withAccess(() => setDressTarget(item))}
+                      >
+                        Mark as Dressed
+                      </button>
+                      <a
+                        className="btn btn-sm btn-outline"
+                        href={directionsToSite(item.location)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Directions
+                      </a>
                       <button
                         className="btn btn-sm btn-outline"
                         onClick={() => setUnclaimTarget(item)}
@@ -272,7 +277,7 @@ export default function MyLocationsPage() {
                       )}
                       <button
                         className="btn btn-sm btn-outline"
-                        onClick={() => setRetrieveTarget(item)}
+                        onClick={() => withAccess(() => setRetrieveTarget(item))}
                       >
                         Mark Retrieved
                       </button>
@@ -336,7 +341,7 @@ export default function MyLocationsPage() {
                       <span className="dressing-status dressed">Active</span>
                       <button
                         className="btn btn-sm btn-outline"
-                        onClick={() => setSignRetrieveTarget(sign)}
+                        onClick={() => withAccess(() => setSignRetrieveTarget(sign))}
                       >
                         Mark Retrieved
                       </button>
@@ -380,6 +385,26 @@ export default function MyLocationsPage() {
           confirmLabel="Unclaim"
           onConfirm={handleUnclaim}
           onCancel={() => setUnclaimTarget(null)}
+        />
+      )}
+
+      {pendingAction && (
+        <AccessCodeModal
+          onSuccess={() => {
+            setLocalAccess(true);
+            pendingAction();
+            setPendingAction(null);
+          }}
+          onClose={() => setPendingAction(null)}
+        />
+      )}
+
+      {dressTarget && (
+        <ConfirmDressedModal
+          marker={dressTarget.location}
+          dressing={dressTarget.dressing}
+          onClose={() => setDressTarget(null)}
+          onConfirmed={() => setDressTarget(null)}
         />
       )}
 

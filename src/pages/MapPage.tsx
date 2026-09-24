@@ -457,144 +457,147 @@ export default function MapPage() {
 
   return (
     <div className={`map-page ${(pinDropMode || adminPinDropMode) ? 'pin-drop-active' : ''}`}>
-      <MapView
-        markers={filteredMarkers}
-        dressedIds={dressedIds}
-        claimedIds={claimedIds}
-        retrievedIds={retrievedIds}
-        dressings={dressings}
-        onClaimClick={handleClaimClick}
-        onConfirmClick={handleConfirmClick}
-        onRetrieveClick={handleRetrieveClick}
-        onReportClick={handleReportClick}
-        onIncorrectReportClick={handleIncorrectReportClick}
-        onSignRetrieveClick={handleSignRetrieveClick}
-        hasAccess={hasAccess}
-        signSubmissions={showSignPlacements ? signSubmissions : []}
-        distributionPoints={showDistributionPoints ? distributionPoints : []}
-        plannedSigns={showPlannedSigns ? plannedSigns : []}
-        pinDropMode={pinDropMode}
-        pinPosition={pinPosition}
-        onPinPlaced={handlePinPlaced}
-        adminPinDropMode={adminPinDropMode}
-        adminPinPosition={adminPinPosition}
-        onAdminPinPlaced={handleAdminPinPlaced}
-        flyToTarget={flyToTarget}
-        onFlyComplete={handleFlyComplete}
-        fitBoundsTarget={fitBoundsTarget}
-        movingPin={movingPin?.to ?? null}
-        onMovePin={(lat, lng) => setMovingPin((prev) => (prev ? { ...prev, to: [lat, lng] } : prev))}
-        onMovePinClick={isAdmin ? (m) => { if (inScope(allowedCounties, m.county)) handleStartMovePin(m); } : undefined}
-        satellite={satellite}
-      />
-      {allLocations.length === 0 && (
-        <div className="map-notice" role="status">
-          Polling locations are being added county by county as each county publishes its list.
-          {campaign.bigSigns && ' Big sign placements can be logged anywhere in Texas now.'}
-        </div>
-      )}
-      <button
-        className="search-toggle"
-        onClick={() => setSearchOpen((prev) => !prev)}
-        aria-label={searchOpen ? 'Hide search' : 'Show search'}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-      </button>
-      {searchOpen && <SearchBar markers={allMarkers} onSelect={handleSearchSelect} />}
-      <MapFilter
-        activeTypes={activeTypes}
-        onToggle={handleToggle}
-        stats={stats}
-        county={effectiveCounty}
-        onChangeCounty={handleChangeCounty}
-        allCountiesLabel={effectiveRegion ? `All of ${effectiveRegion}` : 'All of Texas'}
-        countyOptions={countyOptions}
-        showDistributionPoints={showDistributionPoints}
-        onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
-        distributionPointCount={distributionPoints.length}
-        showSignPlacements={showSignPlacements}
-        onToggleSignPlacements={() => setShowSignPlacements((prev) => !prev)}
-        signPlacementCount={signSubmissions.length}
-        showPlannedSigns={showPlannedSigns}
-        onTogglePlannedSigns={() => setShowPlannedSigns((prev) => !prev)}
-        plannedSignCount={plannedSigns.length}
-        priorityOnly={priorityOnly}
-        onTogglePriorityOnly={() => setPriorityOnly((prev) => !prev)}
-        priorityStats={priorityStats}
-      />
-
-      {isAdmin && campaign.bigSigns && !pinDropMode && !adminPinDropMode && !movingPin && (
-        <button className="btn btn-secondary admin-pin-drop-btn" onClick={handleStartAdminPinDrop}>
-          + Plan Sign Location
-        </button>
-      )}
-
-      {!pinDropMode && !adminPinDropMode && !movingPin && (
-        <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
-          + Report Missing Location
-        </button>
-      )}
-
-      {pinDropMode && (
-        <div className="pin-drop-banner">
-          <span>{pinPosition ? 'Pin placed! Drag to adjust, then confirm.' : 'Click the map to place a pin for the missing location.'}</span>
-          <div className="pin-drop-banner-actions">
-            {pinPosition && (
-              <button className="btn btn-primary btn-sm" onClick={handleConfirmPin}>
-                Confirm Location
-              </button>
-            )}
-            <button className="btn btn-secondary btn-sm" onClick={handleCancelPinDrop}>
-              Cancel
-            </button>
+      {/* The map and everything floating over it; the stats bar sits below. */}
+      <div className="map-area">
+        <MapView
+          markers={filteredMarkers}
+          dressedIds={dressedIds}
+          claimedIds={claimedIds}
+          retrievedIds={retrievedIds}
+          dressings={dressings}
+          onClaimClick={handleClaimClick}
+          onConfirmClick={handleConfirmClick}
+          onRetrieveClick={handleRetrieveClick}
+          onReportClick={handleReportClick}
+          onIncorrectReportClick={handleIncorrectReportClick}
+          onSignRetrieveClick={handleSignRetrieveClick}
+          hasAccess={hasAccess}
+          signSubmissions={showSignPlacements ? signSubmissions : []}
+          distributionPoints={showDistributionPoints ? distributionPoints : []}
+          plannedSigns={showPlannedSigns ? plannedSigns : []}
+          pinDropMode={pinDropMode}
+          pinPosition={pinPosition}
+          onPinPlaced={handlePinPlaced}
+          adminPinDropMode={adminPinDropMode}
+          adminPinPosition={adminPinPosition}
+          onAdminPinPlaced={handleAdminPinPlaced}
+          flyToTarget={flyToTarget}
+          onFlyComplete={handleFlyComplete}
+          fitBoundsTarget={fitBoundsTarget}
+          movingPin={movingPin?.to ?? null}
+          onMovePin={(lat, lng) => setMovingPin((prev) => (prev ? { ...prev, to: [lat, lng] } : prev))}
+          onMovePinClick={isAdmin ? (m) => { if (inScope(allowedCounties, m.county)) handleStartMovePin(m); } : undefined}
+          satellite={satellite}
+        />
+        {allLocations.length === 0 && (
+          <div className="map-notice" role="status">
+            Polling locations are being added county by county as each county publishes its list.
+            {campaign.bigSigns && ' Big sign placements can be logged anywhere in Texas now.'}
           </div>
-        </div>
-      )}
+        )}
+        <button
+          className="search-toggle"
+          onClick={() => setSearchOpen((prev) => !prev)}
+          aria-label={searchOpen ? 'Hide search' : 'Show search'}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </button>
+        {searchOpen && <SearchBar markers={allMarkers} onSelect={handleSearchSelect} />}
+        <MapFilter
+          activeTypes={activeTypes}
+          onToggle={handleToggle}
+          stats={stats}
+          county={effectiveCounty}
+          onChangeCounty={handleChangeCounty}
+          allCountiesLabel={effectiveRegion ? `All of ${effectiveRegion}` : 'All of Texas'}
+          countyOptions={countyOptions}
+          showDistributionPoints={showDistributionPoints}
+          onToggleDistributionPoints={() => setShowDistributionPoints((prev) => !prev)}
+          distributionPointCount={distributionPoints.length}
+          showSignPlacements={showSignPlacements}
+          onToggleSignPlacements={() => setShowSignPlacements((prev) => !prev)}
+          signPlacementCount={signSubmissions.length}
+          showPlannedSigns={showPlannedSigns}
+          onTogglePlannedSigns={() => setShowPlannedSigns((prev) => !prev)}
+          plannedSignCount={plannedSigns.length}
+          priorityOnly={priorityOnly}
+          onTogglePriorityOnly={() => setPriorityOnly((prev) => !prev)}
+          priorityStats={priorityStats}
+        />
 
-      {adminPinDropMode && (
-        <div className="pin-drop-banner" style={{ borderColor: '#7c3aed' }}>
-          <span>{adminPinPosition ? 'Pin placed! Drag to adjust, then confirm.' : 'Click the map to place a planned sign location.'}</span>
-          <div className="pin-drop-banner-actions">
-            {adminPinPosition && (
-              <button className="btn btn-primary btn-sm" onClick={handleConfirmAdminPin}>
-                Confirm Location
-              </button>
-            )}
-            <button className="btn btn-secondary btn-sm" onClick={handleCancelAdminPinDrop}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+        {isAdmin && campaign.bigSigns && !pinDropMode && !adminPinDropMode && !movingPin && (
+          <button className="btn btn-secondary admin-pin-drop-btn" onClick={handleStartAdminPinDrop}>
+            + Plan Sign Location
+          </button>
+        )}
 
-      {movingPin && (() => {
-        const feet = haversineDistanceMiles(movingPin.from[0], movingPin.from[1], movingPin.to[0], movingPin.to[1]) * 5280;
-        return (
-          <div className="pin-drop-banner move-pin-banner">
-            <span>
-              <strong>{movingPin.site.label}</strong>
-              <br />
-              {feet < 3
-                ? 'Drag the pin (or tap the map) onto the building’s voting entrance.'
-                : `Moved ${feet < 1000 ? `${Math.round(feet)} ft` : `${(feet / 5280).toFixed(1)} mi`}. Save when it’s on the entrance.`}
-            </span>
+        {!pinDropMode && !adminPinDropMode && !movingPin && (
+          <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
+            + Report Missing Location
+          </button>
+        )}
+
+        {pinDropMode && (
+          <div className="pin-drop-banner">
+            <span>{pinPosition ? 'Pin placed! Drag to adjust, then confirm.' : 'Click the map to place a pin for the missing location.'}</span>
             <div className="pin-drop-banner-actions">
-              <button className="btn btn-secondary btn-sm" onClick={() => setSatellite((v) => !v)}>
-                {satellite ? 'Street map' : 'Satellite'}
-              </button>
-              <button className="btn btn-secondary btn-sm" onClick={handleCancelMovePin} disabled={savingPin}>
+              {pinPosition && (
+                <button className="btn btn-primary btn-sm" onClick={handleConfirmPin}>
+                  Confirm Location
+                </button>
+              )}
+              <button className="btn btn-secondary btn-sm" onClick={handleCancelPinDrop}>
                 Cancel
-              </button>
-              <button className="btn btn-primary btn-sm" onClick={handleSaveMovePin} disabled={savingPin || feet < 3}>
-                {savingPin ? 'Saving…' : 'Save pin'}
               </button>
             </div>
           </div>
-        );
-      })()}
+        )}
+
+        {adminPinDropMode && (
+          <div className="pin-drop-banner" style={{ borderColor: '#7c3aed' }}>
+            <span>{adminPinPosition ? 'Pin placed! Drag to adjust, then confirm.' : 'Click the map to place a planned sign location.'}</span>
+            <div className="pin-drop-banner-actions">
+              {adminPinPosition && (
+                <button className="btn btn-primary btn-sm" onClick={handleConfirmAdminPin}>
+                  Confirm Location
+                </button>
+              )}
+              <button className="btn btn-secondary btn-sm" onClick={handleCancelAdminPinDrop}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {movingPin && (() => {
+          const feet = haversineDistanceMiles(movingPin.from[0], movingPin.from[1], movingPin.to[0], movingPin.to[1]) * 5280;
+          return (
+            <div className="pin-drop-banner move-pin-banner">
+              <span>
+                <strong>{movingPin.site.label}</strong>
+                <br />
+                {feet < 3
+                  ? 'Drag the pin (or tap the map) onto the building’s voting entrance.'
+                  : `Moved ${feet < 1000 ? `${Math.round(feet)} ft` : `${(feet / 5280).toFixed(1)} mi`}. Save when it’s on the entrance.`}
+              </span>
+              <div className="pin-drop-banner-actions">
+                <button className="btn btn-secondary btn-sm" onClick={() => setSatellite((v) => !v)}>
+                  {satellite ? 'Street map' : 'Satellite'}
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={handleCancelMovePin} disabled={savingPin}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary btn-sm" onClick={handleSaveMovePin} disabled={savingPin || feet < 3}>
+                  {savingPin ? 'Saving…' : 'Save pin'}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
 
       <div className="map-legend">
         <button
@@ -606,16 +609,19 @@ export default function MapPage() {
           {effectiveRegion || 'All of Texas'}
           <span className="region-chip-change">Change</span>
         </button>
-        <span className="legend-sep">|</span>
-        <span>{totalRetrieved} retrieved</span>
-        <span className="legend-sep">&middot;</span>
-        <span>{totalDressed} dressed</span>
-        <span className="legend-sep">&middot;</span>
-        <span>{totalClaimed} claimed</span>
-        <span className="legend-sep">&middot;</span>
-        <span>{totalLocations - totalDressed - totalClaimed - totalRetrieved} available</span>
-        <span className="legend-sep">|</span>
-        <span>{totalLocations} locations</span>
+        <span className="map-legend-stats">
+          <span><strong>{totalLocations - totalDressed - totalClaimed - totalRetrieved}</strong> open</span>
+          <span className="legend-sep">&middot;</span>
+          <span><strong>{totalClaimed}</strong> claimed</span>
+          <span className="legend-sep">&middot;</span>
+          <span><strong>{totalDressed}</strong> dressed</span>
+          {totalRetrieved > 0 && (
+            <>
+              <span className="legend-sep">&middot;</span>
+              <span><strong>{totalRetrieved}</strong> retrieved</span>
+            </>
+          )}
+        </span>
         {signSubmissions.length > 0 && (
           <>
             <span className="legend-sep">&middot;</span>

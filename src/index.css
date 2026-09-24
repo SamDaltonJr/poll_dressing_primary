@@ -3442,3 +3442,113 @@ input.search-bar-input {
 .move-pin-marker {
   cursor: grab;
 }
+
+/* === Volunteer popup actions === */
+.marker-popup-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.marker-popup-actions .marker-popup-link-btn {
+  flex: 1;
+  padding: 6px 4px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.marker-popup-actions .marker-popup-link-btn:hover {
+  background: var(--color-bg);
+}
+
+.dressing-modal-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 12px 0;
+}
+
+a.btn {
+  text-decoration: none;
+}
+
+/* The map page fills exactly the space under the header, so the stats bar
+   is never pushed off the bottom of a phone screen. */
+.map-page {
+  height: calc(100vh - var(--header-height));
+  height: calc(100dvh - var(--header-height));
+  overflow: hidden;
+}
+
+.map-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-area .map-container {
+  min-height: 0;
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+}
+
+.map-legend-stats strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.map-legend-stats .legend-sep {
+  margin: 0 6px;
+}
+
+.pin-drop-btn {
+  bottom: 24px;
+}
+
+.admin-pin-drop-btn {
+  bottom: 64px;
+}
+
+@media (max-width: 640px) {
+  .map-legend {
+    padding: 6px 8px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    font-size: 0.8rem;
+  }
+
+  .pin-drop-btn {
+    bottom: 22px;
+  }
+
+  .admin-pin-drop-btn {
+    bottom: 56px;
+  }
+}
+
+/* My Locations: a row of actions under a site still to be dressed. */
+.my-location-card {
+  flex-wrap: wrap;
+}
+
+.my-location-card-actions {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.my-location-card-actions .btn {
+  padding: 8px 14px;
+}

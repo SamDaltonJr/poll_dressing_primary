@@ -1,8 +1,11 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { claimLocation } from '../../services/dressingService';
 import { useCampaign } from '../../contexts/CampaignContext';
 import NearbySuggestions from './NearbySuggestions';
 import LocationNotes from '../common/LocationNotes';
+import { getVolunteerProfile, saveVolunteerProfile } from '../../utils/volunteerProfile';
+import { directionsToSite } from '../../utils/directions';
 import type { MapMarker, DressingRecord } from '../../types';
 
 interface ClaimModalProps {
@@ -14,15 +17,10 @@ interface ClaimModalProps {
 
 export default function ClaimModal({ marker, dressings, onClose, onClaimed }: ClaimModalProps) {
   const campaign = useCampaign();
-  const [volunteerName, setVolunteerName] = useState(
-    () => sessionStorage.getItem('volunteerName') || '',
-  );
-  const [volunteerPhone, setVolunteerPhone] = useState(
-    () => sessionStorage.getItem('volunteerPhone') || '',
-  );
-  const [volunteerEmail, setVolunteerEmail] = useState(
-    () => sessionStorage.getItem('volunteerEmail') || '',
-  );
+  const [saved] = useState(getVolunteerProfile);
+  const [volunteerName, setVolunteerName] = useState(saved.name);
+  const [volunteerPhone, setVolunteerPhone] = useState(saved.phone);
+  const [volunteerEmail, setVolunteerEmail] = useState(saved.email);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [claimed, setClaimed] = useState(false);
@@ -33,9 +31,7 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
     setError('');
     try {
       await claimLocation(marker.id, { volunteerName, volunteerPhone, volunteerEmail }, campaign.slug);
-      sessionStorage.setItem('volunteerName', volunteerName);
-      sessionStorage.setItem('volunteerPhone', volunteerPhone);
-      sessionStorage.setItem('volunteerEmail', volunteerEmail);
+      saveVolunteerProfile({ name: volunteerName, phone: volunteerPhone, email: volunteerEmail });
       setClaimed(true);
     } catch {
       setError('Failed to claim location. Please try again.');
@@ -54,8 +50,15 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
             {marker.address}
           </p>
           <LocationNotes location={marker} />
+          <p className="dressing-modal-hint">
+            It&rsquo;s saved to <Link to={`/c/${campaign.slug}/my-locations`}>My Locations</Link>.
+            Once your signs are up, tap <strong>Mark as Dressed</strong> there or on this pin.
+          </p>
           <NearbySuggestions referenceLocation={marker} dressings={dressings} />
           <div className="confirm-actions">
+            <a className="btn btn-secondary" href={directionsToSite(marker)} target="_blank" rel="noopener noreferrer">
+              Directions
+            </a>
             <button className="btn btn-primary" onClick={onClaimed}>Done</button>
           </div>
         </div>
@@ -80,8 +83,9 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
               type="text"
               value={volunteerName}
               onChange={(e) => setVolunteerName(e.target.value)}
+              autoComplete="name"
               required
-              autoFocus
+              autoFocus={!saved.name}
             />
           </div>
           <div className="form-group">
@@ -91,6 +95,7 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
               type="tel"
               value={volunteerPhone}
               onChange={(e) => setVolunteerPhone(e.target.value)}
+              autoComplete="tel"
               required
             />
           </div>
@@ -101,6 +106,7 @@ export default function ClaimModal({ marker, dressings, onClose, onClaimed }: Cl
               type="email"
               value={volunteerEmail}
               onChange={(e) => setVolunteerEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { addLocationReport } from '../../services/locationReportService';
 import { useCampaign } from '../../contexts/CampaignContext';
+import { getVolunteerProfile } from '../../utils/volunteerProfile';
 import type { MapMarker } from '../../types';
 
 const ISSUES = [
@@ -21,10 +22,10 @@ export default function IncorrectLocationModal({ marker, onClose, onSubmitted }:
   const [issue, setIssue] = useState<typeof ISSUES[number]>(ISSUES[0]);
   const [details, setDetails] = useState('');
   const [reporterName, setReporterName] = useState(
-    () => sessionStorage.getItem('volunteerName') || '',
+    () => getVolunteerProfile().name,
   );
   const [reporterContact, setReporterContact] = useState(
-    () => sessionStorage.getItem('volunteerEmail') || '',
+    () => getVolunteerProfile().email,
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
