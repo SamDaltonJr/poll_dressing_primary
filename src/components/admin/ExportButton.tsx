@@ -1,10 +1,15 @@
 import Papa from 'papaparse';
 import { MARKER_TYPES } from '../../config/constants';
+import type { Timestamp } from 'firebase/firestore';
 import type { DressingRecord, MapMarker } from '../../types';
 
 interface ExportButtonProps {
   dressings: DressingRecord[];
   locations: MapMarker[];
+}
+
+function iso(t: Timestamp | null | undefined): string {
+  return t?.toDate?.()?.toISOString() || '';
 }
 
 export default function ExportButton({ dressings, locations }: ExportButtonProps) {
@@ -23,8 +28,30 @@ export default function ExportButton({ dressings, locations }: ExportButtonProps
         'Volunteer Name': d?.volunteerName || '',
         Phone: d?.volunteerPhone || '',
         Email: d?.volunteerEmail || '',
-        'Dressed At': d?.dressedAt?.toDate?.()?.toISOString() || '',
+        'Dressed At': iso(d?.dressedAt),
         'Dressed By': d?.dressedBy || '',
+        // Turnout headers match the turnout import, so this file can go back in.
+        'Priority Rank': loc.priorityRank ?? '',
+        'Priority Tier': loc.priorityTier ? `P${loc.priorityTier}` : '',
+        'EV Total': loc.evTotal ?? '',
+        'Dem EV': loc.evDem ?? '',
+        'Rep EV': loc.evRep ?? '',
+        'Dem Share': loc.evDem != null && loc.evTotal ? `${((loc.evDem / loc.evTotal) * 100).toFixed(1)}%` : '',
+        Estimated: loc.evEstimated ? 'Yes' : '',
+        Notes: loc.notes || '',
+        'Volunteer Tip': loc.tip || '',
+        'Tip By': loc.tipBy || '',
+        'Tip At': loc.tipAt ? new Date(loc.tipAt).toISOString() : '',
+        'Claimed At': iso(d?.claimedAt),
+        'Signs Placed': d?.signCount || '',
+        'Retrieved At': iso(d?.retrievedAt),
+        'Signs Retrieved': d?.retrievedSignCount || '',
+        'Reverted At': iso(d?.revertedAt),
+        'Reverted By': d?.revertedBy || '',
+        'Problem Reports': d?.reportCount || '',
+        'Last Report At': iso(d?.lastReportedAt),
+        'Last Report Reason': d?.lastReportReason || '',
+        'Last Updated': iso(d?.updatedAt),
         // For checking pins against Google Maps; fixes go back in through
         // Import Locations → Edit sites, matched by Site ID.
         Latitude: loc.latitude.toFixed(6),
