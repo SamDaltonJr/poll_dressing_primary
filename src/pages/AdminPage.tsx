@@ -18,6 +18,7 @@ import CoordinatorsPanel from '../components/admin/CoordinatorsPanel';
 import PriorityTable from '../components/admin/PriorityTable';
 import TurnoutImportPanel from '../components/admin/TurnoutImportPanel';
 import SiteEditsPanel from '../components/admin/SiteEditsPanel';
+import MultiCountyImportPanel from '../components/admin/MultiCountyImportPanel';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
@@ -54,7 +55,7 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   // Optional narrowing within the admin's scope ('' = everything they can see).
   const [countyFocus, setCountyFocus] = useState('');
-  const [importMode, setImportMode] = useState<'sites' | 'edits' | 'turnout'>('sites');
+  const [importMode, setImportMode] = useState<'sites' | 'multi' | 'edits' | 'turnout'>('sites');
 
   // Effective county filter: the coordinator's assignment, further narrowed by
   // the focus dropdown. null = statewide, no filter.
@@ -189,6 +190,9 @@ function AdminDashboard() {
               <button className={`filter-tab ${importMode === 'sites' ? 'active' : ''}`} onClick={() => setImportMode('sites')}>
                 Site lists
               </button>
+              <button className={`filter-tab ${importMode === 'multi' ? 'active' : ''}`} onClick={() => setImportMode('multi')}>
+                Many counties
+              </button>
               <button className={`filter-tab ${importMode === 'edits' ? 'active' : ''}`} onClick={() => setImportMode('edits')}>
                 Edit sites
               </button>
@@ -199,6 +203,7 @@ function AdminDashboard() {
               )}
             </div>
             {importMode === 'edits' ? <SiteEditsPanel />
+              : importMode === 'multi' ? <MultiCountyImportPanel />
               : importMode === 'turnout' && campaign.priority ? <TurnoutImportPanel />
               : <LocationImportPanel />}
           </>

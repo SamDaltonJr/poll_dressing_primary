@@ -135,6 +135,22 @@ export function splitUnit(address: string): { address: string; unit: string } {
   return { address: rest, unit: m[1].replace(/\s+/g, ' ') };
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Does the address already name its city? A plain substring test isn't
+ * enough: "5700 E Parker Rd" is in Parker but doesn't say so. The city has
+ * to be its own comma part, or sit right before the state.
+ */
+export function hasCity(address: string, city: string): boolean {
+  const c = city.trim().toLowerCase();
+  const parts = address.toLowerCase().split(',').map((p) => p.trim());
+  if (parts.slice(1).some((p) => p === c || p.startsWith(`${c} `))) return true;
+  return new RegExp(`\\b${escapeRegExp(c)}\\s*,?\\s*(tx|texas)\\b`).test(address.toLowerCase());
+}
+
 /**
  * Turn mapped CSV rows into import rows. Builds a full one-line address
  * ("street, city, TX zip") from whichever parts the county provided. Rows
@@ -164,8 +180,7 @@ export function toImportRows(
     const notes = split.unit && !noteCol.toLowerCase().includes(split.unit.toLowerCase())
       ? [split.unit, noteCol].filter(Boolean).join(', ')
       : noteCol;
-    const lower = street.toLowerCase();
-    if (city && !lower.includes(city.toLowerCase())) street += `, ${city}`;
+    if (city && !hasCity(street, city)) street += `, ${city}`;
     if (!/\btx\b|\btexas\b/i.test(street)) street += ', TX';
     if (zip && !street.includes(zip)) street += ` ${zip}`;
     const lat = parseNum(get('latitude'));
