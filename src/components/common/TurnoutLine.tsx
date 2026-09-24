@@ -15,7 +15,7 @@ export default function TurnoutLine({ marker }: { marker: MapMarker }) {
     <div className={`turnout-line${marker.priorityTier ? ` turnout-line-p${marker.priorityTier}` : ''}`}>
       <div className="turnout-line-rank">
         {marker.priorityTier && (
-          <strong>{marker.priorityTier === 1 ? '★ ' : ''}Priority {marker.priorityTier} · </strong>
+          <span className="turnout-line-tier">{marker.priorityTier === 1 ? '★ ' : ''}Priority {marker.priorityTier} · </span>
         )}
         #{marker.priorityRank} in Texas
       </div>

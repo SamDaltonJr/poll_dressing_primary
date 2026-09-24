@@ -1061,6 +1061,10 @@ textarea:focus {
   color: var(--color-text-muted);
 }
 
+.turnout-line-tier {
+  font-weight: 700;
+}
+
 .turnout-line-p1 .turnout-line-rank {
   color: #b45309;
 }
