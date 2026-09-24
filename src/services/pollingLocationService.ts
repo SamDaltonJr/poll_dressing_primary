@@ -3,7 +3,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { countySlug } from '../config/texasCounties';
-import type { LocationNotesPatch, PollingLocationSet, StoredLocation } from '../types';
+import type { LocationNotesPatch, PollingLocationSet, StoredLocation, TurnoutPatch } from '../types';
 
 const COLLECTION = 'pollingLocationSets';
 
@@ -43,6 +43,9 @@ function cleanLocation(l: StoredLocation): StoredLocation {
   };
   if (l.size) out.size = l.size;
   if (typeof l.evTotal === 'number') out.evTotal = l.evTotal;
+  if (typeof l.evDem === 'number') out.evDem = l.evDem;
+  if (typeof l.evRep === 'number') out.evRep = l.evRep;
+  if (l.evEstimated) out.evEstimated = true;
   if (l.notes) out.notes = l.notes;
   if (l.tip) {
     out.tip = l.tip;
@@ -117,6 +120,50 @@ export async function updateLocationNotes(
     next[i] = cleanLocation({ ...locations[i], ...patch });
     tx.update(ref, { locations: next, updatedAt: serverTimestamp() });
   });
+}
+
+/**
+ * Change fields on some of a county's sites without touching the site list
+ * itself. A key set to undefined in a patch clears that field. Ids no longer
+ * on the list are skipped. Returns how many sites were updated.
+ */
+export async function patchCountySites(
+  campaignId: string,
+  county: string,
+  patches: Map<string, Partial<Omit<StoredLocation, 'id'>>>,
+  updatedBy: string,
+): Promise<number> {
+  const ref = doc(db, COLLECTION, setDocId(campaignId, county));
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error(`No locations saved for ${county} County`);
+    const locations = (snap.data().locations ?? []) as StoredLocation[];
+    let changed = 0;
+    const next = locations.map((l) => {
+      const p = patches.get(l.id);
+      if (!p) return l;
+      changed++;
+      return cleanLocation({ ...l, ...p });
+    });
+    tx.update(ref, { locations: next, updatedAt: serverTimestamp(), updatedBy });
+    return changed;
+  });
+}
+
+const NO_TURNOUT: TurnoutPatch = { evTotal: undefined, evDem: undefined, evRep: undefined, evEstimated: undefined };
+
+/**
+ * Set or clear turnout numbers on a county's sites. `patches` maps site id →
+ * numbers, or null to clear them; sites not in the map keep what they have.
+ */
+export async function saveCountyTurnout(
+  campaignId: string,
+  county: string,
+  patches: Map<string, TurnoutPatch | null>,
+  updatedBy: string,
+): Promise<number> {
+  const full = new Map([...patches].map(([id, p]) => [id, { ...NO_TURNOUT, ...(p ?? {}) }]));
+  return patchCountySites(campaignId, county, full, updatedBy);
 }
 
 export async function deleteCountyLocations(campaignId: string, county: string): Promise<void> {

@@ -1,6 +1,7 @@
 import { Marker, Popup } from 'react-leaflet';
 import { createMarkerIcon, MARKER_TYPES } from '../../config/constants';
 import LocationNotes from '../common/LocationNotes';
+import TurnoutLine from '../common/TurnoutLine';
 import type { MapMarker, DressingRecord, LocationStatus } from '../../types';
 
 interface PollingMarkerProps {
@@ -25,11 +26,13 @@ const STATUS_LABEL: Record<LocationStatus, string> = {
 };
 
 export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, hasAccess }: PollingMarkerProps) {
-  const icon = createMarkerIcon(marker.type, status, marker.size);
+  const icon = createMarkerIcon(marker.type, status, marker.size, marker.priorityTier);
+  // Priority sites draw on top of their neighbors.
+  const zIndexOffset = marker.priorityTier === 1 ? 1000 : marker.priorityTier === 2 ? 500 : 0;
   const typeLabel = MARKER_TYPES[marker.type].label;
 
   return (
-    <Marker position={[marker.latitude, marker.longitude]} icon={icon}>
+    <Marker position={[marker.latitude, marker.longitude]} icon={icon} zIndexOffset={zIndexOffset}>
       {/* Top padding keeps the popup clear of the floating search bar. */}
       <Popup maxWidth={280} autoPanPaddingTopLeft={[12, 72]}>
         <div className="marker-popup">
@@ -40,6 +43,7 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
             {marker.size && (
               <span className="marker-popup-size"> &middot; {SIZE_LABELS[marker.size]}</span>
             )}
+            <TurnoutLine marker={marker} />
             <LocationNotes location={marker} />
             <div className={`dressing-status ${status}`}>
               {STATUS_LABEL[status]}

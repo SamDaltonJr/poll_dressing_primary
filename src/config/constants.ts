@@ -23,7 +23,7 @@ export const TEXAS_VIEWBOX = '-106.65,36.5,-93.51,25.84';
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-import type { MarkerType, MarkerTypeConfig, LocationSize, LocationStatus, PlannedSignStatus } from '../types';
+import type { MarkerType, MarkerTypeConfig, LocationSize, LocationStatus, PlannedSignStatus, PriorityTier } from '../types';
 
 export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
   dualSite: {
@@ -169,8 +169,9 @@ export function createPlannedSignIcon(status: PlannedSignStatus = 'planned'): L.
   });
 }
 
-// Create colored Leaflet DivIcon; color is driven by location status
-export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?: LocationSize): L.DivIcon {
+// Create colored Leaflet DivIcon; color is driven by location status.
+// Priority 1 sites carry a white star so they stand out at any zoom.
+export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?: LocationSize, tier?: PriorityTier): L.DivIcon {
   const config = MARKER_TYPES[type];
   const color = status === 'retrieved' ? config.retrievedColor
     : status === 'dressed' ? config.dressedColor
@@ -179,6 +180,9 @@ export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?
   const px = SIZE_PX[size ?? 'M'];
   const half = px / 2;
   const border = size === 'L' ? 4 : 3;
+  const star = tier === 1
+    ? `<span style="color: white; font-size: ${Math.round(px * 0.55)}px; line-height: 1;">&#9733;</span>`
+    : '';
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="
@@ -188,7 +192,10 @@ export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?
       border-radius: 50%;
       border: ${border}px solid white;
       box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-    "></div>`,
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">${star}</div>`,
     iconSize: [px, px],
     iconAnchor: [half, half],
     popupAnchor: [0, -(half + 2)],

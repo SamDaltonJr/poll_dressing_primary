@@ -21,9 +21,14 @@ interface MapFilterProps {
   showPlannedSigns: boolean;
   onTogglePlannedSigns: () => void;
   plannedSignCount: number;
+  /** Show only Priority 1/2 sites (statewide turnout rank). */
+  priorityOnly: boolean;
+  onTogglePriorityOnly: () => void;
+  /** Priority sites in the current county scope, and how many are dressed. */
+  priorityStats: { total: number; dressed: number };
 }
 
-export default function MapFilter({ activeTypes, onToggle, stats, county, onChangeCounty, countyOptions, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount }: MapFilterProps) {
+export default function MapFilter({ activeTypes, onToggle, stats, county, onChangeCounty, countyOptions, showDistributionPoints, onToggleDistributionPoints, distributionPointCount, showSignPlacements, onToggleSignPlacements, signPlacementCount, showPlannedSigns, onTogglePlannedSigns, plannedSignCount, priorityOnly, onTogglePriorityOnly, priorityStats }: MapFilterProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= 640);
   const campaign = useCampaign();
   const signLetter = campaign.candidateLastName.charAt(0).toUpperCase();
@@ -68,6 +73,14 @@ export default function MapFilter({ activeTypes, onToggle, stats, county, onChan
           ))}
         </select>
       </label>
+      {campaign.priority && priorityStats.total > 0 && (
+        <label className="map-filter-item" title={`Busiest early-voting sites in Texas, by ${campaign.priority.sourceLabel} turnout`}>
+          <input type="checkbox" checked={priorityOnly} onChange={onTogglePriorityOnly} />
+          <span className="filter-dot-priority" aria-hidden="true">&#9733;</span>
+          <span className="filter-label">Priority sites only</span>
+          <span className="filter-progress">{priorityStats.dressed}/{priorityStats.total}</span>
+        </label>
+      )}
       <div className="map-filter-separator" />
       {(Object.entries(MARKER_TYPES) as [MarkerType, typeof MARKER_TYPES[MarkerType]][]).map(
         ([type, config]) => {

@@ -31,7 +31,13 @@ export interface StoredLocation {
   ev: boolean;
   ed: boolean;
   size?: LocationSize;
+  /** In-person early votes at this site in the reference election (all parties). */
   evTotal?: number;
+  /** Democratic / Republican share of evTotal, when the county split it by party. */
+  evDem?: number;
+  evRep?: number;
+  /** evTotal is an estimate (partial report scaled up, or another election). */
+  evEstimated?: boolean;
   /**
    * Where the voting actually happens at the site ("Fellowship Hall, Room 104,
    * enter from the back lot"). From the county list or an admin edit.
@@ -45,6 +51,12 @@ export interface StoredLocation {
 }
 
 /** The editable note fields on a StoredLocation. */
+/** The turnout fields on a StoredLocation, as written by the turnout import. */
+export type TurnoutPatch = Pick<StoredLocation, 'evTotal' | 'evDem' | 'evRep' | 'evEstimated'>;
+
+/** Statewide priority tier from turnout rank (see CampaignConfig.priority). */
+export type PriorityTier = 1 | 2;
+
 export type LocationNotesPatch = Partial<Pick<StoredLocation, 'notes' | 'tip' | 'tipBy' | 'tipAt'>>;
 
 /**
@@ -72,6 +84,12 @@ export interface MapMarker {
   address: string;
   size?: LocationSize;
   evTotal?: number;
+  evDem?: number;
+  evRep?: number;
+  evEstimated?: boolean;
+  /** 1-based statewide rank by evTotal among early-voting sites. */
+  priorityRank?: number;
+  priorityTier?: PriorityTier;
   county: string;
   notes?: string;
   tip?: string;
