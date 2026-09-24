@@ -8,23 +8,27 @@ import { findCounty } from '../../config/texasCounties';
 import { parseCsv, withinCountyBBox, type ParsedCsv } from '../../utils/locationImport';
 import { haversineDistanceMiles } from '../../utils/geo';
 import {
-  EDIT_COLUMN_LABELS, addressChanges, checkRow, flagDuplicates, guessEditColumns, planEdits,
+  EDIT_COLUMN_LABELS, addressChanges, checkRow, flagDuplicates, guessEditColumns, pinChanges, planEdits,
   type EditColumnKey, type EditColumnMap, type EditPlanRow,
 } from '../../utils/siteEdits';
 import type { StoredLocation } from '../../types';
 
 type Step = 'input' | 'map' | 'review' | 'geocoding' | 'saving' | 'saved';
 
-/** New pin for a row whose address changed; null = the geocoder couldn't place it. */
-type Pin = { latitude: number; longitude: number; outside: boolean } | null;
+/**
+ * New pin for a row: from the file's coordinates, or geocoded from a changed
+ * address. null = the geocoder couldn't place it.
+ */
+type Pin = { latitude: number; longitude: number; outside: boolean; fromFile: boolean } | null;
 
 /** Pins that move farther than this get a second look. */
 const FAR_MILES = 10;
 
 /**
- * Bulk corrections to sites already on the map (addresses, room notes, sizes)
- * from one CSV that can cover many counties. Changed addresses are geocoded
- * again so the pin moves with them. Never adds or removes sites.
+ * Bulk corrections to sites already on the map (addresses, pins, room notes,
+ * sizes) from one CSV that can cover many counties. Pins given in the file
+ * are used as-is; otherwise a changed address is geocoded again so the pin
+ * moves with it. Never adds or removes sites.
  */
 export default function SiteEditsPanel() {
   const campaign = useCampaign();
@@ -90,8 +94,8 @@ export default function SiteEditsPanel() {
       setError('Choose a column to find each site by: Site ID, current address, or site name.');
       return;
     }
-    if (!columns.address && !columns.notes && !columns.size) {
-      setError('Choose at least one column to change: new address, notes, or size.');
+    if (!columns.address && !columns.coordinates && !(columns.latitude && columns.longitude) && !columns.notes && !columns.size) {
+      setError('Choose at least one column to change: new address, new pin, notes, or size.');
       return;
     }
     setError('');
@@ -114,19 +118,24 @@ export default function SiteEditsPanel() {
   const skipped = rows.filter((r) => r.problem);
 
   async function handleGeocode() {
-    const targets = ready.filter(addressChanges);
+    // A pin in the file beats geocoding the address.
+    const targets = ready.filter((r) => addressChanges(r) && !r.newPin);
     setStep('geocoding');
     setProgress({ done: 0, total: targets.length });
     const hits = await geocodeMany(targets.map((r) => r.newAddress!), (done, total) => setProgress({ done, total }));
     const nextPins: Record<number, Pin> = {};
     const nextInclude: Record<number, boolean> = {};
+    const place = (county: string, latitude: number, longitude: number, fromFile: boolean): Pin => {
+      const bbox = findCounty(county)?.bbox;
+      return { latitude, longitude, fromFile, outside: !!bbox && !withinCountyBBox(latitude, longitude, bbox) };
+    };
     targets.forEach((r, k) => {
       const hit = hits[k];
-      const bbox = findCounty(r.county)?.bbox;
-      nextPins[r.rowNumber] = hit
-        ? { latitude: hit.latitude, longitude: hit.longitude, outside: !!bbox && !withinCountyBBox(hit.latitude, hit.longitude, bbox) }
-        : null;
+      nextPins[r.rowNumber] = hit ? place(r.county, hit.latitude, hit.longitude, false) : null;
     });
+    for (const r of ready) {
+      if (pinChanges(r)) nextPins[r.rowNumber] = place(r.county, r.newPin!.latitude, r.newPin!.longitude, true);
+    }
     // Rows whose pin couldn't be placed (or landed outside the county) wait for
     // the admin to opt in; saving them keeps the old pin.
     for (const r of ready) {
@@ -145,13 +154,11 @@ export default function SiteEditsPanel() {
     for (const r of ready) {
       if (!include[r.rowNumber] || !r.site) continue;
       const patch: Partial<Omit<StoredLocation, 'id'>> = {};
-      if (addressChanges(r)) {
-        patch.address = r.newAddress!.trim();
-        const pin = pins[r.rowNumber];
-        if (pin && !pin.outside) {
-          patch.latitude = pin.latitude;
-          patch.longitude = pin.longitude;
-        }
+      if (addressChanges(r)) patch.address = r.newAddress!.trim();
+      const pin = pins[r.rowNumber];
+      if (pin && !pin.outside) {
+        patch.latitude = pin.latitude;
+        patch.longitude = pin.longitude;
       }
       if (r.newNotes != null) patch.notes = r.newNotes;
       if (r.newSize != null) patch.size = r.newSize;
@@ -182,16 +189,18 @@ export default function SiteEditsPanel() {
       <section className="import-section">
         <h3>Edit sites</h3>
         <p className="import-muted">
-          Fix addresses, room notes, or sizes on sites already on the map, across any number of counties in one CSV.
-          Changed addresses get a new pin. This never adds or removes sites.
+          Fix addresses, pins, room notes, or sizes on sites already on the map, across any number of counties in
+          one CSV. Changed addresses get a new pin unless the file gives one. This never adds or removes sites.
         </p>
 
         {step === 'input' && (
           <>
             <p className="import-muted">
-              The file needs a <strong>County</strong> column, a way to find each site (site name, or its current
-              address), and the new values (e.g. a <strong>Corrected Address</strong> column). Blank cells leave that
-              field alone.
+              The file needs a <strong>County</strong> column, a way to find each site (Site ID, site name, or its
+              current address), and the new values: e.g. a <strong>Corrected Address</strong> column, or a pin as{' '}
+              <strong>Latitude</strong>/<strong>Longitude</strong> or one “lat, lng” column copied from Google Maps.
+              Blank cells leave that field alone. The admin <strong>Export CSV</strong> has all of these, so you can
+              fix it in a spreadsheet and upload it here.
             </p>
             <div className="import-field">
               <span>File</span>
@@ -329,6 +338,9 @@ export default function SiteEditsPanel() {
                                   <br />→ {r.newAddress}
                                 </div>
                               )}
+                              {pinChanges(r) && (
+                                <div>Pin → {r.newPin!.latitude.toFixed(5)}, {r.newPin!.longitude.toFixed(5)}</div>
+                              )}
                               {r.newNotes != null && r.newNotes !== (site.notes ?? '') && <div>Notes → {r.newNotes}</div>}
                               {r.newSize != null && r.newSize !== site.size && <div>Size {site.size ?? '—'} → {r.newSize}</div>}
                             </td>
@@ -338,7 +350,11 @@ export default function SiteEditsPanel() {
                                   : pin == null ? <span className="import-warning-text">Not found; saving keeps the old pin</span>
                                   : pin.outside ? <span className="import-warning-text">Outside {r.county} County; saving keeps the old pin</span>
                                   : moved < 0.05 ? 'Same spot'
-                                  : <span className={moved > FAR_MILES ? 'import-warning-text' : undefined}>Moves {moved.toFixed(1)} mi</span>}
+                                  : (
+                                    <span className={moved > FAR_MILES ? 'import-warning-text' : undefined}>
+                                      Moves {moved.toFixed(1)} mi{pin.fromFile ? ' (from file)' : ''}
+                                    </span>
+                                  )}
                               </td>
                             )}
                           </tr>
