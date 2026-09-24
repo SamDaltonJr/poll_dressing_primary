@@ -115,12 +115,17 @@ export default function MapPage() {
   const [localAccess, setLocalAccess] = useState(false);
   const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(() => getDefaultActiveTypes(campaign));
+  // The volunteer's metro area is remembered in this browser. Admins work
+  // statewide, so they get their own, unsaved choice that starts at all of
+  // Texas; logging out brings the volunteer's area back.
   const [region, setRegion] = useState<string | null>(() => readSavedRegion(campaign.slug));
+  const [adminRegion, setAdminRegion] = useState('');
   const [regionPickerOpen, setRegionPickerOpen] = useState(false);
   const [county, setCounty] = useState<string>(() => readSavedCounty(campaign.slug));
-  // Open on the remembered county, else the remembered metro area.
+  // Open on the remembered county, else the remembered metro area. A
+  // coordinator whose session is still resolving counts as an admin here.
   const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(() => {
-    const savedRegion = readSavedRegion(campaign.slug);
+    const savedRegion = isAdmin || sessionLoading ? null : readSavedRegion(campaign.slug);
     const regionList = savedRegion ? TEXAS_REGIONS[savedRegion] : undefined;
     const savedCounty = findCounty(readSavedCounty(campaign.slug));
     if (savedCounty && (!regionList || regionList.includes(savedCounty.name))) return savedCounty.bbox;
@@ -153,7 +158,8 @@ export default function MapPage() {
   // A remembered region name that no longer exists in config falls back to
   // all of Texas. Volunteers who have never chosen get the picker; admins
   // (once their session has resolved) default to the full map.
-  const effectiveRegion = region && TEXAS_REGIONS[region] ? region : '';
+  const currentRegion = isAdmin ? adminRegion : region;
+  const effectiveRegion = currentRegion && TEXAS_REGIONS[currentRegion] ? currentRegion : '';
   const regionCounties = useMemo(
     () => (effectiveRegion ? new Set(TEXAS_REGIONS[effectiveRegion]) : null),
     [effectiveRegion],
@@ -196,12 +202,16 @@ export default function MapPage() {
   );
 
   function handleChangeRegion(next: string) {
-    setRegion(next);
     setRegionPickerOpen(false);
-    try {
-      localStorage.setItem(regionStorageKey(campaign.slug), next);
-    } catch {
-      // Private mode — the choice just won't be remembered.
+    if (isAdmin) {
+      setAdminRegion(next);
+    } else {
+      setRegion(next);
+      try {
+        localStorage.setItem(regionStorageKey(campaign.slug), next);
+      } catch {
+        // Private mode — the choice just won't be remembered.
+      }
     }
     // A county filter from another region no longer applies.
     if (county && next && !TEXAS_REGIONS[next].includes(county)) {
@@ -632,11 +642,11 @@ export default function MapPage() {
 
       {showRegionPicker && (
         <RegionPicker
-          current={region}
+          current={currentRegion}
           counts={regionCounts}
           totalCount={allLocations.length}
           onSelect={handleChangeRegion}
-          onClose={region !== null ? () => setRegionPickerOpen(false) : undefined}
+          onClose={currentRegion !== null ? () => setRegionPickerOpen(false) : undefined}
         />
       )}
 
