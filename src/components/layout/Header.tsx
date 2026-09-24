@@ -78,14 +78,15 @@ export default function Header() {
             <Link to={path('submit')} className={isActive('submit') ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link>
           )}
           <Link to={path('my-locations')} className={isActive('my-locations') ? 'active' : ''} onClick={handleLinkClick}>My Locations</Link>
+          <Link to={path('instructions/poll-dressing')} className={isActive('instructions/poll-dressing') ? 'active' : ''} onClick={handleLinkClick}>How it works</Link>
           {/* Admin is reachable by direct URL; the link only appears once logged in. */}
           {isAdmin && (
             <>
               <Link to={path('admin')} className={isActive('admin') ? 'active' : ''} onClick={handleLinkClick}>Admin</Link>
+              <Link to="/campaigns" className="header-switch-campaign" onClick={handleLinkClick}>Switch</Link>
               <button type="button" className="header-logout" onClick={handleLogout}>Log out</button>
             </>
           )}
-          <Link to="/" className="header-switch-campaign" onClick={handleLinkClick}>Switch</Link>
         </nav>
       </div>
     </header>

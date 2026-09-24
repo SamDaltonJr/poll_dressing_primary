@@ -39,10 +39,10 @@ export function useAccessCode() {
         setIsValid(true);
         return true;
       }
-      setError('Invalid access code. Please try again.');
+      setError('That code didn’t work. Check it with your coordinator — it’s case-sensitive.');
       return false;
     } catch {
-      setError('Unable to verify access code. Please try again.');
+      setError('Couldn’t check the code. Check your connection and try again.');
       return false;
     }
   }

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { listCampaigns, candidateInitials } from '../config/campaigns';
 import type { CampaignConfig } from '../config/campaigns';
 
@@ -38,8 +38,12 @@ function PickerCardBody({ c }: { c: CampaignConfig }) {
   );
 }
 
-export default function CampaignPickerPage() {
+export default function CampaignPickerPage({ showAll = false }: { showAll?: boolean }) {
   const campaigns = listCampaigns();
+  // Volunteers follow a link to the site root; with one live campaign there's
+  // nothing to choose, so skip the picker (archives stay under /campaigns).
+  const live = campaigns.filter((c) => !c.isArchive);
+  if (!showAll && live.length === 1) return <Navigate to={`/c/${live[0].slug}`} replace />;
 
   return (
     <div className="picker">

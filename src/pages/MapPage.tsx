@@ -13,6 +13,7 @@ import ConfirmDialog from '../components/common/ConfirmDialog';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PlannedSignModal from '../components/admin/PlannedSignModal';
 import RegionPicker from '../components/map/RegionPicker';
+import WelcomeCard from '../components/map/WelcomeCard';
 import { markSignRetrieved } from '../services/submissionService';
 import { patchCountySites } from '../services/pollingLocationService';
 import { haversineDistanceMiles } from '../utils/geo';
@@ -103,6 +104,19 @@ function readSavedRegion(slug: string): string | null {
   }
 }
 
+/** Whether this device has dismissed the first-visit welcome card. */
+function welcomeStorageKey(slug: string): string {
+  return `welcomeSeen:${slug}`;
+}
+
+function readWelcomeSeen(slug: string): boolean {
+  try {
+    return localStorage.getItem(welcomeStorageKey(slug)) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export default function MapPage() {
   const campaign = useCampaign();
   const { dressings, loading } = useDressings();
@@ -117,6 +131,7 @@ export default function MapPage() {
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(() => getDefaultActiveTypes(campaign));
   const [region, setRegion] = useState<string | null>(() => readSavedRegion(campaign.slug));
   const [regionPickerOpen, setRegionPickerOpen] = useState(false);
+  const [welcomeSeen, setWelcomeSeen] = useState(() => readWelcomeSeen(campaign.slug));
   const [county, setCounty] = useState<string>(() => readSavedCounty(campaign.slug));
   // Open on the remembered county, else the remembered metro area.
   const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(() => {
@@ -159,6 +174,17 @@ export default function MapPage() {
     [effectiveRegion],
   );
   const showRegionPicker = regionPickerOpen || (region === null && !isAdmin && !sessionLoading);
+  // New volunteers get the overview once they've picked their area.
+  const showWelcome = !welcomeSeen && !showRegionPicker && !isAdmin && !sessionLoading;
+
+  function handleDismissWelcome() {
+    setWelcomeSeen(true);
+    try {
+      localStorage.setItem(welcomeStorageKey(campaign.slug), '1');
+    } catch {
+      // Private mode — they'll just see it again next visit.
+    }
+  }
 
   // Polling-location counts per metro area, for the picker grid.
   const regionCounts = useMemo(() => {
@@ -535,8 +561,8 @@ export default function MapPage() {
         )}
 
         {!pinDropMode && !adminPinDropMode && !movingPin && (
-          <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
-            + Report Missing Location
+          <button className="btn pin-drop-btn" onClick={handleStartPinDrop}>
+            + Report missing site
           </button>
         )}
 
@@ -645,6 +671,8 @@ export default function MapPage() {
           onClose={region !== null ? () => setRegionPickerOpen(false) : undefined}
         />
       )}
+
+      {showWelcome && <WelcomeCard onDismiss={handleDismissWelcome} />}
 
       {showAccessModal && (
         <AccessCodeModal
