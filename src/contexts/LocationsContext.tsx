@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { subscribeToLocationSets } from '../services/pollingLocationService';
 import { isEarlyVotingOpen } from '../config/campaigns';
 import { useCampaign } from './CampaignContext';
+import type { CampaignConfig } from '../config/campaigns';
 import type { MapMarker, MarkerType, PollingLocationSet, StoredLocation } from '../types';
 
 interface LocationsValue {
@@ -23,6 +24,25 @@ const LocationsCtx = createContext<LocationsValue | null>(null);
 function markerType(l: StoredLocation): MarkerType {
   if (l.ev && l.ed) return 'dualSite';
   return l.ev ? 'earlyVotingOnly' : 'electionDayOnly';
+}
+
+/**
+ * Rank early-voting sites statewide by imported turnout and tag the top ones
+ * (CampaignConfig.priority). Priority sites draw large on the map unless an
+ * admin set a size by hand.
+ */
+function applyPriority(markers: MapMarker[], campaign: CampaignConfig): void {
+  const cfg = campaign.priority;
+  if (!cfg) return;
+  const ranked = markers
+    .filter((m) => m.type !== 'electionDayOnly' && (m.evTotal ?? 0) > 0)
+    .sort((a, b) => b.evTotal! - a.evTotal! || a.label.localeCompare(b.label));
+  ranked.forEach((m, i) => {
+    m.priorityRank = i + 1;
+    if (i < cfg.tier1) m.priorityTier = 1;
+    else if (i < cfg.tier2) m.priorityTier = 2;
+    if (m.priorityTier && !m.size) m.size = 'L';
+  });
 }
 
 /**
@@ -61,6 +81,9 @@ export function LocationsProvider({ children }: { children: ReactNode }) {
           address: l.address,
           size: l.size,
           evTotal: l.evTotal,
+          evDem: l.evDem,
+          evRep: l.evRep,
+          evEstimated: l.evEstimated,
           county: set.county,
           notes: l.notes,
           tip: l.tip,
@@ -69,6 +92,7 @@ export function LocationsProvider({ children }: { children: ReactNode }) {
         });
       }
     }
+    applyPriority(allLocations, campaign);
     const evOpen = isEarlyVotingOpen(campaign);
     const activeLocations = evOpen
       ? allLocations

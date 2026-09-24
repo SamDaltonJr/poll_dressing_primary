@@ -793,6 +793,11 @@ textarea:focus {
   color: #92400e;
 }
 
+.status-retrieved {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
 /* === Table === */
 .table-wrapper {
   overflow-x: auto;
@@ -1038,6 +1043,54 @@ textarea:focus {
   margin-top: 4px;
   font-size: 0.8rem;
   color: var(--color-text-muted);
+}
+
+/* === Turnout priority (popup line + admin badges) === */
+.turnout-line {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.turnout-line-rank {
+  font-weight: 600;
+}
+
+.turnout-line-votes {
+  color: var(--color-text-muted);
+}
+
+.turnout-line-p1 .turnout-line-rank {
+  color: #b45309;
+}
+
+.filter-dot-priority {
+  width: 12px;
+  text-align: center;
+  color: #d97706;
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.priority-badge-1 {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.priority-badge-2 {
+  background: #e0e7ff;
+  color: #3730a3;
 }
 
 .form-hint {
@@ -3157,4 +3210,50 @@ input.search-bar-input {
 .import-extract-table input.import-input-missing {
   border-color: #f59e0b;
   background: #fffbeb;
+}
+
+/* === Turnout import === */
+.import-mode-tabs {
+  margin-bottom: 12px;
+}
+
+.turnout-county {
+  margin: 8px 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.turnout-county-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.turnout-county .table-wrapper {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+.turnout-county > .import-muted {
+  padding: 0 12px 10px;
+}
+
+.turnout-county select {
+  max-width: 100%;
+}
+
+.turnout-row-unmatched td:first-child {
+  box-shadow: inset 3px 0 0 #f59e0b;
 }

@@ -50,6 +50,13 @@ export interface CampaignConfig {
    */
   bigSigns?: boolean;
   /**
+   * Ranks early-voting sites statewide by their imported turnout (evTotal) and
+   * flags the top ones. `tier1`/`tier2` are counts: the top `tier1` sites are
+   * Priority 1, the next ones up to rank `tier2` are Priority 2.
+   * `sourceLabel` names the election the numbers came from, for popups.
+   */
+  priority?: { tier1: number; tier2: number; sourceLabel: string };
+  /**
    * Marks this entry as a frozen archive — past campaign whose data lives in a
    * separate Firebase project. Picker renders an external link to archiveUrl
    * instead of a /c/:slug SPA route, and CampaignProvider redirects /c/:slug
@@ -90,6 +97,7 @@ export const CAMPAIGNS: Record<string, CampaignConfig> = {
       { name: 'Rob Strobel', phone: '(859) 489-8880', email: 'rob@jamestalarico.com' },
     ],
     groupChatUrl: 'https://signal.group/#CjQKIHhfB6WLSDlvTqFuh65yUP59TvR5oCAx_2N-YKDJCkBYEhDxr0HAooGF_E6BH7OWHgZ2',
+    priority: { tier1: 50, tier2: 150, sourceLabel: 'March primary' },
   },
   'james-talarico-senate': {
     slug: 'james-talarico-senate',

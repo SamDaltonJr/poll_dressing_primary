@@ -100,6 +100,7 @@ export default function MapPage() {
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(false);
+  const [priorityOnly, setPriorityOnly] = useState(false);
   const [searchOpen, setSearchOpen] = useState(() => window.innerWidth > 640);
   const [claimTarget, setClaimTarget] = useState<MapMarker | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<MapMarker | null>(null);
@@ -195,9 +196,20 @@ export default function MapPage() {
     return s;
   }, [allMarkers, retrievedIds, dressedIds, claimedIds]);
 
+  const priorityStats = useMemo(() => {
+    let total = 0;
+    let dressed = 0;
+    for (const m of allMarkers) {
+      if (!m.priorityTier) continue;
+      total++;
+      if (dressedIds.has(m.id) || retrievedIds.has(m.id)) dressed++;
+    }
+    return { total, dressed };
+  }, [allMarkers, dressedIds, retrievedIds]);
+
   const filteredMarkers = useMemo(
-    () => allMarkers.filter((m) => activeTypes.has(m.type)),
-    [allMarkers, activeTypes],
+    () => allMarkers.filter((m) => activeTypes.has(m.type) && (!priorityOnly || m.priorityTier)),
+    [allMarkers, activeTypes, priorityOnly],
   );
 
   function handleToggle(type: MarkerType) {
@@ -393,6 +405,9 @@ export default function MapPage() {
         showPlannedSigns={showPlannedSigns}
         onTogglePlannedSigns={() => setShowPlannedSigns((prev) => !prev)}
         plannedSignCount={plannedSigns.length}
+        priorityOnly={priorityOnly}
+        onTogglePriorityOnly={() => setPriorityOnly((prev) => !prev)}
+        priorityStats={priorityStats}
       />
 
       {isAdmin && campaign.bigSigns && !pinDropMode && !adminPinDropMode && (

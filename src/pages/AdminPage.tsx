@@ -15,6 +15,8 @@ import VolunteerLocationCounts from '../components/admin/VolunteerLocationCounts
 import PlannedSignTable from '../components/admin/PlannedSignTable';
 import LocationImportPanel from '../components/admin/LocationImportPanel';
 import CoordinatorsPanel from '../components/admin/CoordinatorsPanel';
+import PriorityTable from '../components/admin/PriorityTable';
+import TurnoutImportPanel from '../components/admin/TurnoutImportPanel';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
@@ -27,7 +29,7 @@ import { useLocations } from '../contexts/LocationsContext';
 import { useAdminAuth, inScope } from '../contexts/AdminContext';
 import { useCampaign } from '../contexts/CampaignContext';
 
-type AdminTab = 'polling' | 'import' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns' | 'stats' | 'coordinators';
+type AdminTab = 'polling' | 'priority' | 'import' | 'distribution' | 'locationReports' | 'signs' | 'reminders' | 'volunteers' | 'plannedSigns' | 'stats' | 'coordinators';
 
 export default function AdminPage() {
   return (
@@ -51,6 +53,7 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('polling');
   // Optional narrowing within the admin's scope ('' = everything they can see).
   const [countyFocus, setCountyFocus] = useState('');
+  const [importMode, setImportMode] = useState<'sites' | 'turnout'>('sites');
 
   // Effective county filter: the coordinator's assignment, further narrowed by
   // the focus dropdown. null = statewide, no filter.
@@ -96,8 +99,9 @@ function AdminDashboard() {
   const pendingReminderCount = scopedDressings.filter((d) => d.isClaimed && !d.isDressed && d.volunteerEmail).length;
   const volunteerCount = new Set(scopedDressings.filter((d) => d.isClaimed && d.volunteerName).map((d) => d.volunteerEmail || d.volunteerPhone || d.volunteerName)).size;
 
-  const tabs: Array<{ key: AdminTab; label: string; stateOnly?: boolean; bigSignsOnly?: boolean }> = [
+  const tabs: Array<{ key: AdminTab; label: string; stateOnly?: boolean; bigSignsOnly?: boolean; priorityOnly?: boolean }> = [
     { key: 'polling', label: `Polling Locations (${locations.length})` },
+    { key: 'priority', label: 'Priority Sites', priorityOnly: true },
     { key: 'import', label: 'Import Locations' },
     { key: 'signs', label: `Sign Placements (${scopedSubmissions.length})`, bigSignsOnly: true },
     { key: 'plannedSigns', label: `Planned Signs (${scopedPlanned.length})`, bigSignsOnly: true },
@@ -145,7 +149,7 @@ function AdminDashboard() {
         </div>
       </div>
       <div className="admin-tabs">
-        {tabs.filter((t) => (!t.stateOnly || role === 'state') && (!t.bigSignsOnly || campaign.bigSigns)).map((t) => (
+        {tabs.filter((t) => (!t.stateOnly || role === 'state') && (!t.bigSignsOnly || campaign.bigSigns) && (!t.priorityOnly || campaign.priority)).map((t) => (
           <button
             key={t.key}
             className={`admin-tab ${activeTab === t.key ? 'active' : ''}`}
@@ -170,8 +174,29 @@ function AdminDashboard() {
           </>
         )
       )}
+      {activeTab === 'priority' && (
+        dressingsLoading ? (
+          <LoadingSpinner message="Loading priority sites..." />
+        ) : (
+          <PriorityTable dressings={scopedDressings} locations={locations} />
+        )
+      )}
       {activeTab === 'import' && (
-        locationsLoading ? <LoadingSpinner message="Loading locations..." /> : <LocationImportPanel />
+        locationsLoading ? <LoadingSpinner message="Loading locations..." /> : (
+          <>
+            {campaign.priority && (
+              <div className="filter-tabs import-mode-tabs">
+                <button className={`filter-tab ${importMode === 'sites' ? 'active' : ''}`} onClick={() => setImportMode('sites')}>
+                  Site lists
+                </button>
+                <button className={`filter-tab ${importMode === 'turnout' ? 'active' : ''}`} onClick={() => setImportMode('turnout')}>
+                  Turnout numbers
+                </button>
+              </div>
+            )}
+            {importMode === 'turnout' && campaign.priority ? <TurnoutImportPanel /> : <LocationImportPanel />}
+          </>
+        )
       )}
       {activeTab === 'signs' && (
         subsLoading ? (
