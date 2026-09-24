@@ -116,7 +116,14 @@ export default function MapPage() {
   const [region, setRegion] = useState<string | null>(() => readSavedRegion(campaign.slug));
   const [regionPickerOpen, setRegionPickerOpen] = useState(false);
   const [county, setCounty] = useState<string>(() => readSavedCounty(campaign.slug));
-  const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(null);
+  // Open on the remembered county, else the remembered metro area.
+  const [fitBoundsTarget, setFitBoundsTarget] = useState<[number, number, number, number] | null>(() => {
+    const savedRegion = readSavedRegion(campaign.slug);
+    const regionList = savedRegion ? TEXAS_REGIONS[savedRegion] : undefined;
+    const savedCounty = findCounty(readSavedCounty(campaign.slug));
+    if (savedCounty && (!regionList || regionList.includes(savedCounty.name))) return savedCounty.bbox;
+    return savedRegion ? regionBbox(savedRegion) : null;
+  });
   const [showDistributionPoints, setShowDistributionPoints] = useState(true);
   const [showSignPlacements, setShowSignPlacements] = useState(true);
   const [showPlannedSigns, setShowPlannedSigns] = useState(false);
