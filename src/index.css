@@ -3418,3 +3418,27 @@ input.search-bar-input {
   color: var(--color-text-muted);
   text-decoration: line-through;
 }
+
+/* === Admin: move a polling pin === */
+.marker-popup-move-btn {
+  margin-top: 6px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed #f59e0b;
+  color: #b45309;
+  font-size: 0.75rem;
+}
+
+.marker-popup-move-btn:hover {
+  background: #fffbeb;
+}
+
+.move-pin-banner {
+  border-color: #f59e0b;
+  white-space: normal;
+  max-width: min(640px, calc(100vw - 32px));
+}
+
+.move-pin-marker {
+  cursor: grab;
+}

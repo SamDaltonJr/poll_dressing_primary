@@ -14,12 +14,14 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import PlannedSignModal from '../components/admin/PlannedSignModal';
 import RegionPicker from '../components/map/RegionPicker';
 import { markSignRetrieved } from '../services/submissionService';
+import { patchCountySites } from '../services/pollingLocationService';
+import { haversineDistanceMiles } from '../utils/geo';
 import { useDressings } from '../hooks/useDressings';
 import { useDistributionPoints } from '../hooks/useDistributionPoints';
 import { useSubmissions } from '../hooks/useSubmissions';
 import { usePlannedSigns } from '../hooks/usePlannedSigns';
 import { useAccessCode } from '../hooks/useAccessCode';
-import { useAdminAuth } from '../contexts/AdminContext';
+import { useAdminAuth, inScope } from '../contexts/AdminContext';
 import { useCampaign } from '../contexts/CampaignContext';
 import { useLocations } from '../contexts/LocationsContext';
 import { isEarlyVotingOpen, type CampaignConfig } from '../config/campaigns';
@@ -107,9 +109,9 @@ export default function MapPage() {
   const { points: distributionPoints, loading: dpLoading } = useDistributionPoints();
   const { submissions: signSubmissions, loading: subsLoading } = useSubmissions();
   const { signs: plannedSigns, loading: psLoading } = usePlannedSigns();
-  const { allLocations, loading: locationsLoading } = useLocations();
+  const { allLocations, locationById, loading: locationsLoading } = useLocations();
   const { isValid: hasAccessFromHook } = useAccessCode();
-  const { isAdmin, sessionLoading } = useAdminAuth();
+  const { isAdmin, sessionLoading, allowedCounties, adminName } = useAdminAuth();
   const [localAccess, setLocalAccess] = useState(false);
   const hasAccess = hasAccessFromHook || localAccess;
   const [activeTypes, setActiveTypes] = useState<Set<MarkerType>>(() => getDefaultActiveTypes(campaign));
@@ -143,6 +145,10 @@ export default function MapPage() {
   const [adminPinPosition, setAdminPinPosition] = useState<[number, number] | null>(null);
   const [showPlannedSignModal, setShowPlannedSignModal] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number } | null>(null);
+  // Admin repositioning a polling pin: the site, where its pin was, where it is now.
+  const [movingPin, setMovingPin] = useState<{ site: MapMarker; from: [number, number]; to: [number, number] } | null>(null);
+  const [satellite, setSatellite] = useState(false);
+  const [savingPin, setSavingPin] = useState(false);
 
   // A remembered region name that no longer exists in config falls back to
   // all of Texas. Volunteers who have never chosen get the picker; admins
@@ -282,8 +288,8 @@ export default function MapPage() {
   }, [allMarkers, dressedIds, retrievedIds]);
 
   const filteredMarkers = useMemo(
-    () => allMarkers.filter((m) => activeTypes.has(m.type) && (!priorityOnly || m.priorityTier)),
-    [allMarkers, activeTypes, priorityOnly],
+    () => allMarkers.filter((m) => activeTypes.has(m.type) && (!priorityOnly || m.priorityTier) && m.id !== movingPin?.site.id),
+    [allMarkers, activeTypes, priorityOnly, movingPin],
   );
 
   function handleToggle(type: MarkerType) {
@@ -374,6 +380,37 @@ export default function MapPage() {
     setPinPosition(null);
   }
 
+  function handleStartMovePin(marker: MapMarker) {
+    // Start from the stored pin, not the display offset used to separate
+    // overlapping sites.
+    const site = locationById.get(marker.id) ?? marker;
+    const from: [number, number] = [site.latitude, site.longitude];
+    setPinDropMode(false);
+    setAdminPinDropMode(false);
+    setSatellite(true);
+    setMovingPin({ site, from, to: from });
+  }
+
+  function handleCancelMovePin() {
+    setMovingPin(null);
+    setSatellite(false);
+  }
+
+  async function handleSaveMovePin() {
+    if (!movingPin) return;
+    const { site, to } = movingPin;
+    setSavingPin(true);
+    try {
+      await patchCountySites(campaign.slug, site.county, new Map([[site.id, { latitude: to[0], longitude: to[1] }]]), adminName);
+      setMovingPin(null);
+      setSatellite(false);
+    } catch (err) {
+      alert(`Couldn't save the pin: ${err instanceof Error ? err.message : 'unknown error'}`);
+    } finally {
+      setSavingPin(false);
+    }
+  }
+
   function handleStartAdminPinDrop() {
     setAdminPinDropMode(true);
     setAdminPinPosition(null);
@@ -445,6 +482,10 @@ export default function MapPage() {
         flyToTarget={flyToTarget}
         onFlyComplete={handleFlyComplete}
         fitBoundsTarget={fitBoundsTarget}
+        movingPin={movingPin?.to ?? null}
+        onMovePin={(lat, lng) => setMovingPin((prev) => (prev ? { ...prev, to: [lat, lng] } : prev))}
+        onMovePinClick={isAdmin ? (m) => { if (inScope(allowedCounties, m.county)) handleStartMovePin(m); } : undefined}
+        satellite={satellite}
       />
       {allLocations.length === 0 && (
         <div className="map-notice" role="status">
@@ -485,13 +526,13 @@ export default function MapPage() {
         priorityStats={priorityStats}
       />
 
-      {isAdmin && campaign.bigSigns && !pinDropMode && !adminPinDropMode && (
+      {isAdmin && campaign.bigSigns && !pinDropMode && !adminPinDropMode && !movingPin && (
         <button className="btn btn-secondary admin-pin-drop-btn" onClick={handleStartAdminPinDrop}>
           + Plan Sign Location
         </button>
       )}
 
-      {!pinDropMode && !adminPinDropMode && (
+      {!pinDropMode && !adminPinDropMode && !movingPin && (
         <button className="btn btn-primary pin-drop-btn" onClick={handleStartPinDrop}>
           + Report Missing Location
         </button>
@@ -528,6 +569,32 @@ export default function MapPage() {
           </div>
         </div>
       )}
+
+      {movingPin && (() => {
+        const feet = haversineDistanceMiles(movingPin.from[0], movingPin.from[1], movingPin.to[0], movingPin.to[1]) * 5280;
+        return (
+          <div className="pin-drop-banner move-pin-banner">
+            <span>
+              <strong>{movingPin.site.label}</strong>
+              <br />
+              {feet < 3
+                ? 'Drag the pin (or tap the map) onto the building’s voting entrance.'
+                : `Moved ${feet < 1000 ? `${Math.round(feet)} ft` : `${(feet / 5280).toFixed(1)} mi`}. Save when it’s on the entrance.`}
+            </span>
+            <div className="pin-drop-banner-actions">
+              <button className="btn btn-secondary btn-sm" onClick={() => setSatellite((v) => !v)}>
+                {satellite ? 'Street map' : 'Satellite'}
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={handleCancelMovePin} disabled={savingPin}>
+                Cancel
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={handleSaveMovePin} disabled={savingPin || feet < 3}>
+                {savingPin ? 'Saving…' : 'Save pin'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="map-legend">
         <button
