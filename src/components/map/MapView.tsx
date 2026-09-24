@@ -10,7 +10,10 @@ import PinDropHandler from './PinDropHandler';
 import FlyToLocation from './FlyToLocation';
 import FitBounds from './FitBounds';
 import UserLocationMarker from './UserLocationMarker';
-import { MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION } from '../../config/constants';
+import MovePinHandler from './MovePinHandler';
+import {
+  MAP_CENTER, MAP_ZOOM, TILE_URL, TILE_ATTRIBUTION, SATELLITE_TILE_URL, SATELLITE_LABELS_URL, SATELLITE_ATTRIBUTION,
+} from '../../config/constants';
 import type { MapMarker, DressingRecord, DistributionPoint, SignSubmission, PlannedSignLocation, LocationStatus } from '../../types';
 
 interface MapViewProps {
@@ -38,6 +41,12 @@ interface MapViewProps {
   flyToTarget: { lat: number; lng: number } | null;
   onFlyComplete: () => void;
   fitBoundsTarget: [number, number, number, number] | null;
+  /** A polling pin an admin is repositioning (shown draggable, outside the clusters). */
+  movingPin: [number, number] | null;
+  onMovePin: (lat: number, lng: number) => void;
+  /** Admins only: offered from the popup when set. */
+  onMovePinClick?: (marker: MapMarker) => void;
+  satellite: boolean;
 }
 
 const PURPLE = '#7c3aed';
@@ -113,7 +122,7 @@ function createClusterIcon(cluster: any): L.DivIcon {
   });
 }
 
-export default function MapView({ markers, dressedIds, claimedIds, retrievedIds, dressings, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, onSignRetrieveClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete, fitBoundsTarget }: MapViewProps) {
+export default function MapView({ markers, dressedIds, claimedIds, retrievedIds, dressings, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, onSignRetrieveClick, hasAccess, signSubmissions, distributionPoints, plannedSigns, pinDropMode, pinPosition, onPinPlaced, adminPinDropMode, adminPinPosition, onAdminPinPlaced, flyToTarget, onFlyComplete, fitBoundsTarget, movingPin, onMovePin, onMovePinClick, satellite }: MapViewProps) {
   const dressingMap = useMemo(() => {
     const m = new Map<string, DressingRecord>();
     for (const d of dressings) m.set(d.locationId, d);
@@ -141,7 +150,14 @@ export default function MapView({ markers, dressedIds, claimedIds, retrievedIds,
       zoom={MAP_ZOOM}
       className="map-container"
     >
-      <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
+      {satellite ? (
+        <>
+          <TileLayer key="sat" url={SATELLITE_TILE_URL} attribution={SATELLITE_ATTRIBUTION} maxZoom={20} maxNativeZoom={19} />
+          <TileLayer key="sat-labels" url={SATELLITE_LABELS_URL} maxZoom={20} maxNativeZoom={19} />
+        </>
+      ) : (
+        <TileLayer key="street" url={TILE_URL} attribution={TILE_ATTRIBUTION} />
+      )}
 
       <MarkerClusterGroup
         key={clusterKey}
@@ -162,6 +178,7 @@ export default function MapView({ markers, dressedIds, claimedIds, retrievedIds,
             onRetrieveClick={onRetrieveClick}
             onReportClick={onReportClick}
             onIncorrectReportClick={onIncorrectReportClick}
+            onMovePinClick={onMovePinClick}
             hasAccess={hasAccess}
           />
         ))}
@@ -188,6 +205,7 @@ export default function MapView({ markers, dressedIds, claimedIds, retrievedIds,
       <PinDropHandler active={adminPinDropMode} pinPosition={adminPinPosition} onPinPlaced={onAdminPinPlaced} />
       <FlyToLocation target={flyToTarget} onComplete={onFlyComplete} />
       <FitBounds bbox={fitBoundsTarget} />
+      {movingPin && <MovePinHandler position={movingPin} onMove={onMovePin} />}
     </MapContainer>
   );
 }

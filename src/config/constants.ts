@@ -23,6 +23,13 @@ export const TEXAS_VIEWBOX = '-106.65,36.5,-93.51,25.84';
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
+// Satellite imagery for placing pins on the right building (Esri World
+// Imagery, free with attribution), plus a road/label overlay so streets stay
+// readable on top of it.
+export const SATELLITE_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+export const SATELLITE_LABELS_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}';
+export const SATELLITE_ATTRIBUTION = 'Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community';
+
 import type { MarkerType, MarkerTypeConfig, LocationSize, LocationStatus, PlannedSignStatus, PriorityTier } from '../types';
 
 export const MARKER_TYPES: Record<MarkerType, MarkerTypeConfig> = {
@@ -199,5 +206,27 @@ export function createMarkerIcon(type: MarkerType, status: LocationStatus, size?
     iconSize: [px, px],
     iconAnchor: [half, half],
     popupAnchor: [0, -(half + 2)],
+  });
+}
+
+/** Pin being moved by an admin: large amber target so it stands out on satellite imagery. */
+export function createMovePinIcon(): L.DivIcon {
+  const px = 34;
+  const half = px / 2;
+  return L.divIcon({
+    className: 'custom-marker move-pin-marker',
+    html: `<div style="
+      width: ${px}px;
+      height: ${px}px;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.35);
+      border: 3px solid #f59e0b;
+      box-shadow: 0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    "><div style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 2px white;"></div></div>`,
+    iconSize: [px, px],
+    iconAnchor: [half, half],
   });
 }

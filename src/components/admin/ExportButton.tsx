@@ -25,6 +25,13 @@ export default function ExportButton({ dressings, locations }: ExportButtonProps
         Email: d?.volunteerEmail || '',
         'Dressed At': d?.dressedAt?.toDate?.()?.toISOString() || '',
         'Dressed By': d?.dressedBy || '',
+        // For checking pins against Google Maps; fixes go back in through
+        // Import Locations → Edit sites, matched by Site ID.
+        Latitude: loc.latitude.toFixed(6),
+        Longitude: loc.longitude.toFixed(6),
+        'Pin in Google Maps': `https://www.google.com/maps/search/?api=1&query=${loc.latitude.toFixed(6)},${loc.longitude.toFixed(6)}`,
+        'Search Google Maps': `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${loc.label}, ${loc.address}`)}`,
+        'Site ID': loc.id,
       };
     });
 

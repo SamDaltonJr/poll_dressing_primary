@@ -13,6 +13,8 @@ interface PollingMarkerProps {
   onRetrieveClick: (marker: MapMarker) => void;
   onReportClick: (marker: MapMarker) => void;
   onIncorrectReportClick: (marker: MapMarker) => void;
+  /** Present for admins who may reposition this site's pin. */
+  onMovePinClick?: (marker: MapMarker) => void;
   hasAccess: boolean;
 }
 
@@ -25,7 +27,7 @@ const STATUS_LABEL: Record<LocationStatus, string> = {
   retrieved: 'RETRIEVED',
 };
 
-export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, hasAccess }: PollingMarkerProps) {
+export default function PollingMarker({ marker, status, dressing, onClaimClick, onConfirmClick, onRetrieveClick, onReportClick, onIncorrectReportClick, onMovePinClick, hasAccess }: PollingMarkerProps) {
   const icon = createMarkerIcon(marker.type, status, marker.size, marker.priorityTier);
   // Priority sites draw on top of their neighbors.
   const zIndexOffset = marker.priorityTier === 1 ? 1000 : marker.priorityTier === 2 ? 500 : 0;
@@ -151,6 +153,17 @@ export default function PollingMarker({ marker, status, dressing, onClaimClick, 
             >
               Report Incorrect Info
             </button>
+            {onMovePinClick && (
+              <button
+                className="btn btn-sm marker-popup-move-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMovePinClick(marker);
+                }}
+              >
+                Move pin (admin)
+              </button>
+            )}
           </div>
         </div>
       </Popup>
