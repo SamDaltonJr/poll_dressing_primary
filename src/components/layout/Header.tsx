@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCampaign } from '../../contexts/CampaignContext';
+import { useAdminAuth } from '../../contexts/AdminContext';
 import { candidateInitials } from '../../config/campaigns';
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const campaign = useCampaign();
+  const { isAdmin, logout } = useAdminAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -36,6 +39,13 @@ export default function Header() {
   }
 
   const isActive = (suffix: string) => location.pathname === path(suffix);
+
+  function handleLogout() {
+    logout();
+    setMenuOpen(false);
+    // The dashboard would just show its login form again; send admins back to the map.
+    if (isActive('admin')) navigate(path(''));
+  }
 
   return (
     <header className="header">
@@ -68,7 +78,13 @@ export default function Header() {
             <Link to={path('submit')} className={isActive('submit') ? 'active' : ''} onClick={handleLinkClick}>Big Sign</Link>
           )}
           <Link to={path('my-locations')} className={isActive('my-locations') ? 'active' : ''} onClick={handleLinkClick}>My Locations</Link>
-          <Link to={path('admin')} className={isActive('admin') ? 'active' : ''} onClick={handleLinkClick}>Admin</Link>
+          {/* Admin is reachable by direct URL; the link only appears once logged in. */}
+          {isAdmin && (
+            <>
+              <Link to={path('admin')} className={isActive('admin') ? 'active' : ''} onClick={handleLinkClick}>Admin</Link>
+              <button type="button" className="header-logout" onClick={handleLogout}>Log out</button>
+            </>
+          )}
           <Link to="/" className="header-switch-campaign" onClick={handleLinkClick}>Switch</Link>
         </nav>
       </div>
